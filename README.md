@@ -20,5 +20,9 @@ npm run build
 npm run lint
 ```
 
+### Cordova plugins
+
+https://github.com/TheCocoaProject/cordova-plugin-nativestorage#README.md
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
