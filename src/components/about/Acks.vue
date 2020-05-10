@@ -19,6 +19,12 @@
         <li>Apache Cordova</li>
         <li>OnsenUI 2</li>
       </ul>
+      <p>
+        The following free images are used:
+      </p>
+      <ul>
+        <li>Walk cycle by Guerreiro (2011), available at https://openclipart.org/detail/103975/walk-cycle-by-guerreiro</li>
+      </ul>
     </div>
   </v-ons-page>
 </template>
