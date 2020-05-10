@@ -1,8 +1,5 @@
-<template id="home">
-  <v-ons-page id="tabbar-page">
-    <v-ons-toolbar>
-      <div class="center">Walk test</div>
-    </v-ons-toolbar>
+<template id="about">
+  <v-ons-page>
     <v-ons-navigator
        :page-stack="pageStack"
        @push-page="pageStack.push($event)"
@@ -12,13 +9,13 @@
 </template>
 
 <script>
-import testIntro from './walktest/TestIntro'
+import menu from './about/Menu'
 
 export default {
-  name: 'WalkPage',
+  name: 'AboutPage',
   data() {
     return {
-      pageStack: [testIntro]
+      pageStack: [menu]
     }
   }
 }
