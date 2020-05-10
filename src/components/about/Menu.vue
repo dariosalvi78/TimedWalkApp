@@ -14,6 +14,9 @@
       <div>
         <v-ons-button modifier="quiet" @click="pp">Privacy Policy</v-ons-button>
       </div>
+      <div>
+        <v-ons-button modifier="quiet" @click="license">License</v-ons-button>
+      </div>
     </div>
 
   </v-ons-page>
@@ -23,6 +26,7 @@
 import smwt from './SMWT'
 import acks from './Acks'
 import pp from './PrivacyPolicy'
+import license from './License'
 
 export default {
   name: 'AboutMenuPage',
@@ -33,8 +37,11 @@ export default {
     acks() {
       this.$emit('push-page', acks)
     },
-    pp() {
+    pp () {
       this.$emit('push-page', pp)
+    },
+    license () {
+      this.$emit('push-page', license)
     }
   }
 }
