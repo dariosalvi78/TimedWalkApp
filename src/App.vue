@@ -49,10 +49,6 @@ export default {
       document.documentElement.setAttribute('onsflag-iphonex-portrait', '')
       document.documentElement.setAttribute('onsflag-iphonex-landscape', '')
     }
-    console.log('about page',aboutPage)
-    this.$on('push-page', (page) => {
-      console.log(page)
-    })
   }
 }
 </script>
