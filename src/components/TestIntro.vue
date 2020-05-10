@@ -1,4 +1,4 @@
-<template id="test">
+<template id="testIntro">
   <v-ons-page>
     <p style="text-align: center">
       Instructions here

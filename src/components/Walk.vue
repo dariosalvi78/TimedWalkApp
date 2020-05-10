@@ -2,6 +2,7 @@
   <v-ons-navigator swipeable
      :page-stack="pageStack"
      @push-page="pageStack.push($event)"
+     ref="walkNavigator"
    ></v-ons-navigator>
 </template>
 
