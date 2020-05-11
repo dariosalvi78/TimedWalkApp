@@ -23,11 +23,15 @@
         <li>VueJS</li>
         <li>Apache Cordova</li>
         <li>OnsenUI 2</li>
+        <li>cordova-plugin-nativestorage</li>
+        <li>cordova-plugin-geolocation</li>
+        <li>cordova-plugin-pedometer</li>
       </ul>
       <p>
-        The following free images are used:
+        The following free icons and images are used:
       </p>
       <ul>
+        <li>Font awesome, available at https://fontawesome.com/</li>
         <li>Walk cycle by Guerreiro (2011), available at https://openclipart.org/detail/103975/walk-cycle-by-guerreiro</li>
       </ul>
     </div>
