@@ -22,7 +22,7 @@ let storage = {
 
   async setItem (key, value) {
     if (!this.isCordova) {
-      return window.localStorage.setItem(JSON.stringify(key), value)
+      return window.localStorage.setItem(key, JSON.stringify(value))
     } else {
       return new Promise((resolve, reject) => {
         window.NativeStorage.setItem(key, JSON.stringify(value), resolve, reject)
