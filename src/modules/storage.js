@@ -8,6 +8,16 @@
 let storage = {
   isCordova: false,
 
+  callbacks: {},
+
+  setChangeListener (key, cbk) {
+    this.callbacks[key] = cbk
+  },
+
+  unsetChangeListener (key) {
+    this.callbacks[key] = undefined
+  },
+
   async getItem (key) {
     if (!this.isCordova) {
       return JSON.parse(window.localStorage.getItem(key))
@@ -21,6 +31,7 @@ let storage = {
   },
 
   async setItem (key, value) {
+    if (this.callbacks[key]) this.callbacks[key](value)
     if (!this.isCordova) {
       return window.localStorage.setItem(key, JSON.stringify(value))
     } else {
@@ -31,6 +42,7 @@ let storage = {
   },
 
   async removeItem (key) {
+    if (this.callbacks[key]) this.callbacks[key](undefined)
     if (!this.isCordova) {
       return window.localStorage.removeItem(key)
     } else {

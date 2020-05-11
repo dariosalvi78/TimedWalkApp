@@ -6,7 +6,7 @@
       </h1>
       <div style="margin-top: 20px;"><b>Distance: </b> {{ testReport.distance.toFixed(2) }} meters</div>
       <div style="margin-top: 20px;"><b>Duration: </b> {{ testReport.duration }} minutes</div>
-      <div v-if="testReport.steps"><b>Steps: </b> {{ testReport.steps }}</div>
+      <div v-if="testReport.steps" style="margin-top: 20px;"><b>Steps: </b> {{ testReport.steps }}</div>
       <div style="margin-top: 40px;">
         <v-ons-button @click="save">
           Save and restart

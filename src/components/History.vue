@@ -31,6 +31,9 @@ export default {
   },
   async created () {
     this.history = await storage.getItem('history')
+    storage.setChangeListener('history', (hist) => {
+      this.history = hist
+    })
   },
   methods: {
     formatDate(d) {

@@ -21,6 +21,7 @@ import testCompletedPage from './TestCompleted'
 import WalkingMan from './WalkingMan'
 import storage from '../../modules/storage'
 import gps from '../../modules/gps'
+import stepcounter from '../../modules/stepcounter'
 import distanceAlgo from '../../modules/outdoorDistance'
 
 const SIGNAL_CHECK_TIMEOUT = 120000
@@ -44,8 +45,8 @@ export default {
     console.log('Mounted, starting GPS')
     let dur = await storage.getItem('duration')
     if (dur) {
-      // this.duration = dur
-      // this.countdown = dur * 60
+      this.duration = dur
+      this.countdown = dur * 60
     }
 
     // timeout of the signal check
@@ -79,6 +80,7 @@ export default {
     console.log('stopping stuff')
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     gps.stopNotifications()
+    stepcounter.stopNotifications()
     clearInterval(this.timer)
   },
   computed: {
@@ -91,15 +93,12 @@ export default {
   },
   methods: {
     async testStarted () {
-      // if (await phone.pedometer.isAvailable()) {
-      //     phone.pedometer.startNotifications({}, (steps) => {
-      //       console.log('Got steps', steps)
-      //       this.steps.steps.push({
-      //         timestamp: new Date().getTime(),
-      //         steps: numberOfSteps
-      //       })
-      //     })
-      //   }
+      if (await stepcounter.isAvailable()) {
+          stepcounter.startNotifications({}, (steps) => {
+            console.log('Got steps', steps)
+            this.lastStep = steps.numberOfSteps
+          })
+        }
       console.log('Test started')
       this.isSignalCheck = false
       if (this.$refs.walkingMan) this.$refs.walkingMan.play()
