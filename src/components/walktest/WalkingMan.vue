@@ -35,6 +35,7 @@ export default {
   },
   methods: {
     play () {
+      if (timer) clearInterval(timer)
       var et = 0;
       timer = setInterval(function() {
         path.setAttribute("d", d[et])

@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import testCompleted from './TestCompleted'
+import testCompletedPage from './TestCompleted'
 import WalkingMan from './WalkingMan'
 import storage from '../../modules/storage'
 import gps from '../../modules/gps'
@@ -34,18 +34,18 @@ export default {
   data () {
     return {
       duration: 6,
-      countdown: 360,
+      countdown: 10,
       timer: undefined,
       isSignalCheck: true,
       lastStep: undefined
     }
   },
   async mounted () {
-    console.log('Started')
+    console.log('Mounted, starting GPS')
     let dur = await storage.getItem('duration')
     if (dur) {
-      this.duration = dur
-      this.countdown = dur * 60
+      // this.duration = dur
+      // this.countdown = dur * 60
     }
 
     // timeout of the signal check
@@ -58,7 +58,7 @@ export default {
       timeout: 5000,
       enableHighAccuracy: true
     }, async (position) => {
-      console.log('Got position: ', position)
+      // console.log('Got position: ', position)
       if (this.lastStep) {
         position.steps = this.lastStep
       }
@@ -100,9 +100,11 @@ export default {
       //       })
       //     })
       //   }
+      console.log('Test started')
       this.isSignalCheck = false
-      this.$refs.walkingMan.play()
+      if (this.$refs.walkingMan) this.$refs.walkingMan.play()
       distanceAlgo.startTest()
+      if (this.timer) clearInterval(this.timer)
       this.timer = setInterval(() => {
         if (this.countdown >= 1) {
           this.countdown--
@@ -112,6 +114,9 @@ export default {
       }, 1000)
     },
     async testCompleted () {
+      clearInterval(this.timer)
+      gps.stopNotifications()
+
       distanceAlgo.stopTest()
       let distance = distanceAlgo.getDistance()
       let testReport = {
@@ -120,9 +125,9 @@ export default {
         distance: distance,
         steps: this.lastStep
       }
-      
+
       this.$emit('push-page', {
-        ...testCompleted,
+        extends: testCompletedPage,
         onsNavigatorProps: {
           testReport
         }
