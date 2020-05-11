@@ -32,6 +32,7 @@
       </p>
       <ul>
         <li>Font awesome, available at https://fontawesome.com/</li>
+        <li>The main icon of this app is taken from Font Awesome, at https://fontawesome.com/icons/shoe-prints?style=solid</li>
         <li>Walk cycle by Guerreiro (2011), available at https://openclipart.org/detail/103975/walk-cycle-by-guerreiro</li>
       </ul>
     </div>
