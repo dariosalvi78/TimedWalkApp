@@ -30,6 +30,7 @@
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         SOFTWARE.
       </p>
+      <p>The source code of this app is available at: https://github.com/dariosalvi78/TimedWalkApp</p>
     </div>
   </v-ons-page>
 </template>

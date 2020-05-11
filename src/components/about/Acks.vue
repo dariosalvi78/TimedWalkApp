@@ -12,6 +12,11 @@
         the University of Malmö.
       </p>
       <p>
+        If you want to get in contact with its author,
+        please send an email to dario.salvi@mau.se.
+        Acknowledgments, research collaborations and donations are very welcome.
+      </p>
+      <p>
         The app uses the following open source libraries and frameworks:
       </p>
       <ul>
