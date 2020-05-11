@@ -7,6 +7,7 @@ let mockGPS = {
     let startLat = 51.751985
     let startLong = -1.257609
     let counter = 0
+    if (this.timerid) clearInterval(this.timerid)
     this.timerid = setInterval(function () {
       counter++
       cbk({

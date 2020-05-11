@@ -30,6 +30,7 @@ let mockStepCounter = {
   },
   startNotifications (options, cbk) {
     this.steps = 0
+    if (this.timer) clearInterval(this.timer)
     this.timer = setInterval(() => {
       this.steps++
       cbk({

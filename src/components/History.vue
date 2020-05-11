@@ -10,8 +10,8 @@
           <v-ons-list>
             <v-ons-list-header><b>Test date:</b> &nbsp; {{ formatDate(test.date) }}</v-ons-list-header>
             <v-ons-list-item><b>Duration:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
-            <v-ons-list-item><b>Distance:</b> &nbsp; {{ test.distance.toFixed(2) }} m</v-ons-list-item>
-            <v-ons-list-item v-if="test.steps"><b>Steps:</b> &nbsp; {{ test.steps }} meters</v-ons-list-item>
+            <v-ons-list-item><b>Distance:</b> &nbsp; {{ test.distance.toFixed(2) }} meters</v-ons-list-item>
+            <v-ons-list-item v-if="test.steps"><b>Steps:</b> &nbsp; {{ test.steps }}</v-ons-list-item>
           </v-ons-list>
         </div>
       </v-ons-card>

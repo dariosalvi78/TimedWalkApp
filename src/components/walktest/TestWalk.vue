@@ -59,7 +59,7 @@ export default {
       timeout: 5000,
       enableHighAccuracy: true
     }, async (position) => {
-      // console.log('Got position: ', position)
+      console.log('Got position: ', position)
       if (this.lastStep) {
         position.steps = this.lastStep
       }
