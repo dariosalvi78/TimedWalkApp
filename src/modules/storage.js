@@ -10,7 +10,7 @@ let storage = {
 
   async getItem (key) {
     if (!this.isCordova) {
-      return window.localStorage.getItem(key)
+      return JSON.parse(window.localStorage.getItem(key))
     } else {
       return new Promise((resolve, reject) => {
         window.NativeStorage.getItem(key, (data) => {
@@ -22,7 +22,7 @@ let storage = {
 
   async setItem (key, value) {
     if (!this.isCordova) {
-      return window.localStorage.setItem(key, value)
+      return window.localStorage.setItem(JSON.stringify(key), value)
     } else {
       return new Promise((resolve, reject) => {
         window.NativeStorage.setItem(key, JSON.stringify(value), resolve, reject)
