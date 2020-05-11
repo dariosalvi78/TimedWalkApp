@@ -33,10 +33,10 @@
         <v-ons-icon icon="fa-user-cog" size="30px"></v-ons-icon>
       </p>
       <p>
-        <b>Activate the GPS and Mobile Internet.</b>
+        <b>Activate the GPS.</b>
       </p>
       <p>
-        This will increase the quality of the measurement.
+        You may also want to keep the Mobile Internet activated, as this will improve the accuracy of the localisation.
       </p>
       <p>
         The app may ask you to provide permission to access your position and the step counter. These are needed to compute the distance you walk.
