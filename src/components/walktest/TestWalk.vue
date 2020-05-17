@@ -27,7 +27,7 @@ import distanceAlgo from '../../modules/outdoorDistance'
 const SIGNAL_CHECK_TIMEOUT = 120000
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
-let padToTwo= number => number <= 99 ? `0${number}`.slice(-2) : number;
+let padToTwo = number => number <= 99 ? `0${number}`.slice(-2) : number
 
 export default {
   name: 'TestWalkPage',
@@ -94,11 +94,11 @@ export default {
   methods: {
     async testStarted () {
       if (await stepcounter.isAvailable()) {
-          stepcounter.startNotifications({}, (steps) => {
-            console.log('Got steps', steps)
-            this.lastStep = steps.numberOfSteps
-          })
-        }
+        stepcounter.startNotifications({}, (steps) => {
+          console.log('Got steps', steps)
+          this.lastStep = steps.numberOfSteps
+        })
+      }
       console.log('Test started')
       this.isSignalCheck = false
       if (this.$refs.walkingMan) this.$refs.walkingMan.play()

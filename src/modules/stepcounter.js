@@ -47,4 +47,4 @@ let mockStepCounter = {
 }
 
 let MOCK = true
-export default MOCK? mockStepCounter:realStepCounter
+export default MOCK ? mockStepCounter : realStepCounter

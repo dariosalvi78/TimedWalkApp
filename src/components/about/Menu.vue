@@ -31,10 +31,10 @@ import license from './License'
 export default {
   name: 'AboutMenuPage',
   methods: {
-    smwt() {
+    smwt () {
       this.$emit('push-page', smwt)
     },
-    acks() {
+    acks () {
       this.$emit('push-page', acks)
     },
     pp () {

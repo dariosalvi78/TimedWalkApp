@@ -13,32 +13,32 @@ import walkPage from './components/Walk'
 
 export default {
   name: 'MainPage',
-  data() {
+  data () {
     return {
       activeIndex: 0,
       tabs: [
         {
           label: 'Home',
           icon: 'fa-home',
-          key:  'homePage',
+          key: 'homePage',
           page: homePage
         },
         {
           label: 'Walk',
           icon: 'fa-walking',
-          key:  'walkPage',
+          key: 'walkPage',
           page: walkPage
         },
         {
           label: 'History',
           icon: 'fa-history',
-          key:  'historyPage',
+          key: 'historyPage',
           page: historyPage
         },
         {
           label: 'About',
           icon: 'fa-question',
-          key:  'aboutPage',
+          key: 'aboutPage',
           page: aboutPage
         }
       ]

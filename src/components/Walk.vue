@@ -16,7 +16,7 @@ import testIntro from './walktest/TestIntro'
 
 export default {
   name: 'WalkPage',
-  data() {
+  data () {
     return {
       pageStack: [testIntro]
     }

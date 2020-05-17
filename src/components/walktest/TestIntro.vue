@@ -94,7 +94,7 @@ export default {
     }
   },
   methods: {
-    async startTest() {
+    async startTest () {
       // store duration so the next time is already set by default
       await storage.setItem('duration', this.duration)
       this.$emit('push-page', testWalk)

@@ -36,9 +36,9 @@ export default {
     })
   },
   methods: {
-    formatDate(d) {
+    formatDate (d) {
       let date = new Date(d)
-      return date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
+      return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
     }
   }
 }

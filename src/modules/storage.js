@@ -63,7 +63,7 @@ let storage = {
   }
 }
 
-document.addEventListener("deviceready", () => {
+document.addEventListener('deviceready', () => {
   storage.isCordova = true
 }, false)
 

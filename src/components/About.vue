@@ -13,7 +13,7 @@ import menu from './about/Menu'
 
 export default {
   name: 'AboutPage',
-  data() {
+  data () {
     return {
       pageStack: [menu]
     }
