@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "cordova-android": "^8.1.0",
+    "cordova-ios": "^5.1.1",
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
@@ -88,7 +89,8 @@
       "cordova-plugin-pedometer": {}
     },
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   }
 }
