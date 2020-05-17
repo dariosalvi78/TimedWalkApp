@@ -8,6 +8,7 @@ yarn-error.log*
 
 # Build stuff
 www/
+plugins/
 
 # Editor directories and files
 .idea
