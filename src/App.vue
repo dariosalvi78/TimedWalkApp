@@ -1,40 +1,57 @@
-<template>
-  <v-ons-page id="app">
-    <v-ons-splitter>
-      <v-ons-splitter-side swipeable collapse width="250px"
-        :animation="$ons.platform.isAndroid() ? 'overlay' : 'reveal'"
-        :open.sync="menuIsOpen">
-        <menu-page></menu-page>
-      </v-ons-splitter-side>
-
-      <v-ons-splitter-content>
-        <home-page @toggleMenu="menuIsOpen = !menuIsOpen"></home-page>
-      </v-ons-splitter-content>
-    </v-ons-splitter>
+<template id="main-page">
+  <v-ons-page id="tabbar-page">
+    <v-ons-tabbar swipeable position="auto" :visible="true" :index.sync="activeIndex" :tabs="tabs">
+    </v-ons-tabbar>
   </v-ons-page>
 </template>
 
 <script>
-import HomePage from './components/HomePage'
-import MenuPage from './components/MenuPage'
+import homePage from './components/Home'
+import aboutPage from './components/About'
+import historyPage from './components/History'
+import walkPage from './components/Walk'
 
 export default {
-  name: 'app',
-  data () {
+  name: 'MainPage',
+  data() {
     return {
-      menuIsOpen: false
+      activeIndex: 0,
+      tabs: [
+        {
+          label: 'Home',
+          icon: 'fa-home',
+          key:  'homePage',
+          page: homePage
+        },
+        {
+          label: 'Walk',
+          icon: 'fa-walking',
+          key:  'walkPage',
+          page: walkPage
+        },
+        {
+          label: 'History',
+          icon: 'fa-history',
+          key:  'historyPage',
+          page: historyPage
+        },
+        {
+          label: 'About',
+          icon: 'fa-question',
+          key:  'aboutPage',
+          page: aboutPage
+        }
+      ]
     }
   },
-  components: {
-    HomePage,
-    MenuPage
+  created () {
+    if (this.$ons.platform.isIPhoneX()) {
+      document.documentElement.setAttribute('onsflag-iphonex-portrait', '')
+      document.documentElement.setAttribute('onsflag-iphonex-landscape', '')
+    }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-ons-splitter-side[side=left][animation=overlay] {
-  border-right: 1px solid #BBB;
-}
+<style>
 </style>
