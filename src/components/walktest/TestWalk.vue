@@ -115,6 +115,8 @@ export default {
     async testCompleted () {
       clearInterval(this.timer)
       gps.stopNotifications()
+      this.$refs.walkingMan.stop()
+      stepcounter.stopNotifications()
 
       distanceAlgo.stopTest()
       let distance = distanceAlgo.getDistance()
