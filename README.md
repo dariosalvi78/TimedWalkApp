@@ -1,6 +1,9 @@
-# timed-walk-app
+# Timed Walk App
 
-> Ttimed walk app
+Apache Cordova app that allows people to perform time walk tests, like the 6-minute walk test.
+The algorithm that computes the distance from the GPS is the same as the one used in [this paper](https://mhealth.jmir.org/2020/1/e13756/).
+
+This app is not certified as a medical device and should be used only for general wellbeing or as a home-based complement to more rigorous clinical assessment.
 
 ## Build Setup
 
@@ -17,5 +20,3 @@ npm run build
 # build for production and view the bundle analyzer report
 npm run build --report
 ```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
