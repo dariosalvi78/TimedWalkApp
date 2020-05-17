@@ -1,9 +1,9 @@
 {
   "name": "timed-walk-app",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Ttimed walk app",
   "author": "Dario Salvi",
-  "private": true,
+  "private": false,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
