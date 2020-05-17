@@ -7,7 +7,7 @@
       <div class="center">Privacy Policy</div>
     </v-ons-toolbar>
     <div class="content" style="padding: 10px;">
-      Then you perform a test, this app retrieves the following information from
+      When you perform a test, this app retrieves the following information from
       your phone:
       <ul>
         <li>
