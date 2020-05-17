@@ -1,17 +1,19 @@
-// Webpack CSS import
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import 'onsenui/css/onsenui.css'
 import 'onsenui/css/onsen-css-components.css'
 
-// JS import
 import Vue from 'vue'
-import VueOnsen from 'vue-onsenui' // This imports 'onsenui', so no need to import it separately
-import App from './App.vue'
-
-Vue.use(VueOnsen); // VueOnsen set here as plugin to VUE. Done automatically if a call to window.Vue exists in the startup code.
-
+import VueOnsen from 'vue-onsenui'
+import App from './App'
 
 Vue.config.productionTip = false
 
+Vue.use(VueOnsen)
+
+/* eslint-disable no-new */
 new Vue({
-  render: h => h(App),
-}).$mount('#app')
+  el: '#app',
+  template: '<App/>',
+  components: { App }
+})
