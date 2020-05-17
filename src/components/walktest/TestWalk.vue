@@ -51,7 +51,7 @@ export default {
 
     // timeout of the signal check
     let signalCheckStartedTS = new Date()
-    setTimeout(this.testStarted, SIGNAL_CHECK_TIMEOUT)
+    this.timer = setTimeout(this.testStarted, SIGNAL_CHECK_TIMEOUT)
 
     // start getting GPS
     gps.startNotifications({
@@ -68,6 +68,7 @@ export default {
       if (this.isSignalCheck) {
         // start if the signal is OK or after timeout
         if (distanceAlgo.isSignalOK() || ((new Date() - signalCheckStartedTS) >= SIGNAL_CHECK_TIMEOUT)) {
+          clearTimeout(this.timer)
           // start the next phase
           this.testStarted()
         }
@@ -78,10 +79,11 @@ export default {
   },
   beforeDestroy () {
     console.log('stopping stuff')
+    clearInterval(this.timer)
+    clearTimeout(this.timer)
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     gps.stopNotifications()
     stepcounter.stopNotifications()
-    clearInterval(this.timer)
   },
   computed: {
     minutes () {
@@ -114,6 +116,7 @@ export default {
     },
     async testCompleted () {
       clearInterval(this.timer)
+      clearTimeout(this.timer)
       gps.stopNotifications()
       this.$refs.walkingMan.stop()
       stepcounter.stopNotifications()
