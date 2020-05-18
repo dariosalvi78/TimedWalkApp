@@ -55,12 +55,8 @@ export default {
           historyTxt += '\n\n'
         }
       }
-      console.log('sharing', historyTxt)
       if (window.plugins.socialsharing.share) {
-        window.plugins.socialsharing.share({
-          message: historyTxt,
-          subject: '6MWT history'
-        })
+        window.plugins.socialsharing.share(historyTxt, '6MWT history')
       }
     }
   }
