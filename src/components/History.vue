@@ -16,6 +16,9 @@
         </div>
       </v-ons-card>
     </div>
+    <v-ons-fab :visible="showShare" @click="share()" position="bottom right">
+      <v-ons-icon icon="fa-share-alt"></v-ons-icon>
+    </v-ons-fab>
   </v-ons-page>
 </template>
 
@@ -26,7 +29,8 @@ export default {
   name: 'HistoryPage',
   data () {
     return {
-      history: undefined
+      history: undefined,
+      showShare: !!window.plugins.socialsharing.share
     }
   },
   async created () {
@@ -39,6 +43,25 @@ export default {
     formatDate (d) {
       let date = new Date(d)
       return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
+    },
+    async share () {
+      let historyTxt = ''
+      if (this.history) {
+        for (let test of this.history) {
+          historyTxt += 'Test date: ' + this.formatDate(test.date) + '\n'
+          historyTxt += 'Duration: ' + test.duration + ' minutes\n'
+          historyTxt += 'Distance: ' + test.distance.toFixed(2) + ' meters\n'
+          if (test.steps !== undefined) historyTxt += 'Steps: ' + test.steps + '\n'
+          historyTxt += '\n\n'
+        }
+      }
+      console.log('sharing', historyTxt)
+      if (window.plugins.socialsharing.share) {
+        window.plugins.socialsharing.share({
+          message: historyTxt,
+          subject: '6MWT history'
+        })
+      }
     }
   }
 }
