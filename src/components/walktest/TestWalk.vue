@@ -3,8 +3,8 @@
     <div class="content" style="padding: 10px; text-align: center;">
       <walking-man ref="walkingMan"/>
       <div style="margin-top: 40px;">
-        <h2 v-show="isSignalCheck" >Waiting for GPS signal</h2>
-        <h2 v-show="!isSignalCheck" >Walk</h2>
+        <h2 v-show="isSignalCheck" >Waiting for GPS signal, make sure you are outdoor and have GPS activated on the phone</h2>
+        <h2 v-show="!isSignalCheck" >Walk!</h2>
         <div class="timer"> {{ minutes }} : {{ seconds }} </div>
       </div>
       <div style="margin-top: 40px;">
@@ -23,8 +23,6 @@ import storage from '../../modules/storage'
 import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
 import distanceAlgo from '../../modules/outdoorDistance'
-
-const SIGNAL_CHECK_TIMEOUT = 120000
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
 let padToTwo = number => number <= 99 ? `0${number}`.slice(-2) : number
@@ -49,16 +47,8 @@ export default {
       this.countdown = dur * 60
     }
 
-    // timeout of the signal check
-    let signalCheckStartedTS = new Date()
-    this.timer = setTimeout(this.testStarted, SIGNAL_CHECK_TIMEOUT)
-
     // start getting GPS
-    gps.startNotifications({
-      maximumAge: 5000,
-      timeout: 5000,
-      enableHighAccuracy: true
-    }, async (position) => {
+    gps.startNotifications(async (position) => {
       console.log('Got position: ', position)
       if (this.lastStep) {
         position.steps = this.lastStep
@@ -66,9 +56,8 @@ export default {
       distanceAlgo.addPosition(position)
 
       if (this.isSignalCheck) {
-        // start if the signal is OK or after timeout
-        if (distanceAlgo.isSignalOK() || ((new Date() - signalCheckStartedTS) >= SIGNAL_CHECK_TIMEOUT)) {
-          clearTimeout(this.timer)
+        // start if the signal is OK
+        if (distanceAlgo.isSignalOK()) {
           // start the next phase
           this.testStarted()
         }
@@ -80,7 +69,6 @@ export default {
   beforeDestroy () {
     console.log('stopping stuff')
     clearInterval(this.timer)
-    clearTimeout(this.timer)
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     gps.stopNotifications()
     stepcounter.stopNotifications()
@@ -116,7 +104,6 @@ export default {
     },
     async testCompleted () {
       clearInterval(this.timer)
-      clearTimeout(this.timer)
       gps.stopNotifications()
       this.$refs.walkingMan.stop()
       stepcounter.stopNotifications()
