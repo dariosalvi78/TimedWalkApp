@@ -76,4 +76,8 @@
     <plugin name="cordova-plugin-geolocation" spec="~4.0.2" />
     <plugin name="cordova-plugin-pedometer" spec="~0.4.1" />
     <plugin name="cordova-plugin-wkwebview-engine" spec="~1.2.1" />
+    <plugin name="cordova-plugin-insomnia" spec="~4.3.0" />
+    <plugin name="cordova-plugin-x-socialsharing" spec="~5.6.5">
+        <variable name="ANDROID_SUPPORT_V4_VERSION" value="24.1.1+" />
+    </plugin>
 </widget>
