@@ -45,10 +45,18 @@ export default {
     }
   },
   created () {
-    if (this.$ons.platform.isIPhoneX()) {
-      document.documentElement.setAttribute('onsflag-iphonex-portrait', '')
-      document.documentElement.setAttribute('onsflag-iphonex-landscape', '')
-    }
+    console.log('isWebview? ', this.$ons.platform.isWebView())
+    console.log('isIPhone? ', this.$ons.platform.isIPhone())
+    console.log('isIPhoneX? ', this.$ons.platform.isIPhoneX())
+    console.log('isIOSSafari? ', this.$ons.platform.isWebView())
+    console.log('isWKWebView? ', this.$ons.platform.isWebView())
+    console.log('isUIWebView? ', this.$ons.platform.isUIWebView())
+    console.log('isAndroidPhone? ', this.$ons.platform.isAndroidPhone())
+
+    // if (this.$ons.platform.isIPhoneX()) {
+    //   document.documentElement.setAttribute('onsflag-iphonex-portrait', '')
+    //   document.documentElement.setAttribute('onsflag-iphonex-landscape', '')
+    // }
   }
 }
 </script>
