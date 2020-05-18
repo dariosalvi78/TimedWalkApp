@@ -9,7 +9,6 @@
     </author>
     <content src="index.html" />
     <icon src="res/icon/logo.png" />
-    <plugin name="cordova-plugin-whitelist" spec="1" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -24,4 +23,8 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
+    <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-nativestorage" spec="~2.3.2" />
+    <plugin name="cordova-plugin-geolocation" spec="~4.0.2" />
+    <plugin name="cordova-plugin-pedometer" spec="~0.4.1" />
 </widget>
