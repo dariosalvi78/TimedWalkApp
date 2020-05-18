@@ -11,6 +11,15 @@ Vue.use(VueOnsen) // VueOnsen set here as plugin to VUE. Done automatically if a
 
 Vue.config.productionTip = false
 
-new Vue({
-  render: h => h(App)
-}).$mount('#app')
+let start = function () {
+  new Vue({
+    render: h => h(App)
+  }).$mount('#app')
+}
+
+if (process.env.NODE_ENV === 'production') {
+  // wait for cordova device ready
+  document.addEventListener('deviceready', start, false)
+} else {
+  start()
+}

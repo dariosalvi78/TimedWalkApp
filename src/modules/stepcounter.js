@@ -46,5 +46,4 @@ let mockStepCounter = {
   }
 }
 
-let MOCK = true
-export default MOCK ? mockStepCounter : realStepCounter
+export default (process.env.NODE_ENV === 'production') ? realStepCounter : mockStepCounter

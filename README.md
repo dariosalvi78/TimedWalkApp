@@ -27,8 +27,7 @@ cordova prepare
 npm run dev
 ```
 
-If you want to run it on the phone, make sure you are not mocking the GPS, storage
-and stepcounter modules (see the end of the corresponding files), then:
+Then:
 ``` bash
 cordova run
 ```

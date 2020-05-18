@@ -53,6 +53,4 @@ let realGPS = {
   }
 }
 
-// use MOCK for testing in the browser, mockGPS for the real data
-let MOCK = true
-export default MOCK ? mockGPS : realGPS
+export default (process.env.NODE_ENV === 'production') ? realGPS : mockGPS
