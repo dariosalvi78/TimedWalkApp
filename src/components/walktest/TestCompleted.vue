@@ -9,7 +9,7 @@
       <div v-if="testReport.steps" style="margin-top: 20px;"><b>Steps: </b> {{ testReport.steps }}</div>
       <div style="margin-top: 40px;">
         <v-ons-button @click="save">
-          Save and restart
+          Save and go back
         </v-ons-button>
       </div>
     </div>
