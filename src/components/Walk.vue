@@ -3,11 +3,14 @@
     <v-ons-toolbar>
       <div class="center">Walk test</div>
     </v-ons-toolbar>
-    <v-ons-navigator
-       :page-stack="pageStack"
-       @push-page="pageStack.push($event)"
-       ref="walkNavigator"
-     ></v-ons-navigator>
+    <div class="content">
+      <v-ons-navigator
+         :page-stack="pageStack"
+         @push-page="pageStack.push($event)"
+         ref="walkNavigator"
+         swipeable="false"
+       ></v-ons-navigator>
+    </div>
   </v-ons-page>
 </template>
 

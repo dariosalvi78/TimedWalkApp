@@ -15,6 +15,7 @@
     "cordova-android": "^8.1.0",
     "cordova-ios": "^5.1.1",
     "cordova-plugin-geolocation": "^4.0.2",
+    "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
     "cordova-plugin-wkwebview-engine": "^1.2.1",
@@ -88,7 +89,8 @@
       "cordova-plugin-nativestorage": {},
       "cordova-plugin-geolocation": {},
       "cordova-plugin-pedometer": {},
-      "cordova-plugin-wkwebview-engine": {}
+      "cordova-plugin-wkwebview-engine": {},
+      "cordova-plugin-insomnia": {}
     },
     "platforms": [
       "android",

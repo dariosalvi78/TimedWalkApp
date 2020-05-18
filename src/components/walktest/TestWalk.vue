@@ -47,6 +47,9 @@ export default {
       this.countdown = dur * 60
     }
 
+    // avoid screen going to sleep
+    if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.keepAwake()
+
     // start getting GPS
     gps.startNotifications(async (position) => {
       console.log('Got position: ', position)
@@ -68,6 +71,7 @@ export default {
   },
   beforeDestroy () {
     console.log('stopping stuff')
+    if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.allowSleepAgain()
     clearInterval(this.timer)
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     gps.stopNotifications()
@@ -103,6 +107,7 @@ export default {
       }, 1000)
     },
     async testCompleted () {
+      if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.allowSleepAgain()
       clearInterval(this.timer)
       gps.stopNotifications()
       this.$refs.walkingMan.stop()
