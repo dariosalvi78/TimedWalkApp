@@ -1,7 +1,7 @@
 {
-  "name": "timed-walk-app",
+  "name": "se.mau.timedwalkapp",
   "version": "0.1.0",
-  "description": "Ttimed walk app",
+  "description": "Timed walk app",
   "author": "Dario Salvi",
   "private": false,
   "scripts": {
