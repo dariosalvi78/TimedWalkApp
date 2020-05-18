@@ -6,7 +6,7 @@
 */
 
 let storage = {
-  isCordova: false,
+  useNative: false,
 
   callbacks: {},
 
@@ -19,7 +19,7 @@ let storage = {
   },
 
   async getItem (key) {
-    if (!this.isCordova) {
+    if (!this.useNative) {
       return JSON.parse(window.localStorage.getItem(key))
     } else {
       return new Promise((resolve, reject) => {
@@ -32,7 +32,7 @@ let storage = {
 
   async setItem (key, value) {
     if (this.callbacks[key]) this.callbacks[key](value)
-    if (!this.isCordova) {
+    if (!this.useNative) {
       return window.localStorage.setItem(key, JSON.stringify(value))
     } else {
       return new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ let storage = {
 
   async removeItem (key) {
     if (this.callbacks[key]) this.callbacks[key](undefined)
-    if (!this.isCordova) {
+    if (!this.useNative) {
       return window.localStorage.removeItem(key)
     } else {
       return new Promise((resolve, reject) => {
@@ -53,7 +53,7 @@ let storage = {
   },
 
   async clear () {
-    if (!this.isCordova) {
+    if (!this.useNative) {
       return window.localStorage.clear()
     } else {
       return new Promise((resolve, reject) => {
@@ -63,8 +63,7 @@ let storage = {
   }
 }
 
-document.addEventListener('deviceready', () => {
-  storage.isCordova = true
-}, false)
-
+// set the following to false to use the browser storage (deleted after a week
+// on iOS!!!)
+storage.useNative = false
 export default storage

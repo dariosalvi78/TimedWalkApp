@@ -7,16 +7,40 @@ This app is not certified as a medical device and should be used only for genera
 
 ## Build Setup
 
+You need:
+
+- Nodejs
+- Apache Cordova
+
+The run
+
 ``` bash
 # install dependencies
 npm install
+cordova prepare
+```
 
+## Run
+
+``` bash
 # serve with hot reload at localhost:8080
 npm run dev
+```
 
+If you want to run it on the phone, make sure you are not mocking the GPS, storage
+and stepcounter modules (see the end of the corresponding files), then:
+``` bash
+cordova run
+```
+
+## Deploy
+
+``` bash
 # build for production with minification
 npm run build
 
 # build for production and view the bundle analyzer report
 npm run build --report
 ```
+
+Then you need to sign the app and release it. Seek instructions online on how to do it.
