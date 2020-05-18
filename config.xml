@@ -1,30 +1,39 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="timed-walk-app" version="0.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>TimedWalk</name>
-    <description>
-      Timed Walk App
-    </description>
-    <author email="dario.salvi@mau.se" href="http://cordova.io">
-      Dario Salvi
-    </author>
-    <content src="index.html" />
-    <icon src="res/icon/logo.png" />
-    <access origin="*" />
-    <allow-intent href="http://*/*" />
-    <allow-intent href="https://*/*" />
-    <allow-intent href="tel:*" />
-    <allow-intent href="sms:*" />
-    <allow-intent href="mailto:*" />
-    <allow-intent href="geo:*" />
-    <platform name="android">
-        <allow-intent href="market:*" />
-    </platform>
-    <platform name="ios">
-        <allow-intent href="itms:*" />
-        <allow-intent href="itms-apps:*" />
-    </platform>
-    <plugin name="cordova-plugin-whitelist" spec="1" />
-    <plugin name="cordova-plugin-nativestorage" spec="~2.3.2" />
-    <plugin name="cordova-plugin-geolocation" spec="~4.0.2" />
-    <plugin name="cordova-plugin-pedometer" spec="~0.4.1" />
+  <name>TimedWalk</name>
+  <description>
+    Timed Walk App
+  </description>
+  <author email="dario.salvi@mau.se" href="http://cordova.io">
+    Dario Salvi
+  </author>
+  <content src="index.html" />
+  <icon src="res/icon/logo.png" />
+  <access origin="*" />
+  <allow-intent href="http://*/*" />
+  <allow-intent href="https://*/*" />
+  <allow-intent href="tel:*" />
+  <allow-intent href="sms:*" />
+  <allow-intent href="mailto:*" />
+  <allow-intent href="geo:*" />
+  <platform name="android">
+    <allow-intent href="market:*" />
+  </platform>
+  <platform name="ios">
+    <allow-intent href="itms:*" />
+    <allow-intent href="itms-apps:*" />
+  </platform>
+  <plugin name="cordova-plugin-whitelist" spec="1" />
+  <plugin name="cordova-plugin-nativestorage" spec="~2.3.2" />
+  <plugin name="cordova-plugin-geolocation" spec="~4.0.2" />
+  <edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
+    <string>The app needs to use location to compute the walked distance</string>
+  </edit-config>
+  <edit-config file="*-Info.plist" mode="merge" target="NSLocationAlwaysUsageDescription">
+    <string>The app needs to use location to compute the walked distance</string>
+  </edit-config>
+  <edit-config target="NSMotionUsageDescription" file="*-Info.plist" mode="merge">
+    <string>The app needs to use location to compute the wlaked distance</string>
+  </edit-config>
+  <plugin name="cordova-plugin-pedometer" spec="~0.4.1" />
 </widget>
