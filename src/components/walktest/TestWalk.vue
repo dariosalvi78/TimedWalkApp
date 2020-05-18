@@ -3,7 +3,7 @@
     <div class="content" style="padding: 10px; text-align: center;">
       <walking-man ref="walkingMan"/>
       <div style="margin-top: 40px;">
-        <h2 v-show="isSignalCheck" >Waiting for GPS signal, make sure you are outdoor and have GPS activated on the phone</h2>
+        <h2 v-show="isSignalCheck" >Waiting for GPS signal, make sure you are outdoor and the GPS is activated on the phone</h2>
         <h2 v-show="!isSignalCheck" >Walk!</h2>
         <div class="timer"> {{ minutes }} : {{ seconds }} </div>
       </div>
