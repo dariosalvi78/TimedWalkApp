@@ -24,32 +24,39 @@ let storage = {
     } else {
       return new Promise((resolve, reject) => {
         window.NativeStorage.getItem(key, (data) => {
-          resolve(JSON.parse(data))
-        }, reject)
+          resolve(data)
+        }, (err) => {
+          if (err.code === 2) resolve(null)
+          else reject(err)
+        })
       })
     }
   },
 
   async setItem (key, value) {
-    if (this.callbacks[key]) this.callbacks[key](value)
+    let promise
     if (!this.useNative) {
-      return window.localStorage.setItem(key, JSON.stringify(value))
+      promise = window.localStorage.setItem(key, JSON.stringify(value))
     } else {
-      return new Promise((resolve, reject) => {
-        window.NativeStorage.setItem(key, JSON.stringify(value), resolve, reject)
+      promise = new Promise((resolve, reject) => {
+        window.NativeStorage.setItem(key, value, resolve, reject)
       })
     }
+    if (this.callbacks[key]) this.callbacks[key](value)
+    return promise
   },
 
   async removeItem (key) {
-    if (this.callbacks[key]) this.callbacks[key](undefined)
+    let promise
     if (!this.useNative) {
-      return window.localStorage.removeItem(key)
+      promise = window.localStorage.removeItem(key)
     } else {
-      return new Promise((resolve, reject) => {
+      promise = new Promise((resolve, reject) => {
         window.NativeStorage.removeItem(key, resolve, reject)
       })
     }
+    if (this.callbacks[key]) this.callbacks[key](null)
+    return promise
   },
 
   async clear () {

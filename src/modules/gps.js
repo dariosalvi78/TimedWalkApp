@@ -3,7 +3,7 @@ let mockGPS = {
   async isAvailable () {
     return Promise.resolve(true)
   },
-  startNotifications (options, cbk) {
+  startNotifications (cbk) {
     let startLat = 51.751985
     let startLong = -1.257609
     let counter = 0
@@ -29,7 +29,7 @@ let mockGPS = {
 
 let realGPS = {
   watchid: null,
-  startNotifications (options, cbk, error) {
+  startNotifications (cbk, error) {
     this.watchid = navigator.geolocation.watchPosition((position) => {
       // we need to create a copy of the position object because
       // Chromium does something strange that is not serialisable as JSON
@@ -45,7 +45,11 @@ let realGPS = {
       if (position.coords.speed) copyPos.coords.speed = position.coords.speed
 
       cbk(copyPos)
-    }, error, options)
+    }, error, {
+      maximumAge: 5000,
+      timeout: 5000,
+      enableHighAccuracy: true
+    })
   },
   async stopNotifications () {
     navigator.geolocation.clearWatch(this.watchid)
