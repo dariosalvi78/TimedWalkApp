@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.cordova.helloworld" version="0.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>timed-walk-app</name>
+<widget id="timed-walk-app" version="0.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>TimedWalk</name>
     <description>
       Timed Walk App
     </description>
@@ -8,6 +8,7 @@
       Dario Salvi
     </author>
     <content src="index.html" />
+    <icon src="res/icon/logo.png" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
