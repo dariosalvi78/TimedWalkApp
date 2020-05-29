@@ -70,6 +70,12 @@
     <edit-config file="*-Info.plist" mode="merge" target="NSMotionUsageDescription">
       <string>The app needs to use location to compute the wlaked distance</string>
     </edit-config>
+    <-- https://cordova.apache.org/howto/2020/03/18/wkwebviewonly.html -->
+    <preference name="WKWebViewOnly" value="true" />
+    <feature name="CDVWKWebViewEngine">
+        <param name="ios-package" value="CDVWKWebViewEngine" />
+    </feature>
+    <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
   </platform>
   <plugin name="cordova-plugin-whitelist" spec="1" />
   <plugin name="cordova-plugin-nativestorage" spec="~2.3.2" />
