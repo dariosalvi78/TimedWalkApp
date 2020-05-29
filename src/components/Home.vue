@@ -5,7 +5,7 @@
     </v-ons-toolbar>
     <div class="content" style="padding: 10px;">
       <p>
-        This app can measure the distance you walk in a given amount of time.
+        This app measures the distance you walk in a given amount of time.
         This is sometimes called "Timed walk test". The distance you walk in the
         chosen time can be used as an indication of your exercise capacity and
         general health status.
@@ -33,7 +33,7 @@
         Even though the algorithm that estimates the walked distance has been
         validated in clinical settings, this app is <b>not a medical device</b>.
         It should be used for general well-being or as a home-based complement
-        to regular clinical assessment.
+        to conventional clinical assessment.
       </p>
     </div>
   </v-ons-page>
