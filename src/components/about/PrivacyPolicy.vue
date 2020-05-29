@@ -20,8 +20,8 @@
         </li>
       </ul>
       At the end of each step, the date of the tes, the duration, the distance
-      you have walked and the number of steps are recorded on yuor phone.
-      This data is not sentt on the Internet and is not shared with any institution,
+      you have walked and the number of steps are recorded on your phone.
+      This data is not sent on the Internet and is not shared with any institution,
       company, or individual.
       <br>
       To  keep your data safe, it is recommendable to set a password, or any other
