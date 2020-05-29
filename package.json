@@ -1,7 +1,7 @@
 {
-  "name": "se.mau.iotap.timedwalkapp",
+  "name": "TimedWalkApp",
   "version": "0.1.0",
-  "description": "Timed walk app",
+  "description": "Compute distance of timed walks.",
   "author": "Dario Salvi",
   "private": false,
   "scripts": {

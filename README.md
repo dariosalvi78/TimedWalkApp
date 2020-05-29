@@ -38,8 +38,8 @@ cordova run
 # build for production with minification
 npm run build
 
-# build for production and view the bundle analyzer report
-npm run build --report
+# prepare the cordova package
+cordova prepare
 ```
 
 Then you need to sign the app and release it. Seek instructions online on how to do it.
