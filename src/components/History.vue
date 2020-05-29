@@ -25,12 +25,14 @@
 <script>
 import storage from '../modules/storage'
 
+const socialsharingExists = window.plugins && window.plugins.socialsharing && window.plugins.socialsharing.share
+
 export default {
   name: 'HistoryPage',
   data () {
     return {
       history: undefined,
-      showShare: !!window.plugins.socialsharing.share
+      showShare: socialsharingExists
     }
   },
   async created () {
@@ -55,7 +57,7 @@ export default {
           historyTxt += '\n\n'
         }
       }
-      if (window.plugins.socialsharing.share) {
+      if (socialsharingExists) {
         window.plugins.socialsharing.share(historyTxt, '6MWT history')
       }
     }
