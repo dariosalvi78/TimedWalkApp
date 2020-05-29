@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="se.mau.iotap.timedwalkapp" version="0.1.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="se.mau.iotap.timedwalkapp" version="0.1.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>Timed walk</name>
   <description>
     Compute distance of timed walks.
@@ -70,7 +70,6 @@
     <edit-config file="*-Info.plist" mode="merge" target="NSMotionUsageDescription">
       <string>The app needs to use location to compute the wlaked distance</string>
     </edit-config>
-    <-- https://cordova.apache.org/howto/2020/03/18/wkwebviewonly.html -->
     <preference name="WKWebViewOnly" value="true" />
     <feature name="CDVWKWebViewEngine">
         <param name="ios-package" value="CDVWKWebViewEngine" />
