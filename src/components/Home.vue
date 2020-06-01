@@ -15,16 +15,16 @@
       </p>
       <p>
         The most commonly used timed walk is the 6-minute walk test, but other
-        lengths, like 3 minutes or 12 minutes have also been used. The app allows
-        you to set the length of time you prefer for yoour walk test.
+        durations, like 3 minutes or 12 minutes have also been used. The app
+        allows you to set the length of time you prefer for your walk test.
       </p>
       <p style="text-align: center;">
         <v-ons-icon icon="fa-map-marker-alt" size="30px"></v-ons-icon>
       </p>
       <p>
-        The app measures the distance you walk using the positioning systems embedded
-        in your phone, like the GPS. You therefore need to <b>use it outdoor</b>
-        or it may be not possible to measure the distance.
+        The app measures the distance using the positioning systems embedded
+        in your phone, like the GPS. You therefore need to <b>perform the test
+        outdoor</b> or it may be not possible to measure the distance.
       </p>
       <p style="text-align: center;">
         <v-ons-icon icon="fa-notes-medical" size="30px"></v-ons-icon>
