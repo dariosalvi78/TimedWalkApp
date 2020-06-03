@@ -16,7 +16,7 @@
       <p>
         The most commonly used timed walk is the 6-minute walk test, but other
         durations, like 3 minutes or 12 minutes have also been used. The app
-        allows you to set the length of time you prefer for your walk test.
+        allows you to set the length of time you prefer for your test.
       </p>
       <p style="text-align: center;">
         <v-ons-icon icon="fa-map-marker-alt" size="30px"></v-ons-icon>
