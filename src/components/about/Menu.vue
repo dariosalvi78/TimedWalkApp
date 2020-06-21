@@ -1,21 +1,21 @@
 <template id="aboutMenu">
   <v-ons-page>
     <v-ons-toolbar>
-      <div class="center">About</div>
+      <div class="center">{{$t('about.title')}}</div>
     </v-ons-toolbar>
 
     <div class="content" style="padding: 10px;">
       <div>
-        <v-ons-button modifier="quiet" @click="smwt">The 6-minute walk test</v-ons-button>
+        <v-ons-button modifier="quiet" @click="smwt">{{$t('about.smwtTitle')}}</v-ons-button>
       </div>
       <div>
-        <v-ons-button modifier="quiet" @click="acks">Acknowledgments</v-ons-button>
+        <v-ons-button modifier="quiet" @click="acks">{{$t('about.acksTitle')}}</v-ons-button>
       </div>
       <div>
-        <v-ons-button modifier="quiet" @click="pp">Privacy Policy</v-ons-button>
+        <v-ons-button modifier="quiet" @click="pp">{{$t('about.privacyPolicyTitle')}}</v-ons-button>
       </div>
       <div>
-        <v-ons-button modifier="quiet" @click="license">License</v-ons-button>
+        <v-ons-button modifier="quiet" @click="license">{{$t('about.licenseTitle')}}</v-ons-button>
       </div>
     </div>
 
