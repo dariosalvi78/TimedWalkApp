@@ -1,17 +1,17 @@
 <template id="history">
   <v-ons-page>
     <v-ons-toolbar>
-      <div class="center">History</div>
+      <div class="center">{{$t('history.title')}}</div>
     </v-ons-toolbar>
 
     <div class="padding: 10px;">
       <v-ons-card v-for="(test, index) in history" :key="index">
         <div class="content">
           <v-ons-list>
-            <v-ons-list-header><b>Test date:</b> &nbsp; {{ formatDate(test.date) }}</v-ons-list-header>
-            <v-ons-list-item><b>Duration:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
-            <v-ons-list-item><b>Distance:</b> &nbsp; {{ test.distance.toFixed(2) }} meters</v-ons-list-item>
-            <v-ons-list-item v-if="test.steps"><b>Steps:</b> &nbsp; {{ test.steps }}</v-ons-list-item>
+            <v-ons-list-header><b>{{$t('history.item.date')}}:</b> &nbsp; {{ formatDate(test.date) }}</v-ons-list-header>
+            <v-ons-list-item><b>{{$t('history.item.date')}}:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
+            <v-ons-list-item><b>{{$t('history.item.distance')}}:</b> &nbsp; {{ test.distance.toFixed(2) }} meters</v-ons-list-item>
+            <v-ons-list-item v-if="test.steps"><b>{{$t('history.item.steps')}}:</b> &nbsp; {{ test.steps }}</v-ons-list-item>
           </v-ons-list>
         </div>
       </v-ons-card>
