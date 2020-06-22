@@ -2,14 +2,20 @@
   <v-ons-page>
     <div class="content" style="padding: 10px; text-align: center;">
       <h1>
-        Test completed!
+        {{$t('walk.completed')}}
       </h1>
-      <div style="margin-top: 20px;"><b>Distance: </b> {{ testReport.distance.toFixed(2) }} meters</div>
-      <div style="margin-top: 20px;"><b>Duration: </b> {{ testReport.duration }} minutes</div>
-      <div v-if="testReport.steps" style="margin-top: 20px;"><b>Steps: </b> {{ testReport.steps }}</div>
+      <div style="margin-top: 20px;"><b>{{$t('walk.distance')}}: </b> {{ testReport.distance.toFixed(2) }} meters</div>
+      <div style="margin-top: 20px;"><b>{{$t('walk.duration')}}: </b> {{ testReport.duration }} minutes</div>
+      <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{$t('walk.steps')}}: </b> {{ testReport.steps }}</div>
       <div style="margin-top: 40px;">
-        <v-ons-button @click="save">
-          Save and go back
+        <v-ons-button modifier="outline" @click="share">
+          <v-ons-icon icon="fa-share-alt"></v-ons-icon>
+          {{$t('walk.shareData')}}
+        </v-ons-button>
+      </div>
+      <div style="margin-top: 40px;">
+        <v-ons-button @click="reset">
+          {{$t('walk.restart')}}
         </v-ons-button>
       </div>
     </div>
@@ -22,16 +28,21 @@ import storage from '../../modules/storage'
 export default {
   name: 'TestCompletedPage',
   props: [ 'testReport' ],
+  async mounted () {
+    // auto save
+    console.log('saving test')
+    // save the results
+    let history = await storage.getItem('history')
+    if (!history) history = []
+    history.push(this.testReport)
+    await storage.setItem('history', history)
+  },
   methods: {
-    async save () {
-      console.log('saving test')
-      // save the results
-      let history = await storage.getItem('history')
-      if (!history) history = []
-      history.push(this.testReport)
-      await storage.setItem('history', history)
-
+    async reset () {
       this.$parent.pageStack.splice(1, 2)
+    },
+    async share () {
+      console.log('sharing')
     }
   }
 }

@@ -13,7 +13,7 @@
         <div class="timer"> {{ minutes }} : {{ seconds }} </div>
       <div style="margin-top: 40px;">
         <v-ons-button @click="cancelTest">
-          Cancel
+          {{$t('walk.cancel')}}
         </v-ons-button>
       </div>
     </div>
