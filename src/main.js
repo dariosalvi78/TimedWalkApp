@@ -18,7 +18,8 @@ const messages = {
 
 // Create VueI18n instance with options
 const i18n = new VueI18n({
-  locale: 'en', // set locale
+  locale: navigator.language.split('-')[0],
+  fallbackLocale: 'en',
   messages // set locale messages
 })
 
@@ -29,9 +30,6 @@ let start = function () {
     i18n,
     render: h => h(App)
   }).$mount('#app')
-  // new Vue({
-  //   render: h => h(App)
-  // }).$mount('#app')
 }
 
 if (process.env.NODE_ENV === 'production') {
