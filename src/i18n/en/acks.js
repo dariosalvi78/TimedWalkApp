@@ -29,6 +29,7 @@ export default `
   <li>VueJS</li>
   <li>Apache Cordova</li>
   <li>OnsenUI 2</li>
+  <li>cordova-plugin-file</li>
   <li>cordova-plugin-nativestorage</li>
   <li>cordova-plugin-geolocation</li>
   <li>cordova-plugin-pedometer</li>

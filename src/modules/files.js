@@ -2,6 +2,7 @@
 import VueOnsen from 'vue-onsenui'
 
 let Platform = VueOnsen._ons.platform
+
 /**
 * Utility function that translates the error code to a string
 */

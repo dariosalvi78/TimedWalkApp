@@ -12,3 +12,4 @@
 - added during-test voice messages
 - textual information more in agreement with ATS guidelines
 - added logging of test detailed data and share button
+- updated Privacy Policy and Acknowledgments

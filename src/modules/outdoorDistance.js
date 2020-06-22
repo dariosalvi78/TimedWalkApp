@@ -1,8 +1,8 @@
+'use strict'
+
 /**
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/
-* @param {number} selectEverySecs - seconds after which coordinates are selected for accumulating the distance
-* @param {number} maxspeed - maximum allowable speed for a person (discards what is above that) in m/s
 */
 export default {
   // maximum allowable speed

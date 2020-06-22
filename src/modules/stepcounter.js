@@ -1,3 +1,5 @@
+'use strict'
+
 let realStepCounter = {
   firstSteps: -1,
   async isAvailable () {
