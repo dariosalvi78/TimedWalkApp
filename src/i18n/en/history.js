@@ -5,5 +5,6 @@ export default {
     duration: 'Duration',
     distance: 'Distance',
     steps: 'Steps'
-  }
+  },
+  shareTopic: 'Timed walk history'
 }

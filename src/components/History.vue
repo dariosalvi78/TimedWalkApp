@@ -58,7 +58,7 @@ export default {
         }
       }
       if (socialsharingExists) {
-        window.plugins.socialsharing.share(historyTxt, '6MWT history')
+        window.plugins.socialsharing.share(historyTxt, this.$t('history.shareTopic'))
       }
     }
   }
