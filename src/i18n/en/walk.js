@@ -13,5 +13,6 @@ export default {
   duration: 'Duration',
   steps: 'Steps',
   restart: 'Restart',
-  shareData: 'Share this test details'
+  shareButton: 'Share this test details',
+  shareTopic: 'My timed walk test details'
 }

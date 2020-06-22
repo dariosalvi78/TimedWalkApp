@@ -27,9 +27,11 @@ import storage from '../../modules/storage'
 import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
 import distanceAlgo from '../../modules/outdoorDistance'
+import files from '../../modules/files'
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
 let padToTwo = number => number <= 99 ? `0${number}`.slice(-2) : number
+const TMP_FILENAME = 'timedwalk.txt'
 
 export default {
   name: 'TestWalkPage',
@@ -60,9 +62,20 @@ export default {
     // avoid screen going to sleep
     if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.keepAwake()
 
+    try {
+      files.deleteFile(TMP_FILENAME)
+      files.log(TMP_FILENAME, 'E - signal check start')
+    } catch (e) {
+      console.error(e)
+    }
+
     // start getting GPS
     gps.startNotifications(async (position) => {
-      console.log('Got position: ', position)
+      try {
+        files.log(TMP_FILENAME, 'P - position ' + JSON.stringify(position))
+      } catch (e) {
+        console.error(e)
+      }
       if (this.lastStep) {
         position.steps = this.lastStep
       }
@@ -76,7 +89,11 @@ export default {
         }
       }
     }, (err) => {
-      console.error('Cannot retrieve GPS position', err)
+      try {
+        files.log(TMP_FILENAME, 'P - error ' + JSON.stringify(err))
+      } catch (e) {
+        console.error(e)
+      }
     })
   },
   beforeDestroy () {
@@ -129,13 +146,21 @@ export default {
       }
     },
     async testStarted () {
+      try {
+        files.log(TMP_FILENAME, 'E - test start')
+      } catch (e) {
+        console.error(e)
+      }
       if (await stepcounter.isAvailable()) {
         stepcounter.startNotifications({}, (steps) => {
-          console.log('Got steps', steps)
+          try {
+            files.log(TMP_FILENAME, 'S - steps ' + JSON.stringify(steps))
+          } catch (e) {
+            console.error(e)
+          }
           this.lastStep = steps.numberOfSteps
         })
       }
-      console.log('Test started')
       this.isSignalCheck = false
       this.countdown = this.duration * 60
 
@@ -168,6 +193,12 @@ export default {
         date: new Date(),
         distance: distance,
         steps: this.lastStep
+      }
+
+      try {
+        files.log(TMP_FILENAME, 'E - test end ' + JSON.stringify(testReport))
+      } catch (e) {
+        console.error(e)
       }
 
       this.$emit('push-page', {

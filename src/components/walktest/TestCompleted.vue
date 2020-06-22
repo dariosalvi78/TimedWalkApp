@@ -10,7 +10,7 @@
       <div style="margin-top: 40px;">
         <v-ons-button modifier="outline" @click="share">
           <v-ons-icon icon="fa-share-alt"></v-ons-icon>
-          {{$t('walk.shareData')}}
+          {{$t('walk.shareButton')}}
         </v-ons-button>
       </div>
       <div style="margin-top: 40px;">
@@ -24,6 +24,10 @@
 
 <script>
 import storage from '../../modules/storage'
+import files from '../../modules/files'
+
+const socialsharingExists = window.plugins && window.plugins.socialsharing && window.plugins.socialsharing.share
+const TMP_FILENAME = 'timedwalk.txt'
 
 export default {
   name: 'TestCompletedPage',
@@ -42,7 +46,11 @@ export default {
       this.$parent.pageStack.splice(1, 2)
     },
     async share () {
-      console.log('sharing')
+      console.log('sharing details')
+      if (socialsharingExists) {
+        let file = await files.load(TMP_FILENAME)
+        window.plugins.socialsharing.share(file, this.$t('walk.shareTopic'))
+      }
     }
   }
 }
