@@ -4,26 +4,27 @@
       <h3 style="text-align: center;">Instructions</h3>
 
       <p style="text-align: center;">
-        <v-ons-icon icon="fa-road" size="30px"></v-ons-icon>
+        <v-ons-icon icon="fa-walking" size="30px"></v-ons-icon>
       </p>
       <p>
-        <b>Choose a straight path outdoor with enough length (600 m and above).</b>
+        The object of this test is to walk <b>as far as possible</b> for the
+        duration of your choice, between 5 and 15 minutes.
       </p>
       <p>
-        The path should be flat, no up-hills or down-hills.
+        By walking for several minutes you will be exerting yourself.
       </p>
       <p>
-        You will be asked to walk along this path as far as you can go.
+        You should rest for at least 10 minutes before the test starts, preferably sitting.
       </p>
 
       <div style="text-align: center; margin-top: 10px;">
         <v-ons-icon icon="fa-dizzy" size="30px"></v-ons-icon>
       </div>
       <p>
-        <b>Stop if you need to.</b>
+        Depending on your conditions, you may get out of breath or become exhausted.
       </p>
       <p>
-        You can take as many pauses as you want.
+        You are permitted to slow down, to stop, and to rest as necessary.
       </p>
       <p>
         If you feel unwell, stop immediately and cancel the test.
@@ -32,33 +33,51 @@
         Contact your doctor if you feel any uncomfortable symptom.
       </p>
 
+      <p style="text-align: center;">
+        <v-ons-icon icon="fa-road" size="30px"></v-ons-icon>
+      </p>
+      <p>
+        Choose a <b>path outdoor</b> with enough length (600 m and above).
+      </p>
+      <p>
+        The path should be <b>flat</b>, no up-hills or down-hills.
+      </p>
+      <p>
+        The path should be <b>straight</b> or gently curved. Avoid U-turns, they
+        affect the accuracy of the measurement.
+      </p>
+
       <div style="text-align: center; margin-top: 10px;">
         <v-ons-icon icon="fa-sun" size="30px"></v-ons-icon>
       </div>
       <p>
-        <b>Choose a day with good weather.</b>
+        Choose a day with <b>good weather.</b> Besides being more pleasurable,
+        it also increases the chances of getting a good satellite signal.
       </p>
       <p>
-        Besides being more pleasurable, it also increases the chances of getting a good GPS signal.
+        Avoid places with tall buildings, they interfere with the satellites reception.
       </p>
       <p>
-        Avoid places with tall buildings, they interfere with the GPS. A park with not many trees would be ideal.
+        A park with not many trees would be ideal.
       </p>
 
       <div style="text-align: center; margin-top: 10px;">
-        <v-ons-icon icon="fa-user-cog" size="30px"></v-ons-icon>
+        <v-ons-icon icon="fa-map-marker-alt" size="30px"></v-ons-icon>
       </div>
       <p>
-        <b>Activate the GPS.</b>
+        <b>Activate satellite positioning</b> on your phone.
       </p>
       <p>
-        You may also want to keep the Mobile Internet activated, as this will improve the accuracy of the localisation.
+        You may also want to keep the mobile Internet activated, as this will
+        make the finding of satellites faster.
       </p>
       <p>
-        The app may ask you to provide permission to access your position and the step counter. These are needed to compute the distance you walk.
+        The app may ask you to provide permission to access your position and
+        the step counter. These are needed to compute the distance you walk.
       </p>
       <p>
-        Before starting the test, it's better to have the battery well charged, if the phone runs out of power, the test will be interrupted.
+        Before starting the test, it's better to have the battery well charged,
+        if the phone runs out of power, the test will be interrupted.
       </p>
 
       <div style="text-align: center; margin-top: 10px;">
@@ -70,6 +89,7 @@
       <p>
         Six minutes is the most commonly used duration.
       </p>
+
       <div style="text-align: center;">
         Minutes: {{ duration }}
         <v-ons-range v-model="duration" style="width: 100%;" min="3" max="15" step="1"></v-ons-range>
