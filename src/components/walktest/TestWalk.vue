@@ -2,11 +2,15 @@
   <v-ons-page>
     <div class="content" style="padding: 10px; text-align: center;">
       <walking-man ref="walkingMan"/>
-      <div style="margin-top: 40px;">
-        <h2 v-show="isSignalCheck" >Waiting for GPS signal, make sure you are outdoor and the GPS is activated on the phone</h2>
-        <h2 v-show="!isSignalCheck" >Walk!</h2>
+        <div class="messageBox">
+          <div style="text-align: center;">
+            <v-ons-icon :icon="messageIcon" size="30px"></v-ons-icon>
+          </div>
+          <h3>
+            {{messageText}}
+          </h3>
+        </div>
         <div class="timer"> {{ minutes }} : {{ seconds }} </div>
-      </div>
       <div style="margin-top: 40px;">
         <v-ons-button @click="cancelTest">
           Cancel
@@ -36,7 +40,9 @@ export default {
       countdown: 10,
       timer: undefined,
       isSignalCheck: true,
-      lastStep: undefined
+      lastStep: undefined,
+      messageText: null,
+      messageIcon: null
     }
   },
   async mounted () {
@@ -46,6 +52,10 @@ export default {
       this.duration = dur
       this.countdown = dur * 60
     }
+
+    this.isSignalCheck = true
+    this.messageText = this.$t('walk.signalCheck')
+    this.messageIcon = 'fa-satellite'
 
     // avoid screen going to sleep
     if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.keepAwake()
@@ -86,6 +96,38 @@ export default {
     }
   },
   methods: {
+    voiceMessage (txt) {
+      var msg = new SpeechSynthesisUtterance()
+
+      msg.text = txt
+      msg.lang = navigator.language.split('-')[0]
+
+      speechSynthesis.speak(msg)
+    },
+    sendMessage () {
+      let durSecs = this.duration * 60
+      let ctdwnRmn = this.countdown % 60
+      if (!this.isSignalCheck) {
+        if (durSecs >= this.countdown && this.countdown >= durSecs - 3) {
+          this.messageText = this.$t('walk.startNow')
+          this.messageIcon = 'fa-exclamation'
+          if (this.countdown === durSecs) this.voiceMessage(this.$t('walk.startNow'))
+        } else if (this.countdown < (durSecs - 50) && this.countdown > 50 && (ctdwnRmn === 0 || ctdwnRmn >= 57)) {
+          let minsRmn = Math.floor(this.countdown / 60)
+          let mins = ctdwnRmn === 0 ? minsRmn : minsRmn + 1
+          let msg
+          if (mins % 2) msg = this.$t('walk.doingWell')
+          else msg = this.$t('walk.keepUp')
+          msg += ' ' + this.$t('walk.minutesToGo', {mins})
+          this.messageText = msg
+          this.messageIcon = 'fa-exclamation-triangle'
+          if (ctdwnRmn === 0) this.voiceMessage(msg)
+        } else {
+          this.messageText = null
+          this.messageIcon = null
+        }
+      }
+    },
     async testStarted () {
       if (await stepcounter.isAvailable()) {
         stepcounter.startNotifications({}, (steps) => {
@@ -95,12 +137,18 @@ export default {
       }
       console.log('Test started')
       this.isSignalCheck = false
+      this.countdown = this.duration * 60
+
+      this.sendMessage()
+
       if (this.$refs.walkingMan) this.$refs.walkingMan.play()
       distanceAlgo.startTest()
+
       if (this.timer) clearInterval(this.timer)
       this.timer = setInterval(() => {
         if (this.countdown >= 1) {
           this.countdown--
+          this.sendMessage()
         } else {
           this.testCompleted()
         }
@@ -140,5 +188,10 @@ export default {
 .timer {
   font-weight: bold;
   font-size: 3rem;
+}
+
+.messageBox {
+  margin-top: 40px;
+  height: 130px;
 }
 </style>
