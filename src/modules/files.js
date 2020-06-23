@@ -3,162 +3,175 @@ import VueOnsen from 'vue-onsenui'
 
 let Platform = VueOnsen._ons.platform
 
-/**
-* Utility function that translates the error code to a string
-*/
-let errorCodeToString = (code) => {
-  switch (code) {
-    case 1:
-      return 'NOT_FOUND_ERR'
-    case 2:
-      return 'SECURITY_ERR'
-    case 3:
-      return 'ABORT_ERR'
-    case 4:
-      return 'NOT_READABLE_ERR'
-    case 5:
-      return 'ENCODING_ERR'
-    case 6:
-      return 'NO_MODIFICATION_ALLOWED_ERR'
-    case 7:
-      return 'INVALID_STATE_ERR'
-    case 8:
-      return 'SYNTAX_ERR'
-    case 9:
-      return 'INVALID_MODIFICATION_ERR'
-    case 10:
-      return 'QUOTA_EXCEEDED_ERR'
-    case 11:
-      return 'TYPE_MISMATCH_ERR'
-    case 12:
-      return 'PATH_EXISTS_ERR'
-    default:
-      return 'Unknown Error ' + code
-  }
-}
-
 export default {
+
+  /**
+  * Utility function that translates the error code to a string
+  */
+  errorCodeToString (code) {
+    switch (code) {
+      case 1:
+        return 'NOT_FOUND_ERR'
+      case 2:
+        return 'SECURITY_ERR'
+      case 3:
+        return 'ABORT_ERR'
+      case 4:
+        return 'NOT_READABLE_ERR'
+      case 5:
+        return 'ENCODING_ERR'
+      case 6:
+        return 'NO_MODIFICATION_ALLOWED_ERR'
+      case 7:
+        return 'INVALID_STATE_ERR'
+      case 8:
+        return 'SYNTAX_ERR'
+      case 9:
+        return 'INVALID_MODIFICATION_ERR'
+      case 10:
+        return 'QUOTA_EXCEEDED_ERR'
+      case 11:
+        return 'TYPE_MISMATCH_ERR'
+      case 12:
+        return 'PATH_EXISTS_ERR'
+      default:
+        return 'Unknown Error ' + code
+    }
+  },
 
   /**
   * Opens a file.
   * @param {string} filename - filename to be opened
-  * @param {string} forcecreate - if true the file is created if does not exist
+  * @param {boolean} forcecreate - if true the file is created if does not exist
+  * @param {boolean} temporary - uses the temporary folder
   */
-  async openFile (filename, forcecreate) {
+  async openFile (filename, temporary, forcecreate) {
     if (!Platform.isWebView()) {
-      console.log('Opening file: ' + filename)
-      return
+      return filename
     }
-    // use the temporary directory
-    let folder = window.cordova.file.tempDirectory
-
+    let folder
+    if (temporary) folder = window.TEMPORARY
+    else folder = window.LocalFileSystem.PERSISTENT
     return new Promise((resolve, reject) => {
-      window.resolveLocalFileSystemURL(folder, function (dir) {
-        dir.getFile(filename, { create: true }, function (file) {
-          resolve(file)
-        }, function (e) {
-          reject(new Error('Cannot open file ' + filename + ', ' + errorCodeToString(e.code)))
-        })
-      })
+      window.requestFileSystem(folder, 5 * 1024 * 1024, function (fs) {
+        fs.root.getFile(filename, { create: forcecreate, exclusive: false }, resolve, reject)
+      }, reject)
     })
   },
 
   /**
   * Reads a file and delivers the content as an object
-  * @param {string} filename - the file to be opened
+  * @param {Object} file - the file to be opened
   */
-  async load (filename) {
+  async read (file) {
     if (!Platform.isWebView()) {
-      console.log('Loading file: ' + filename)
-      return 'xxx'
+      return window.localStorage.getItem(file)
     }
-
-    let file = await this.openFile(filename)
 
     return new Promise((resolve, reject) => {
       file.file(function (file) {
         var reader = new FileReader()
-        reader.onloadend = function () {
-          resolve(JSON.parse(this.result))
-        }
+        reader.onloadend = resolve
         reader.readAsText(file)
-      }, function (e) {
-        reject(new Error('Cannot read file ' + filename + ': ' + errorCodeToString(e.code)))
-      })
+      }, reject)
     })
   },
 
   /**
   * Deletes a file from the file system.
-  * @param {string} filename - the file to be deleted
+  * @param {Object} file - the file to be deleted
   */
-  async deleteFile (filename) {
+  async deleteFile (file) {
     if (!Platform.isWebView()) {
-      console.log('Deleting file: ' + filename)
-      return
+      return window.localStorage.removeItem(file)
     }
 
-    let file = await this.openFile(filename)
     return new Promise((resolve, reject) => {
-      file.remove(resolve, function (e) {
-        reject(new Error('Cannot delete file ' + filename + ', ' + errorCodeToString(e.code)))
-      })
+      file.remove(resolve, reject)
     })
   },
 
   /**
   * Saves txt into the file
-  * @param {string} filename - filename is the name of the file
+  * @param {Object} file - file where to save
   * @param {string} txt - is the text to be saved
   */
-  async save (filename, txt) {
+  async save (file, txt) {
     if (!Platform.isWebView()) {
-      console.log('Saving file: ' + filename, txt)
-      return
+      return window.localStorage.setItem(file, txt)
     }
 
     if (typeof txt !== 'string') txt = txt.toString()
-    let file = await this.openFile(filename)
     return new Promise((resolve, reject) => {
       file.createWriter(function (fileWriter) {
-        fileWriter.onwriteend = function (e) {
-          resolve()
-        }
-        fileWriter.onerror = function (e) {
-          reject(new Error('Cannot write to file: ' + errorCodeToString(e.code)))
-        }
+        fileWriter.onwriteend = resolve
+        fileWriter.onerror = reject
         fileWriter.write(txt)
       })
     })
   },
 
   /**
-  * Creates a persistent log and appends text in it.
-  * It works asynchronously, data is NOT buffered and the writer can be busy
+  * Creates a temporary logfile where to append text
   * @param {string} filename - the file name
-  * @param {string} txt - the text to be appended
   */
-  async log (filename, txt) {
-    if (!Platform.isWebView()) {
-      console.log('Appending to file: ' + filename, txt)
-      return
+  async createLog (filename) {
+    /**
+    * Appends lines to the logger
+    * It works asynchronously, data is NOT buffered and the writer can be busy
+    * @param {string} line - the text to be appended, a timestamp and newline are added to it
+    */
+    let log = async function (line, writer) {
+      line = new Date().toISOString() + ' - ' + line + '\n'
+      if (!Platform.isWebView()) {
+        let pretxt = window.localStorage.getItem(filename)
+        if (pretxt) line = pretxt + line
+        return window.localStorage.setItem(filename, line)
+      }
+
+      return new Promise((resolve, reject) => {
+        writer.onerror = reject
+        writer.onwriteend = resolve
+        writer.write(line)
+      })
     }
-
-    if (typeof txt !== 'string') txt = txt.toString()
-    let file = await this.openFile(filename)
-
+    if (!Platform.isWebView()) {
+      return {
+        async log (line) {
+          console.log('LOG:', line)
+          log(line, null)
+        }
+      }
+    }
+    let file = await this.openFile(filename, true, true)
     return new Promise((resolve, reject) => {
       file.createWriter(function (fileWriter) {
-        fileWriter.onerror = function (e) {
-          reject(new Error('Cannot append to file ' + filename + ', ' + errorCodeToString(e.code)))
-        }
-
-        fileWriter.onwriteend = resolve
-
         fileWriter.seek(fileWriter.length)
-        fileWriter.write(new Date().toISOString() + ' - ' + txt)
+        resolve({
+          async log (line) {
+            log(line, fileWriter)
+          }
+        })
       }, reject)
     })
+  },
+
+  /**
+  * Reads a temporary logfile.
+  * @param {string} filename - the file name
+  */
+  async readLog (filename) {
+    let file = await this.openFile(filename, true, true)
+    return this.read(file)
+  },
+
+  /**
+  * Deletes a temporary logfile.
+  * @param {string} filename - the file name
+  */
+  async deleteLog (filename) {
+    let file = await this.openFile(filename, true, true)
+    return this.deleteFile(file)
   }
 
 }

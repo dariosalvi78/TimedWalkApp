@@ -48,8 +48,8 @@ export default {
     async share () {
       console.log('sharing details')
       if (socialsharingExists) {
-        let file = await files.load(TMP_FILENAME)
-        window.plugins.socialsharing.share(file, this.$t('walk.shareTopic'))
+        let log = await files.readLog(TMP_FILENAME)
+        window.plugins.socialsharing.share(log, this.$t('walk.shareTopic'))
       }
     }
   }

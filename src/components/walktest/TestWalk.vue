@@ -32,6 +32,7 @@ import files from '../../modules/files'
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
 let padToTwo = number => number <= 99 ? `0${number}`.slice(-2) : number
 const TMP_FILENAME = 'timedwalk.txt'
+let logger
 
 export default {
   name: 'TestWalkPage',
@@ -63,8 +64,9 @@ export default {
     if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.keepAwake()
 
     try {
-      files.deleteFile(TMP_FILENAME)
-      files.log(TMP_FILENAME, 'E - signal check start')
+      await files.deleteLog(TMP_FILENAME)
+      logger = await files.createLog(TMP_FILENAME)
+      await logger.log('E - signal check start')
     } catch (e) {
       console.error(e)
     }
@@ -72,7 +74,7 @@ export default {
     // start getting GPS
     gps.startNotifications(async (position) => {
       try {
-        files.log(TMP_FILENAME, 'P - position ' + JSON.stringify(position))
+        await logger.log('P - position ' + JSON.stringify(position))
       } catch (e) {
         console.error(e)
       }
@@ -88,9 +90,9 @@ export default {
           this.testStarted()
         }
       }
-    }, (err) => {
+    }, async (err) => {
       try {
-        files.log(TMP_FILENAME, 'P - error ' + JSON.stringify(err))
+        await logger.log('P - error ' + JSON.stringify(err))
       } catch (e) {
         console.error(e)
       }
@@ -147,14 +149,14 @@ export default {
     },
     async testStarted () {
       try {
-        files.log(TMP_FILENAME, 'E - test start')
+        await logger.log('E - test start')
       } catch (e) {
         console.error(e)
       }
       if (await stepcounter.isAvailable()) {
-        stepcounter.startNotifications({}, (steps) => {
+        stepcounter.startNotifications({}, async (steps) => {
           try {
-            files.log(TMP_FILENAME, 'S - steps ' + JSON.stringify(steps))
+            await logger.log('S - steps ' + JSON.stringify(steps))
           } catch (e) {
             console.error(e)
           }
@@ -196,7 +198,7 @@ export default {
       }
 
       try {
-        files.log(TMP_FILENAME, 'E - test end ' + JSON.stringify(testReport))
+        await logger.log('E - test end ' + JSON.stringify(testReport))
       } catch (e) {
         console.error(e)
       }
