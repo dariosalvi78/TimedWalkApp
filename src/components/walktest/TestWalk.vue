@@ -145,6 +145,8 @@ export default {
           this.messageText = msg
           this.messageIcon = 'fa-exclamation-triangle'
           if (ctdwnRmn === 0) this.voiceMessage(msg)
+        } if (this.countdown === 1) {
+          this.voiceMessage(this.$t('walk.completed'))
         } else {
           this.messageText = null
           this.messageIcon = null
@@ -181,6 +183,7 @@ export default {
           this.countdown--
           this.sendMessage()
         } else {
+          this.sendMessage()
           this.testCompleted()
         }
       }, 1000)
