@@ -1,7 +1,4 @@
 'use strict'
-import VueOnsen from 'vue-onsenui'
-
-let Platform = VueOnsen._ons.platform
 
 export default {
 
@@ -46,7 +43,7 @@ export default {
   * @param {boolean} temporary - uses the temporary folder
   */
   async openFile (filename, temporary, forcecreate) {
-    if (!Platform.isWebView()) {
+    if (process.env.NODE_ENV !== 'production') {
       return filename
     }
     let folder
@@ -64,7 +61,7 @@ export default {
   * @param {Object} file - the file to be opened
   */
   async read (file) {
-    if (!Platform.isWebView()) {
+    if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.getItem(file)
     }
 
@@ -82,7 +79,7 @@ export default {
   * @param {Object} file - the file to be deleted
   */
   async deleteFile (file) {
-    if (!Platform.isWebView()) {
+    if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.removeItem(file)
     }
 
@@ -97,7 +94,7 @@ export default {
   * @param {string} txt - is the text to be saved
   */
   async save (file, txt) {
-    if (!Platform.isWebView()) {
+    if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.setItem(file, txt)
     }
 
@@ -123,7 +120,7 @@ export default {
     */
     let log = async function (line, writer) {
       line = new Date().toISOString() + ' - ' + line + '\n'
-      if (!Platform.isWebView()) {
+      if (process.env.NODE_ENV !== 'production') {
         let pretxt = window.localStorage.getItem(filename)
         if (pretxt) line = pretxt + line
         return window.localStorage.setItem(filename, line)
@@ -135,7 +132,7 @@ export default {
         writer.write(line)
       })
     }
-    if (!Platform.isWebView()) {
+    if (process.env.NODE_ENV !== 'production') {
       return {
         async log (line) {
           console.log('LOG:', line)
