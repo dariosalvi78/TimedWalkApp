@@ -16,7 +16,7 @@
         </div>
       </v-ons-card>
     </div>
-    <v-ons-fab :visible="showShare" @click="share()" position="bottom right">
+    <v-ons-fab @click="share()" position="bottom right">
       <v-ons-icon icon="fa-share-alt"></v-ons-icon>
     </v-ons-fab>
   </v-ons-page>
@@ -25,14 +25,11 @@
 <script>
 import storage from '../modules/storage'
 
-const socialsharingExists = window.plugins && window.plugins.socialsharing && window.plugins.socialsharing.share
-
 export default {
   name: 'HistoryPage',
   data () {
     return {
-      history: undefined,
-      showShare: socialsharingExists
+      history: undefined
     }
   },
   async created () {
@@ -57,8 +54,12 @@ export default {
           historyTxt += '\n\n'
         }
       }
-      if (socialsharingExists) {
-        window.plugins.socialsharing.share(historyTxt, this.$t('history.shareTopic'))
+      try {
+        await new Promise((resolve, reject) => {
+          window.plugins.socialsharing.share(historyTxt, this.$t('history.shareTopic'), resolve, reject)
+        })
+      } catch (err) {
+        console.error(err)
       }
     }
   }
