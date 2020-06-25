@@ -56,6 +56,14 @@ export default {
     })
   },
 
+  async getFilePath(filename, temporary) {
+    if (process.env.NODE_ENV !== 'production') {
+      return filename
+    }
+    let file = await this.openFile(filename, temporary, false)
+    return file.nativeURL
+  },
+
   /**
   * Reads a file and delivers the content as an object
   * @param {Object} file - the file to be opened
@@ -68,7 +76,9 @@ export default {
     return new Promise((resolve, reject) => {
       file.file(function (file) {
         var reader = new FileReader()
-        reader.onloadend = resolve
+        reader.onloadend = function () {
+          resolve(this.result)
+        }
         reader.readAsText(file)
       }, reject)
     })
@@ -113,44 +123,53 @@ export default {
   * @param {string} filename - the file name
   */
   async createLog (filename) {
-    /**
-    * Appends lines to the logger
-    * It works asynchronously, data is NOT buffered and the writer can be busy
-    * @param {string} line - the text to be appended, a timestamp and newline are added to it
-    */
-    let log = async function (line, writer) {
-      line = new Date().toISOString() + ' - ' + line + '\n'
-      if (process.env.NODE_ENV !== 'production') {
-        let pretxt = window.localStorage.getItem(filename)
-        if (pretxt) line = pretxt + line
-        return window.localStorage.setItem(filename, line)
-      }
+    let file = null
+    if (process.env.NODE_ENV === 'production') file = await this.openFile(filename, true, true)
 
-      return new Promise((resolve, reject) => {
-        writer.onerror = reject
-        writer.onwriteend = resolve
-        writer.write(line)
-      })
-    }
-    if (process.env.NODE_ENV !== 'production') {
-      return {
-        async log (line) {
-          console.log('LOG:', line)
-          log(line, null)
+    return {
+      buffer: '',
+      writing: false,
+      /**
+      * Appends lines to the logger
+      * It works asynchronously, data is NOT buffered and the writer can be busy
+      * @param {string} line - the text to be appended, a timestamp and newline are added to it
+      */
+      async log (line) {
+        this.buffer += new Date().toISOString() + ' - ' + line + '\n'
+
+        if (process.env.NODE_ENV !== 'production') {
+          let pretxt = window.localStorage.getItem(filename)
+          if (pretxt) line = pretxt + line
+          window.localStorage.setItem(filename, this.buffer)
+          this.buffer = ''
+          return
         }
+        console.log('logging: writing?', this.writing)
+        if (this.writing) {
+          // add to the buffer
+          this.buffer += line
+          return
+        }
+
+        let toWrite = this.buffer
+        this.buffer = ''
+        this.writing = true
+
+        return new Promise((resolve, reject) => {
+          file.createWriter((fileWriter) => {
+            console.log('create: writing?', this.writing)
+            fileWriter.seek(fileWriter.length)
+            fileWriter.onerror = reject
+            fileWriter.onwriteend = () => {
+              console.log('end: writing?', this.writing)
+              this.writing = false
+              resolve()
+            }
+            fileWriter.write(toWrite)
+          }, reject)
+        })
       }
     }
-    let file = await this.openFile(filename, true, true)
-    return new Promise((resolve, reject) => {
-      file.createWriter(function (fileWriter) {
-        fileWriter.seek(fileWriter.length)
-        resolve({
-          async log (line) {
-            log(line, fileWriter)
-          }
-        })
-      }, reject)
-    })
   },
 
   /**
@@ -159,7 +178,8 @@ export default {
   */
   async readLog (filename) {
     let file = await this.openFile(filename, true, true)
-    return this.read(file)
+    let txt = await this.read(file)
+    return txt
   },
 
   /**
@@ -167,7 +187,7 @@ export default {
   * @param {string} filename - the file name
   */
   async deleteLog (filename) {
-    let file = await this.openFile(filename, true, true)
+    let file = await this.openFile(filename, true, false)
     return this.deleteFile(file)
   }
 
