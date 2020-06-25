@@ -211,6 +211,12 @@ export default {
       })
     },
     async cancelTest () {
+      // we don't need to keep the log any longer
+      try {
+        await files.deleteLog(TMP_FILENAME)
+      } catch (e) {
+        console.error(e)
+      }
       this.$parent.popPage()
     }
   }

@@ -43,6 +43,12 @@ export default {
   },
   methods: {
     async reset () {
+      // we don't need to keep the log any longer now
+      try {
+        await files.deleteLog(TMP_FILENAME)
+      } catch (e) {
+        console.error(e)
+      }
       this.$parent.pageStack.splice(1, 2)
     },
     async share () {
