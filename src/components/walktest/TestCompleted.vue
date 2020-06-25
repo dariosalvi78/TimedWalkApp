@@ -26,7 +26,6 @@
 import storage from '../../modules/storage'
 import files from '../../modules/files'
 
-const socialsharingExists = window.plugins && window.plugins.socialsharing && window.plugins.socialsharing.share
 const TMP_FILENAME = 'timedwalk.txt'
 
 export default {
@@ -52,10 +51,17 @@ export default {
       this.$parent.pageStack.splice(1, 2)
     },
     async share () {
-      console.log('sharing details')
-      if (socialsharingExists) {
-        let log = await files.readLog(TMP_FILENAME)
-        window.plugins.socialsharing.share(log, this.$t('walk.shareTopic'))
+      try {
+        let filePath = await files.getFilePath(TMP_FILENAME, true)
+        await new Promise((resolve, reject) => {
+          window.plugins.socialsharing.shareWithOptions({
+            message: this.$t('walk.shareMesssage', {date: this.testReport.date}),
+            subject: this.$t('walk.shareTopic'),
+            files: [filePath]
+          }, resolve, reject)
+        })
+      } catch (err) {
+        console.log('cannot share file', err)
       }
     }
   }

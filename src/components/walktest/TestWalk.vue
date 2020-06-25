@@ -65,6 +65,10 @@ export default {
 
     try {
       await files.deleteLog(TMP_FILENAME)
+    } catch (e) {
+      console.error('cannot delete log, bu thats OK')
+    }
+    try {
       logger = await files.createLog(TMP_FILENAME)
       await logger.log('E - signal check start')
     } catch (e) {
@@ -231,6 +235,6 @@ export default {
 
 .messageBox {
   margin-top: 40px;
-  height: 130px;
+  height: 135px;
 }
 </style>

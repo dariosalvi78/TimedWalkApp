@@ -56,7 +56,7 @@ export default {
     })
   },
 
-  async getFilePath(filename, temporary) {
+  async getFilePath (filename, temporary) {
     if (process.env.NODE_ENV !== 'production') {
       return filename
     }
@@ -144,7 +144,6 @@ export default {
           this.buffer = ''
           return
         }
-        console.log('logging: writing?', this.writing)
         if (this.writing) {
           // add to the buffer
           this.buffer += line
@@ -157,11 +156,9 @@ export default {
 
         return new Promise((resolve, reject) => {
           file.createWriter((fileWriter) => {
-            console.log('create: writing?', this.writing)
             fileWriter.seek(fileWriter.length)
             fileWriter.onerror = reject
             fileWriter.onwriteend = () => {
-              console.log('end: writing?', this.writing)
               this.writing = false
               resolve()
             }
