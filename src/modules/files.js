@@ -139,14 +139,12 @@ export default {
 
         if (process.env.NODE_ENV !== 'production') {
           let pretxt = window.localStorage.getItem(filename)
-          if (pretxt) line = pretxt + line
-          window.localStorage.setItem(filename, this.buffer)
+          if (pretxt) this.buffer = pretxt + this.buffer
           this.buffer = ''
+          window.localStorage.setItem(filename, this.buffer)
           return
         }
         if (this.writing) {
-          // add to the buffer
-          this.buffer += line
           return
         }
 
