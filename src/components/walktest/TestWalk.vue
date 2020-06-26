@@ -120,12 +120,17 @@ export default {
   },
   methods: {
     voiceMessage (txt) {
-      var msg = new SpeechSynthesisUtterance()
-
-      msg.text = txt
-      msg.lang = navigator.language.split('-')[0]
-
-      speechSynthesis.speak(msg)
+      if ('speechSynthesis' in window) {
+        var msg = new SpeechSynthesisUtterance()
+        msg.text = txt
+        msg.lang = navigator.language.split('-')[0]
+        speechSynthesis.speak(msg)
+      } else {
+        window.TTS.speak({
+          text: txt,
+          locale: navigator.language
+        }, a => a, error => console.log(error))
+      }
     },
     sendMessage () {
       let durSecs = this.duration * 60

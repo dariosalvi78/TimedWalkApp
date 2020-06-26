@@ -19,6 +19,7 @@
     "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
+    "cordova-plugin-tts": "0.2.3",
     "cordova-plugin-wkwebview-engine": "^1.2.1",
     "cordova-plugin-x-socialsharing": "^5.6.5",
     "es6-promise-plugin": "^4.2.2",
@@ -100,11 +101,12 @@
         "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
       },
-      "cordova-plugin-file": {}
+      "cordova-plugin-file": {},
+      "cordova-plugin-tts": {}
     },
     "platforms": [
-      "android",
-      "ios"
+      "ios",
+      "android"
     ]
   }
 }
