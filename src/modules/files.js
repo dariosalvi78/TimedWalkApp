@@ -140,8 +140,8 @@ export default {
         if (process.env.NODE_ENV !== 'production') {
           let pretxt = window.localStorage.getItem(filename)
           if (pretxt) this.buffer = pretxt + this.buffer
-          this.buffer = ''
           window.localStorage.setItem(filename, this.buffer)
+          this.buffer = ''
           return
         }
         if (this.writing) {

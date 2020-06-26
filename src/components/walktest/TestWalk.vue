@@ -150,7 +150,7 @@ export default {
           this.messageText = msg
           this.messageIcon = 'fa-exclamation-triangle'
           if (ctdwnRmn === 0) this.voiceMessage(msg)
-        } if (this.countdown === 1) {
+        } else if (this.countdown === 1) {
           this.voiceMessage(this.$t('walk.completed'))
         } else {
           this.messageText = null
