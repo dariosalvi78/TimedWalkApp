@@ -56,7 +56,10 @@ export default {
       }
       try {
         await new Promise((resolve, reject) => {
-          window.plugins.socialsharing.share(historyTxt, this.$t('history.shareTopic'), resolve, reject)
+          window.plugins.socialsharing.shareWithOptions({
+            message: historyTxt,
+            subject: this.$t('history.shareTopic')
+          }, resolve, reject)
         })
       } catch (err) {
         console.error(err)
