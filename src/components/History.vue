@@ -5,18 +5,24 @@
     </v-ons-toolbar>
 
     <div class="padding: 10px;">
-      <v-ons-card v-for="(test, index) in history" :key="index">
+      <v-ons-card
+        v-for="(test, index) in history"
+        :key="index"
+      >
         <div class="content">
           <v-ons-list>
             <v-ons-list-header><b>{{$t('history.item.date')}}:</b> &nbsp; {{ formatDate(test.date) }}</v-ons-list-header>
-            <v-ons-list-item><b>{{$t('history.item.date')}}:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
+            <v-ons-list-item><b>{{$t('history.item.duration')}}:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
             <v-ons-list-item><b>{{$t('history.item.distance')}}:</b> &nbsp; {{ test.distance.toFixed(2) }} meters</v-ons-list-item>
             <v-ons-list-item v-if="test.steps"><b>{{$t('history.item.steps')}}:</b> &nbsp; {{ test.steps }}</v-ons-list-item>
           </v-ons-list>
         </div>
       </v-ons-card>
     </div>
-    <v-ons-fab @click="share()" position="bottom right">
+    <v-ons-fab
+      @click="share()"
+      position="bottom right"
+    >
       <v-ons-icon icon="fa-share-alt"></v-ons-icon>
     </v-ons-fab>
   </v-ons-page>
