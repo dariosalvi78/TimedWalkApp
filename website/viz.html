@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Timed Walk App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+    <link rel="stylesheet" href="tw.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="brand">
+            <img class="logo" src="imgs/logo.svg" />
+            <span>Timed Walk App</span>
+        </a>
+
+        <input id="bmenub" type="checkbox" class="show">
+        <label for="bmenub" class="burger pseudo button">menu</label>
+
+        <div class="menu">
+            <a href="index.html" class="pseudo button">Home</a>
+            <a href="news.html" class="pseudo button">News</a>
+            <a href="viz.html" class="pseudo button">Viz tool</a>
+        </div>
+    </nav>
+
+
+    <main>
+        <div class="viztool">
+            <p>This tool allows to visualise the data collected in a test by loading the file
+                produced by the app and shared with the "Share this test details" button.
+            </p>
+
+            <div style="width: 200px;">
+                Place the file here:
+                <label class="dropimage fileupload">
+                    <input title="Drop the file here or click" type="file" accept=".txt" onchange="loadFile(this)">
+                </label>
+            </div>
+            <p>The file loaded on this page is kept on the browser and is not shared with any third party.</p>
+            <p>
+                The coordinates contained in the file will be shared with Mapbox in order to visualize the map below.
+                See <a href="https://www.mapbox.com/legal/privacy">their privacy policy</a>,
+                particularly the point about APIs and Mobile SDKs for details.
+            </p>
+
+            <div class="card flex">
+                <div>
+                    File: <span id="filename"></span>
+                </div>
+                <div>
+                    Date: <span id="date"></span>
+                </div>
+                <div>
+                    Duration: <span id="duration"></span>
+                </div>
+                <div>
+                    Distance: <span id="distance"></span>
+                </div>
+                <div>
+                    Steps: <span id="steps"></span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <div id="mapid"></div>
+            </div>
+
+    </main>
+
+    <footer class="footer">
+        <div>
+            The content of this website is licensed with a <a
+                href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA
+                4.0</a> license.
+        </div>
+        <div>
+            <a href="privacypolicy.html">App privacy policy.</a>
+        </div>
+        <div>
+            <a href="acks.html">Acknoweldgements</a>
+        </div>
+    </footer>
+
+    <script>
+        let map = L.map('mapid')
+        map.setView([51.505, -0.09], 13)
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: 'pk.eyJ1IjoiZGFyaW9zYWx2aSIsImEiOiJja2dnYXpmYXUwMXdoMnB1ZXdjdGhybDA5In0.q-k_NkG166QsTD70Lozktw'
+        }).addTo(map);
+
+        let latlngs = []
+        let polyline
+
+        function parseFile(txt) {
+            if (polyline) map.removeLayer(polyline)
+            latlngs = []
+
+            const allLines = txt.split(/\r\n|\n/)
+            let state
+            let startTS
+            allLines.forEach((line) => {
+                let ts = line.substring(0, 24)
+                let type = line.substring(27, 28)
+                if (type == 'E') {
+                    if (line.substring(31).startsWith('signal check start')) {
+                        state = 'signalcheck'
+                    }
+                    if (line.substring(31).startsWith('test start')) {
+                        state = 'started'
+                        startTS = new Date(ts)
+                        document.getElementById("date").innerText = ts
+                    }
+                    if (line.substring(31).startsWith('test end')) {
+                        state = 'ended'
+                        let end = JSON.parse(line.substring(40))
+                        document.getElementById("duration").innerText = end.duration + ' min'
+                        document.getElementById("distance").innerText = parseFloat(end.distance).toFixed(1) + ' m'
+                    }
+                } else if (type == 'P') {
+                    let position = JSON.parse(line.substring(40))
+                    latlngs.push([position.coords.latitude, position.coords.longitude])
+                } else if (type == 'S') {
+                    let steps = JSON.parse(line.substring(37))
+                    document.getElementById("steps").innerText = steps.numberOfSteps
+                }
+
+            })
+
+            polyline = L.polyline(latlngs, { color: 'red' })
+            map.addLayer(polyline)
+            // zoom the map to the polyline
+            map.fitBounds(polyline.getBounds());
+        }
+
+        function loadFile(input) {
+            const file = input.files[0]
+            if (/\.(txt)$/i.test(file.name)) {
+                document.getElementById("filename").innerText = file.name
+                const reader = new FileReader()
+
+                reader.onload = (event) => {
+                    const txt = event.target.result
+                    parseFile(txt)
+                }
+
+                reader.onerror = function () {
+                    document.getElementById("filename").innerText = "ERROR:" + reader.error
+                };
+
+                if (file) {
+                    reader.readAsText(file)
+                }
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
