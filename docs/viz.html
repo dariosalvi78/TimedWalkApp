@@ -11,6 +11,8 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -70,9 +72,11 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 10px;">
+            <div>
                 <div id="mapid"></div>
             </div>
+
+            <canvas id="altchart"></canvas>
 
     </main>
 
@@ -106,9 +110,15 @@
         let latlngs = []
         let polyline
 
+        let chart
+        let altLabels = []
+        let altVals = []
+
         function parseFile(txt) {
             if (polyline) map.removeLayer(polyline)
             latlngs = []
+            altLabels = []
+            altVals = []
 
             const allLines = txt.split(/\r\n|\n/)
             let state
@@ -132,8 +142,14 @@
                         document.getElementById("distance").innerText = parseFloat(end.distance).toFixed(1) + ' m'
                     }
                 } else if (type == 'P') {
-                    let position = JSON.parse(line.substring(40))
-                    latlngs.push([position.coords.latitude, position.coords.longitude])
+                    if (state == 'started') {
+                        let position = JSON.parse(line.substring(40))
+                        latlngs.push([position.coords.latitude, position.coords.longitude])
+                        if (position.coords.altitude) {
+                            altLabels.push(ts)
+                            altVals.push(position.coords.altitude)
+                        }
+                    }
                 } else if (type == 'S') {
                     let steps = JSON.parse(line.substring(37))
                     document.getElementById("steps").innerText = steps.numberOfSteps
@@ -148,7 +164,39 @@
             polyline = L.polyline(latlngs, { color: 'red' })
             map.addLayer(polyline)
             // zoom the map to the polyline
-            map.fitBounds(polyline.getBounds());
+            map.fitBounds(polyline.getBounds())
+
+            if (chart) chart.destroy()
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: altLabels,
+                    datasets: [{
+                        fill: false,
+                        pointRadius: 1,
+                        pointBorderWidth: 1,
+                        borderColor: 'rgba(0, 0, 200, 0.8)',
+                        label: 'meters',
+                        data: altVals
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Altitude'
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: false
+                        }],
+                        yAxes: [{
+                            display: true
+                        }]
+                    }
+                }
+            })
         }
 
         function loadFile(input) {
@@ -172,6 +220,7 @@
             }
         }
 
+        var ctx = document.getElementById('altchart').getContext('2d')
     </script>
 
 </body>
