@@ -49,7 +49,7 @@
             <p>
                 The coordinates contained in the file will be shared with Mapbox in order to visualize the map below.
                 See <a href="https://www.mapbox.com/legal/privacy">their privacy policy</a>,
-                particularly the point about APIs and Mobile SDKs for details.
+                particularly the point about APIs and Mobile SDKs, for details.
             </p>
 
             <div class="card flex">
@@ -140,6 +140,10 @@
                 }
 
             })
+
+            if (state !== 'ended') {
+                document.getElementById("filename").innerText = "ERROR: file is incomplete or corrupted"
+            }
 
             polyline = L.polyline(latlngs, { color: 'red' })
             map.addLayer(polyline)
