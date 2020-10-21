@@ -50,6 +50,19 @@ export default {
     A park with not many trees would be ideal.
   </p>
   `,
+  screen: `
+  <p>
+    Your <b>screen must be kept on</b> all the time.
+  </p>
+  <p>
+    If the screen is switched off, the app will not receive the position from
+    the phone.
+  </p>
+  <p>
+    Be aware that keeping the screen on will drain your battery more than usual.
+    Before starting the test, it's better to have the battery well charged. 
+  </p>
+  `,
   gps: `
   <p>
     <b>Activate satellite positioning</b> on your phone.
@@ -61,10 +74,6 @@ export default {
   <p>
     The app may ask you to provide permission to access your position and
     the step counter. These are needed to compute the distance you walk.
-  </p>
-  <p>
-    Before starting the test, it's better to have the battery well charged,
-    if the phone runs out of power, the test will be interrupted.
   </p>
   `,
   duration: `

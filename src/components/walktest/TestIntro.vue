@@ -1,41 +1,76 @@
 <template id="testIntro">
   <v-ons-page>
-    <div class="content" style="padding: 10px;">
+    <div
+      class="content"
+      style="padding: 10px;"
+    >
       <h3 style="text-align: center;">{{$t('walk.walkIntro.title')}}</h3>
 
       <p style="text-align: center;">
-        <v-ons-icon icon="fa-walking" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-walking"
+          size="30px"
+        />
       </p>
       <div v-html="$t('walk.walkIntro.walk')"></div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <v-ons-icon icon="fa-dizzy" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-dizzy"
+          size="30px"
+        />
       </div>
       <div v-html="$t('walk.walkIntro.warnings')"></div>
 
       <p style="text-align: center;">
-        <v-ons-icon icon="fa-road" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-road"
+          size="30px"
+        />
       </p>
       <div v-html="$t('walk.walkIntro.path')"></div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <v-ons-icon icon="fa-sun" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-sun"
+          size="30px"
+        />
       </div>
       <div v-html="$t('walk.walkIntro.weather')"></div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <v-ons-icon icon="fa-map-marker-alt" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-mobile-alt"
+          size="30px"
+        />
+      </div>
+      <div v-html="$t('walk.walkIntro.screen')"></div>
+
+      <div style="text-align: center; margin-top: 10px;">
+        <v-ons-icon
+          icon="fa-map-marker-alt"
+          size="30px"
+        />
       </div>
       <div v-html="$t('walk.walkIntro.gps')"></div>
 
       <div style="text-align: center; margin-top: 10px;">
-        <v-ons-icon icon="fa-ruler" size="30px"></v-ons-icon>
+        <v-ons-icon
+          icon="fa-ruler"
+          size="30px"
+        />
       </div>
       <div v-html="$t('walk.walkIntro.duration')"></div>
 
       <div style="text-align: center;">
         {{$t('walk.walkIntro.minutes')}}: {{ duration }}
-        <v-ons-range v-model="duration" style="width: 100%;" min="3" max="15" step="1"></v-ons-range>
+        <v-ons-range
+          v-model="duration"
+          style="width: 100%;"
+          min="3"
+          max="15"
+          step="1"
+        />
       </div>
 
       <div style="text-align: center; margin-top: 20px;">
