@@ -54,9 +54,9 @@
                 particularly the point about APIs and Mobile SDKs, for details.
             </p>
 
-            <div class="card flex">
+            <div class="card flex" style="padding:20px">
                 <div>
-                    File: <span id="filename"></span>
+                    <span data-tooltip="Filename">File</span>: <span id="filename"></span>
                 </div>
                 <div>
                     Date: <span id="date"></span>
@@ -65,10 +65,13 @@
                     Duration: <span id="duration"></span>
                 </div>
                 <div>
-                    Distance: <span id="distance"></span>
+                    <span data-tooltip="Error: &plusmn;20m">Distance</span>: <span id="distance"></span>
                 </div>
                 <div>
-                    Steps: <span id="steps"></span>
+                    <span data-tooltip="Not always available">Steps</span>: <span id="steps"></span>
+                </div>
+                <div>
+                    <span data-tooltip="Average angle between 3 points">Curviness</span>: <span id="curviness"></span>
                 </div>
             </div>
 
@@ -76,6 +79,7 @@
                 <div id="mapid"></div>
             </div>
 
+            <p>Altitude chart</p>
             <canvas id="altchart"></canvas>
 
     </main>
@@ -114,6 +118,34 @@
         let altLabels = []
         let altVals = []
 
+        function module(pos) {
+            return Math.sqrt(
+                Math.pow((pos.coords.latitude), 2) +
+                Math.pow((pos.coords.longitude), 2))
+        }
+
+        function angleBetween(vertex, pos1, pos2) {
+            let a = {
+                coords: {
+                    latitude: vertex.coords.latitude - pos1.coords.latitude,
+                    longitude: vertex.coords.longitude - pos1.coords.longitude
+                }
+            }
+            let b = {
+                coords: {
+                    latitude: vertex.coords.latitude - pos2.coords.latitude,
+                    longitude: vertex.coords.longitude - pos2.coords.longitude
+                }
+            }
+
+            let ab = (a.coords.latitude * b.coords.latitude) + (a.coords.longitude * b.coords.longitude)
+            let moda = module(a)
+            let modb = module(b)
+            let fract = ab / (moda * modb)
+            let angle = Math.acos(fract) * 57.295779513
+            return angle
+        }
+
         function parseFile(txt) {
             if (polyline) map.removeLayer(polyline)
             latlngs = []
@@ -123,6 +155,8 @@
             const allLines = txt.split(/\r\n|\n/)
             let state
             let startTS
+            let pos1, vert
+            let curviness = 0
             allLines.forEach((line) => {
                 let ts = line.substring(0, 24)
                 let type = line.substring(27, 28)
@@ -149,13 +183,22 @@
                             altLabels.push(ts)
                             altVals.push(position.coords.altitude)
                         }
+                        if (!pos1) { pos1 = position }
+                        else if (!vert) { vert = position }
+                        else {
+                            let angle = angleBetween(vert, pos1, position)
+                            curviness += ((180 - angle) / 180)
+                            pos1 = vert
+                            vert = position
+                        }
                     }
                 } else if (type == 'S') {
                     let steps = JSON.parse(line.substring(37))
                     document.getElementById("steps").innerText = steps.numberOfSteps
                 }
-
             })
+
+            document.getElementById("curviness").innerText = (curviness / allLines.length).toFixed(2)
 
             if (state !== 'ended') {
                 document.getElementById("filename").innerText = "ERROR: file is incomplete or corrupted"
