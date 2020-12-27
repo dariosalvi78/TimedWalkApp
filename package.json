@@ -23,7 +23,7 @@
     "cordova-plugin-wkwebview-engine": "^1.2.1",
     "cordova-plugin-x-socialsharing": "^5.6.8",
     "es6-promise-plugin": "^4.2.2",
-    "onsenui": "^2.9.1",
+    "onsenui": "^2.11.1",
     "vue": "^2.5.0",
     "vue-i18n": "^8.22.2",
     "vue-onsenui": "^2.5.0"
