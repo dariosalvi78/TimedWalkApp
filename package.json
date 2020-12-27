@@ -15,7 +15,7 @@
     "cordova-android": "^9.0.0",
     "cordova-ios": "^5.1.1",
     "cordova-plugin-file": "^6.0.2",
-    "cordova-plugin-geolocation": "^4.0.2",
+    "cordova-plugin-geolocation": "^4.1.0",
     "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
