@@ -21,7 +21,7 @@
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
     "cordova-plugin-tts": "0.2.3",
     "cordova-plugin-wkwebview-engine": "^1.2.1",
-    "cordova-plugin-x-socialsharing": "^5.6.5",
+    "cordova-plugin-x-socialsharing": "^5.6.8",
     "es6-promise-plugin": "^4.2.2",
     "onsenui": "^2.9.1",
     "vue": "^2.5.0",
