@@ -25,7 +25,7 @@
     "es6-promise-plugin": "^4.2.2",
     "onsenui": "^2.11.1",
     "vue": "^2.5.0",
-    "vue-i18n": "^8.18.2",
+    "vue-i18n": "^8.22.3",
     "vue-onsenui": "^2.5.0"
   },
   "devDependencies": {
