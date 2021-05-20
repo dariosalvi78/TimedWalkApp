@@ -15,30 +15,34 @@ You need:
 Then run:
 
 ``` bash
-# install dependencies
 npm install
 cordova prepare
 ```
 
 ## Run
 
+Serve with hot reload at localhost:8080
+
 ``` bash
-# serve with hot reload at localhost:8080
 npm run dev
 ```
 
-Then:
+Run it on device:
+
 ``` bash
 cordova run
 ```
 
+
 ## Deploy
 
+Build for production with minification:
 ``` bash
-# build for production with minification
 npm run build
+```
 
-# prepare the cordova package
+Prepare the cordova package:
+``` bash
 cordova prepare
 ```
 
