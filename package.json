@@ -1,5 +1,5 @@
 {
-  "name": "timedWalkApp",
+  "name": "timed-walk-app",
   "version": "0.1.2",
   "description": "Compute distance of timed walks.",
   "author": "Dario Salvi",
