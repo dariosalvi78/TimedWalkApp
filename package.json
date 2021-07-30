@@ -27,6 +27,7 @@
     "@vue/cli-service": "~4.5.0",
     "babel-eslint": "^10.1.0",
     "cordova-android": "^9.1.0",
+    "cordova-ios": "^6.2.0",
     "cordova-plugin-geolocation": "^4.0.2",
     "cordova-plugin-insomnia": "^4.3.0",
     "cordova-plugin-nativestorage": "^2.3.2",
@@ -70,7 +71,8 @@
       }
     },
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   },
   "displayName": "HelloCordova",
