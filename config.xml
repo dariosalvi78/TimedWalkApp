@@ -68,13 +68,8 @@
             <string>The app needs to use location to compute the walked distance</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="merge" target="NSMotionUsageDescription">
-            <string>The app needs to use location to compute the wlaked distance</string>
+            <string>The app needs to use location to compute the walked distance</string>
         </edit-config>
-        <preference name="WKWebViewOnly" value="true" />
-        <feature name="CDVWKWebViewEngine">
-            <param name="ios-package" value="CDVWKWebViewEngine" />
-        </feature>
-        <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
     </platform>
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <plugin name="cordova-plugin-nativestorage" spec="~2.3.2" />

@@ -24,12 +24,13 @@ cordova prepare
 Serve with hot reload at localhost:8080
 
 ``` bash
-npm run dev
+npm run serve
 ```
 
 Run it on device:
 
 ``` bash
+npm run build
 cordova run
 ```
 
