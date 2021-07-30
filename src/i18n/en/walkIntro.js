@@ -2,7 +2,7 @@ export default {
   title: 'Instructions',
   walk: `
   <p>
-    The object of this test is to walk <b>as far as possible</b> for the
+    The objective of this test is to walk <b>as far as possible</b> for the
     duration of your choice, between 5 and 15 minutes.
   </p>
   <p>
@@ -17,7 +17,7 @@ export default {
     Depending on your conditions, you may get out of breath or become exhausted.
   </p>
   <p>
-    You are permitted to slow down, to stop, and to rest as necessary.
+    You are allowed to slow down, stop, and rest as necessary.
   </p>
   <p>
     If you feel unwell, stop immediately and cancel the test.
@@ -28,10 +28,10 @@ export default {
   `,
   path: `
   <p>
-    Choose a <b>path outdoor</b> with enough length (600 m and above).
+    Choose a <b>path outdoor</b> with enough length (600 m or more).
   </p>
   <p>
-    The path should be <b>flat</b>, no up-hills or down-hills.
+    The path should be <b>flat</b>, with no up-hills or down-hills.
   </p>
   <p>
     The path should be <b>straight</b> or gently curved. Avoid U-turns, they
@@ -41,7 +41,7 @@ export default {
   weather: `
   <p>
     Choose a day with <b>good weather.</b> Besides being more pleasurable,
-    it also increases the chances of getting a good satellite signal.
+    it also increases the chances of receiving good satellite signals.
   </p>
   <p>
     Avoid places with tall buildings, they interfere with the satellites reception.
@@ -55,12 +55,12 @@ export default {
     Your <b>screen must be kept on</b> all the time.
   </p>
   <p>
-    If the screen is switched off, the app will not receive the position from
+    If the screen is switched off, the app will stop receiving the position from
     the phone.
   </p>
   <p>
     Be aware that keeping the screen on will drain your battery more than usual.
-    Before starting the test, it's better to have the battery well charged. 
+    Before starting the test, it's better to make sure the battery is fully charged.
   </p>
   `,
   gps: `
@@ -69,7 +69,7 @@ export default {
   </p>
   <p>
     You may also want to keep the mobile Internet activated, as this will
-    make the finding of satellites faster.
+    allow finding the satellites faster.
   </p>
   <p>
     The app may ask you to provide permission to access your position and
@@ -81,7 +81,7 @@ export default {
     <b>Choose how many minutes you want to walk.</b>
   </p>
   <p>
-    Six minutes is the most commonly used duration.
+    Six minutes is the most commonly-used duration.
   </p>
   `,
   minutes: 'Minutes',
