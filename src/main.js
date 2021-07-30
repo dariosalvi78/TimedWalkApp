@@ -26,6 +26,8 @@ const i18n = new VueI18n({
 Vue.config.productionTip = false
 
 let start = function () {
+  console.log('TimedWalkApp starting')
+
   new Vue({
     i18n,
     render: h => h(App)
@@ -33,6 +35,11 @@ let start = function () {
 }
 
 if (process.env.NODE_ENV === 'production') {
+  // load cordova
+  let cordovaScript = document.createElement('script')
+  cordovaScript.setAttribute('src', 'cordova.js')
+  document.head.appendChild(cordovaScript)
+
   // wait for cordova device ready
   document.addEventListener('deviceready', start, false)
 } else {
