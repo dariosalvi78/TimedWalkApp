@@ -21,7 +21,7 @@ cordova prepare
 
 ## Run
 
-Serve with hot reload at localhost:8080
+Emulated on web at localhost:8080
 
 ``` bash
 npm run serve
@@ -37,14 +37,11 @@ cordova run
 
 ## Deploy
 
-Build for production with minification:
+
 ``` bash
 npm run build
-```
-
-Prepare the cordova package:
-``` bash
 cordova prepare
+cordova build
 ```
 
 Then you need to sign the app and release it. Seek instructions online on how to do it.
