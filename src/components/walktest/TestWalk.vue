@@ -1,19 +1,19 @@
 <template id="testWalk">
   <v-ons-page>
-    <div class="content" style="padding: 10px; text-align: center;">
-      <walking-man ref="walkingMan"/>
-        <div class="messageBox">
-          <div style="text-align: center;">
-            <v-ons-icon :icon="messageIcon" size="30px"></v-ons-icon>
-          </div>
-          <h3>
-            {{messageText}}
-          </h3>
+    <div class="content" style="padding: 10px; text-align: center">
+      <walking-man ref="walkingMan" />
+      <div class="messageBox">
+        <div style="text-align: center">
+          <v-ons-icon :icon="messageIcon" size="30px"></v-ons-icon>
         </div>
-        <div class="timer"> {{ minutes }} : {{ seconds }} </div>
-      <div style="margin-top: 40px;">
+        <h3>
+          {{ messageText }}
+        </h3>
+      </div>
+      <div class="timer">{{ minutes }} : {{ seconds }}</div>
+      <div style="margin-top: 40px">
         <v-ons-button @click="cancelTest">
-          {{$t('walk.cancel')}}
+          {{ $t("walk.cancel") }}
         </v-ons-button>
       </div>
     </div>
@@ -30,7 +30,7 @@ import distanceAlgo from '../../modules/outdoorDistance'
 import files from '../../modules/files'
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
-let padToTwo = number => number <= 99 ? `0${number}`.slice(-2) : number
+let padToTwo = (number) => (number <= 99 ? `0${number}`.slice(-2) : number)
 const TMP_FILENAME = 'timedwalk.txt'
 let logger
 
@@ -61,7 +61,9 @@ export default {
     this.messageIcon = 'fa-satellite'
 
     // avoid screen going to sleep
-    if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.keepAwake()
+    if (window.plugins && window.plugins.insomnia) {
+      window.plugins.insomnia.keepAwake()
+    }
 
     try {
       await files.deleteLog(TMP_FILENAME)
@@ -76,35 +78,40 @@ export default {
     }
 
     // start getting GPS
-    gps.startNotifications(async (position) => {
-      try {
-        await logger.log('P - position ' + JSON.stringify(position))
-      } catch (e) {
-        console.error(e)
-      }
-      if (this.lastStep) {
-        position.steps = this.lastStep
-      }
-      distanceAlgo.addPosition(position)
+    gps.startNotifications(
+      async (position) => {
+        try {
+          await logger.log('P - position ' + JSON.stringify(position))
+        } catch (e) {
+          console.error(e)
+        }
+        if (this.lastStep) {
+          position.steps = this.lastStep
+        }
+        distanceAlgo.addPosition(position)
 
-      if (this.isSignalCheck) {
-        // start if the signal is OK
-        if (distanceAlgo.isSignalOK()) {
-          // start the next phase
-          this.testStarted()
+        if (this.isSignalCheck) {
+          // start if the signal is OK
+          if (distanceAlgo.isSignalOK()) {
+            // start the next phase
+            this.testStarted()
+          }
+        }
+      },
+      async (err) => {
+        try {
+          await logger.log('P - error ' + JSON.stringify(err))
+        } catch (e) {
+          console.error(e)
         }
       }
-    }, async (err) => {
-      try {
-        await logger.log('P - error ' + JSON.stringify(err))
-      } catch (e) {
-        console.error(e)
-      }
-    })
+    )
   },
   beforeDestroy () {
     console.log('stopping stuff')
-    if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.allowSleepAgain()
+    if (window.plugins && window.plugins.insomnia) {
+      window.plugins.insomnia.allowSleepAgain()
+    }
     clearInterval(this.timer)
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     gps.stopNotifications()
@@ -126,10 +133,14 @@ export default {
         msg.lang = navigator.language.split('-')[0]
         speechSynthesis.speak(msg)
       } else {
-        window.TTS.speak({
-          text: txt,
-          locale: navigator.language
-        }, a => a, error => console.log(error))
+        window.TTS.speak(
+          {
+            text: txt,
+            locale: navigator.language
+          },
+          (a) => a,
+          (error) => console.log(error)
+        )
       }
     },
     sendMessage () {
@@ -139,14 +150,20 @@ export default {
         if (durSecs >= this.countdown && this.countdown >= durSecs - 3) {
           this.messageText = this.$t('walk.startNow')
           this.messageIcon = 'fa-exclamation'
-          if (this.countdown === durSecs) this.voiceMessage(this.$t('walk.startNow'))
-        } else if (this.countdown < (durSecs - 50) && this.countdown > 50 && (ctdwnRmn === 0 || ctdwnRmn >= 57)) {
+          if (this.countdown === durSecs) {
+            this.voiceMessage(this.$t('walk.startNow'))
+          }
+        } else if (
+          this.countdown < durSecs - 50 &&
+          this.countdown > 50 &&
+          (ctdwnRmn === 0 || ctdwnRmn >= 57)
+        ) {
           let minsRmn = Math.floor(this.countdown / 60)
           let mins = ctdwnRmn === 0 ? minsRmn : minsRmn + 1
           let msg
           if (mins % 2) msg = this.$t('walk.doingWell')
           else msg = this.$t('walk.keepUp')
-          msg += ' ' + this.$t('walk.minutesToGo', {mins})
+          msg += ' ' + this.$t('walk.minutesToGo', { mins })
           this.messageText = msg
           this.messageIcon = 'fa-exclamation-triangle'
           if (ctdwnRmn === 0) this.voiceMessage(msg)
@@ -158,12 +175,43 @@ export default {
         }
       }
     },
+    async motionHandler (event) {
+      try {
+        let simplifiedEvent = {
+          acc: event.acceleration,
+          accG: event.accelerationIncludingGravity,
+          rotRate: event.rotationRate,
+          interval: event.interval
+        }
+        await logger.log('M - motion ' + JSON.stringify(simplifiedEvent))
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    async orientationHandler (event) {
+      try {
+        let simplifiedEvent = {
+          abs: event.absolute,
+          alpha: event.alpha,
+          beta: event.beta,
+          gamma: event.gamma
+        }
+        if (event.webkitCompassHeading) simplifiedEvent.compassHeading = event.webkitCompassHeading
+        await logger.log('O - orientation ' + JSON.stringify(simplifiedEvent))
+      } catch (e) {
+        console.error(e)
+      }
+    },
     async testStarted () {
       try {
         await logger.log('E - test start')
       } catch (e) {
         console.error(e)
       }
+
+      window.addEventListener('devicemotion', this.motionHandler)
+      window.addEventListener('deviceorientation', this.orientationHandler)
+
       if (await stepcounter.isAvailable()) {
         stepcounter.startNotifications({}, async (steps) => {
           try {
@@ -194,7 +242,12 @@ export default {
       }, 1000)
     },
     async testCompleted () {
-      if (window.plugins && window.plugins.insomnia) window.plugins.insomnia.allowSleepAgain()
+      window.removeEventListener('devicemotion', this.motionHandler)
+      window.removeEventListener('deviceorientation', this.orientationHandler)
+
+      if (window.plugins && window.plugins.insomnia) {
+        window.plugins.insomnia.allowSleepAgain()
+      }
       clearInterval(this.timer)
       gps.stopNotifications()
       this.$refs.walkingMan.stop()
