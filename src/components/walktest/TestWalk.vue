@@ -26,6 +26,7 @@ import WalkingMan from './WalkingMan'
 import storage from '../../modules/storage'
 import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
+import motion from '../../modules/motion'
 import distanceAlgo from '../../modules/outdoorDistance'
 import files from '../../modules/files'
 
@@ -68,54 +69,46 @@ export default {
     try {
       await files.deleteLog(TMP_FILENAME)
     } catch (e) {
-      console.error('cannot delete log, bu thats OK')
+      console.error('cannot delete log, but thats OK')
     }
     try {
       logger = await files.createLog(TMP_FILENAME)
-      await logger.log('E - signal check start')
     } catch (e) {
       console.error(e)
     }
+    logger.log('E - signal check start')
 
     // start getting GPS
-    gps.startNotifications(
-      async (position) => {
-        try {
-          await logger.log('P - position ' + JSON.stringify(position))
-        } catch (e) {
-          console.error(e)
-        }
-        if (this.lastStep) {
-          position.steps = this.lastStep
-        }
-        distanceAlgo.addPosition(position)
+    gps.startNotifications((position) => {
+      logger.log('P - position ' + JSON.stringify(position))
+      if (this.lastStep) {
+        position.steps = this.lastStep
+      }
+      distanceAlgo.addPosition(position)
 
-        if (this.isSignalCheck) {
-          // start if the signal is OK
-          if (distanceAlgo.isSignalOK()) {
-            // start the next phase
-            this.testStarted()
-          }
-        }
-      },
-      async (err) => {
-        try {
-          await logger.log('P - error ' + JSON.stringify(err))
-        } catch (e) {
-          console.error(e)
+      if (this.isSignalCheck) {
+        // start if the signal is OK
+        if (distanceAlgo.isSignalOK()) {
+          // start the next phase
+          this.testStarted()
         }
       }
-    )
+    }, (err) => {
+      logger.log('P - error ' + JSON.stringify(err))
+    })
   },
   beforeDestroy () {
-    console.log('stopping stuff')
+    // remove logger callbacks, these should not be needed, but better safe than sorry!
+    motion.stopNotifications()
+    gps.stopNotifications()
+    stepcounter.stopNotifications()
+
+    // cancel UI stuff, again shouldn't be needed
     if (window.plugins && window.plugins.insomnia) {
       window.plugins.insomnia.allowSleepAgain()
     }
     clearInterval(this.timer)
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
-    gps.stopNotifications()
-    stepcounter.stopNotifications()
   },
   computed: {
     minutes () {
@@ -176,49 +169,20 @@ export default {
       }
     },
     async motionHandler (event) {
-      try {
-        let simplifiedEvent = {
-          acc: event.acceleration,
-          accG: event.accelerationIncludingGravity,
-          rotRate: event.rotationRate,
-          interval: event.interval
-        }
-        await logger.log('M - motion ' + JSON.stringify(simplifiedEvent))
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    async orientationHandler (event) {
-      try {
-        let simplifiedEvent = {
-          abs: event.absolute,
-          alpha: event.alpha,
-          beta: event.beta,
-          gamma: event.gamma
-        }
-        if (event.webkitCompassHeading) simplifiedEvent.compassHeading = event.webkitCompassHeading
-        await logger.log('O - orientation ' + JSON.stringify(simplifiedEvent))
-      } catch (e) {
-        console.error(e)
-      }
+      let pre = ''
+      if (event.type == 'motion') pre = 'M - motion '
+      else if (event.type == 'orientation') pre = 'O - orientation '
+
+      logger.log(pre + JSON.stringify(event))
     },
     async testStarted () {
-      try {
-        await logger.log('E - test start')
-      } catch (e) {
-        console.error(e)
-      }
+      logger.log('E - test start')
 
-      window.addEventListener('devicemotion', this.motionHandler)
-      window.addEventListener('deviceorientation', this.orientationHandler)
+      motion.startNotifications({}, this.motionHandler)
 
       if (await stepcounter.isAvailable()) {
         stepcounter.startNotifications({}, async (steps) => {
-          try {
-            await logger.log('S - steps ' + JSON.stringify(steps))
-          } catch (e) {
-            console.error(e)
-          }
+          logger.log('S - steps ' + JSON.stringify(steps))
           this.lastStep = steps.numberOfSteps
         })
       }
@@ -242,12 +206,8 @@ export default {
       }, 1000)
     },
     async testCompleted () {
-      window.removeEventListener('devicemotion', this.motionHandler)
-      window.removeEventListener('deviceorientation', this.orientationHandler)
+      motion.stopNotifications()
 
-      if (window.plugins && window.plugins.insomnia) {
-        window.plugins.insomnia.allowSleepAgain()
-      }
       clearInterval(this.timer)
       gps.stopNotifications()
       this.$refs.walkingMan.stop()
@@ -262,10 +222,10 @@ export default {
         steps: this.lastStep
       }
 
-      try {
-        await logger.log('E - test end ' + JSON.stringify(testReport))
-      } catch (e) {
-        console.error(e)
+      logger.log('E - test end ' + JSON.stringify(testReport))
+
+      if (window.plugins && window.plugins.insomnia) {
+        window.plugins.insomnia.allowSleepAgain()
       }
 
       this.$emit('push-page', {
@@ -276,6 +236,11 @@ export default {
       })
     },
     async cancelTest () {
+      clearInterval(this.timer)
+      motion.stopNotifications()
+      gps.stopNotifications()
+      stepcounter.stopNotifications()
+
       // we don't need to keep the log any longer
       try {
         await files.deleteLog(TMP_FILENAME)

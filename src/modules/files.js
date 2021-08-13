@@ -5,7 +5,7 @@ export default {
   /**
   * Utility function that translates the error code to a string
   */
-  errorCodeToString (code) {
+  errorCodeToString(code) {
     switch (code) {
       case 1:
         return 'NOT_FOUND_ERR'
@@ -42,7 +42,7 @@ export default {
   * @param {boolean} forcecreate - if true the file is created if does not exist
   * @param {boolean} temporary - uses the temporary folder
   */
-  async openFile (filename, temporary, forcecreate) {
+  async openFile(filename, temporary, forcecreate) {
     if (process.env.NODE_ENV !== 'production') {
       return filename
     }
@@ -50,13 +50,20 @@ export default {
     if (temporary) folder = window.TEMPORARY
     else folder = window.LocalFileSystem.PERSISTENT
     return new Promise((resolve, reject) => {
+      // test code start
+      // window.resolveLocalFileSystemURL(window.cordova.file.externalDataDirectory, function (dirEntry) {
+      //   console.log('file system opened')
+      //   dirEntry.getFile(filename, { create: forcecreate, exclusive: false }, resolve, reject)
+      // }, reject)
+      // test code stop
+
       window.requestFileSystem(folder, 5 * 1024 * 1024, function (fs) {
         fs.root.getFile(filename, { create: forcecreate, exclusive: false }, resolve, reject)
       }, reject)
     })
   },
 
-  async getFilePath (filename, temporary) {
+  async getFilePath(filename, temporary) {
     if (process.env.NODE_ENV !== 'production') {
       return filename
     }
@@ -68,7 +75,7 @@ export default {
   * Reads a file and delivers the content as an object
   * @param {Object} file - the file to be opened
   */
-  async read (file) {
+  async read(file) {
     if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.getItem(file)
     }
@@ -88,7 +95,7 @@ export default {
   * Deletes a file from the file system.
   * @param {Object} file - the file to be deleted
   */
-  async deleteFile (file) {
+  async deleteFile(file) {
     if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.removeItem(file)
     }
@@ -103,7 +110,7 @@ export default {
   * @param {Object} file - file where to save
   * @param {string} txt - is the text to be saved
   */
-  async save (file, txt) {
+  async save(file, txt) {
     if (process.env.NODE_ENV !== 'production') {
       return window.localStorage.setItem(file, txt)
     }
@@ -112,7 +119,10 @@ export default {
     return new Promise((resolve, reject) => {
       file.createWriter(function (fileWriter) {
         fileWriter.onwriteend = resolve
-        fileWriter.onerror = reject
+        fileWriter.onerror = (err) => {
+          console.error(err)
+          if (reject) reject()
+        }
         fileWriter.write(txt)
       })
     })
@@ -122,46 +132,56 @@ export default {
   * Creates a temporary logfile where to append text
   * @param {string} filename - the file name
   */
-  async createLog (filename) {
+  async createLog(filename) {
     let file = null
     if (process.env.NODE_ENV === 'production') file = await this.openFile(filename, true, true)
 
     return {
       buffer: '',
       writing: false,
-      /**
-      * Appends lines to the logger
-      * It works asynchronously, data is NOT buffered and the writer can be busy
-      * @param {string} line - the text to be appended, a timestamp and newline are added to it
-      */
-      async log (line) {
-        this.buffer += new Date().toISOString() + ' - ' + line + '\n'
-
-        if (process.env.NODE_ENV !== 'production') {
-          let pretxt = window.localStorage.getItem(filename)
-          if (pretxt) this.buffer = pretxt + this.buffer
-          window.localStorage.setItem(filename, this.buffer)
-          this.buffer = ''
-          return
-        }
-        if (this.writing) {
-          return
-        }
-
+      writeBuffer(completed, error) {
+        this.writing = true
         let toWrite = this.buffer
         this.buffer = ''
-        this.writing = true
+
+        file.createWriter((fileWriter) => {
+          fileWriter.seek(fileWriter.length)
+          fileWriter.onerror = error
+          fileWriter.onwriteend = () => {
+            if (this.buffer.length > 0) {
+              // buffer not empty, keep writing
+              this.writeBuffer(completed, error)
+            } else {
+              // buffer empty, completed!
+              this.writing = false
+              if (completed) completed()
+            }
+          }
+          fileWriter.write(toWrite)
+        }, error)
+      },
+      /**
+      * Appends lines to the logger
+      * If the logger is busy writing, the promise resolves immediately
+      * @param {string} line - the text to be appended, a timestamp and newline are added to it
+      */
+      async log(line) {
+        // add the line to the buffer
+        this.buffer += new Date().toISOString() + ' - ' + line + '\n'
 
         return new Promise((resolve, reject) => {
-          file.createWriter((fileWriter) => {
-            fileWriter.seek(fileWriter.length)
-            fileWriter.onerror = reject
-            fileWriter.onwriteend = () => {
-              this.writing = false
-              resolve()
-            }
-            fileWriter.write(toWrite)
-          }, reject)
+          // simulation in browser
+          if (process.env.NODE_ENV !== 'production') {
+            let pretxt = window.localStorage.getItem(filename)
+            if (pretxt) this.buffer = pretxt + this.buffer
+            window.localStorage.setItem(filename, this.buffer)
+            this.buffer = ''
+            resolve()
+          }
+
+          // if writing, return immediately
+          if (this.writing) resolve()
+          else this.writeBuffer(resolve, reject)
         })
       }
     }
@@ -171,7 +191,7 @@ export default {
   * Reads a temporary logfile.
   * @param {string} filename - the file name
   */
-  async readLog (filename) {
+  async readLog(filename) {
     let file = await this.openFile(filename, true, true)
     let txt = await this.read(file)
     return txt
@@ -181,7 +201,7 @@ export default {
   * Deletes a temporary logfile.
   * @param {string} filename - the file name
   */
-  async deleteLog (filename) {
+  async deleteLog(filename) {
     let file = await this.openFile(filename, true, false)
     return this.deleteFile(file)
   }
