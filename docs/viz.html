@@ -11,8 +11,11 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.4.9/vis-timeline-graph2d.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.4.9/vis-timeline-graph2d.min.css" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
@@ -81,7 +84,10 @@
       </div>
 
       <p>Altitude chart</p>
-      <canvas id="altchart"></canvas>
+      <div id="altChart"></div>
+
+      <p>Raw acceleration</p>
+      <div id="accChart"></div>
 
   </main>
 
@@ -114,9 +120,10 @@
     let latlngs = []
     let polyline
 
-    let chart
-    let altLabels = []
+    let altChart
+    let accChart
     let altVals = []
+    let accVals = []
 
     function module(pos) {
       return Math.sqrt(
@@ -149,12 +156,11 @@
     function parseFile(txt) {
       if (polyline) map.removeLayer(polyline)
       latlngs = []
-      altLabels = []
       altVals = []
 
       const allLines = txt.split(/\r\n|\n/)
       let state
-      let startTS
+      let startTS, endTS
       let pos1, vert
       let curviness = 0
       allLines.forEach((line) => {
@@ -171,6 +177,7 @@
           }
           if (line.substring(31).startsWith('test end')) {
             state = 'ended'
+            endTS = new Date(ts)
             let end = JSON.parse(line.substring(40))
             document.getElementById('duration').innerText = end.duration + ' min'
             document.getElementById('distance').innerText = parseFloat(end.distance).toFixed(1) + ' m'
@@ -183,8 +190,7 @@
               let position = JSON.parse(line.substring(40))
               latlngs.push([position.coords.latitude, position.coords.longitude])
               if (position.coords.altitude) {
-                altLabels.push(ts)
-                altVals.push(position.coords.altitude)
+                altVals.push({ x: ts, y: position.coords.altitude })
               }
               if (!pos1) { pos1 = position } else if (!vert) { vert = position } else {
                 let angle = angleBetween(vert, pos1, position)
@@ -197,6 +203,11 @@
         } else if (type === 'S') {
           let steps = JSON.parse(line.substring(37))
           document.getElementById('steps').innerText = steps.numberOfSteps
+        } else if (type === 'M') {
+          let motion = JSON.parse(line.substring(38))
+          accVals.push({ x: ts, y: motion.acc.x, group: 0 })
+          accVals.push({ x: ts, y: motion.acc.y, group: 1 })
+          accVals.push({ x: ts, y: motion.acc.z, group: 2 })
         }
       })
 
@@ -211,37 +222,39 @@
       // zoom the map to the polyline
       map.fitBounds(polyline.getBounds())
 
-      if (chart) chart.destroy()
+      if (altChart) altChart.destroy()
 
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: altLabels,
-          datasets: [{
-            fill: false,
-            pointRadius: 1,
-            pointBorderWidth: 1,
-            borderColor: 'rgba(0, 0, 200, 0.8)',
-            label: 'meters',
-            data: altVals
-          }]
-        },
-        options: {
-          responsive: true,
-          title: {
-            display: true,
-            text: 'Altitude'
-          },
-          scales: {
-            xAxes: [{
-              display: false
-            }],
-            yAxes: [{
-              display: true
-            }]
-          }
-        }
+      altChart = new vis.Graph2d(document.getElementById('altChart'), new vis.DataSet(altVals), {
+        start: startTS,
+        end: endTS,
+        drawPoints: false
       })
+
+
+      var container = document.getElementById('accChart')
+      var groups = new vis.DataSet()
+      groups.add({
+        id: 0,
+        content: 'X'
+      })
+
+      groups.add({
+        id: 1,
+        content: 'Y'
+      })
+
+      groups.add({
+        id: 2,
+        content: 'Z'
+      })
+
+      var dataset = new vis.DataSet(accVals)
+      var options = {
+        start: startTS,
+        end: endTS,
+        drawPoints: false
+      };
+      var graph2d = new vis.Graph2d(container, dataset, groups, options)
     }
 
     function loadFile(input) {
@@ -264,8 +277,6 @@
         }
       }
     }
-
-    var ctx = document.getElementById('altchart').getContext('2d')
   </script>
 
 </body>
