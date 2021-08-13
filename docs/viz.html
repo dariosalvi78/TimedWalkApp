@@ -2,271 +2,271 @@
 <html>
 
 <head>
-    <title>Timed Walk App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
-    <link rel="stylesheet" href="tw.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-        crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-        crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timed Walk App</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/picnic">
+  <link rel="stylesheet" href="tw.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
 
-    <nav>
-        <a href="index.html" class="brand">
-            <img class="logo" src="imgs/logo.svg" />
-            <span>Timed Walk App</span>
-        </a>
+  <nav>
+    <a href="index.html" class="brand">
+      <img class="logo" src="imgs/logo.svg" />
+      <span>Timed Walk App</span>
+    </a>
 
-        <input id="bmenub" type="checkbox" class="show">
-        <label for="bmenub" class="burger pseudo button">menu</label>
+    <input id="bmenub" type="checkbox" class="show">
+    <label for="bmenub" class="burger pseudo button">menu</label>
 
-        <div class="menu">
-            <a href="index.html" class="pseudo button">Home</a>
-            <a href="news.html" class="pseudo button">News</a>
-            <a href="viz.html" class="pseudo button">Viz tool</a>
-        </div>
-    </nav>
+    <div class="menu">
+      <a href="index.html" class="pseudo button">Home</a>
+      <a href="news.html" class="pseudo button">News</a>
+      <a href="viz.html" class="pseudo button">Viz tool</a>
+    </div>
+  </nav>
 
 
-    <main>
-        <div class="viztool">
-            <p>This tool visualises the data collected in a test by loading the file
-                produced by the app and shared with the "Share this test details" button.
-            </p>
+  <main>
+    <div class="viztool">
+      <p>
+        This tool visualises the data collected in a test by loading the file
+        produced by the app and shared with the "Share this test details" button.
+      </p>
 
-            <div style="width: 200px;">
-                Place the file here:
-                <label class="dropimage fileupload">
-                    <input title="Drop the file here or click" type="file" accept=".txt" onchange="loadFile(this)">
-                </label>
-            </div>
-            <p>
-                The file loaded on this page is kept on the browser and is not shared with any third party.
-                The coordinates contained in the file will be shared with Mapbox in order to visualize the map below.
-                See <a href="https://www.mapbox.com/legal/privacy">their privacy policy</a>,
-                particularly the point about APIs and Mobile SDKs, for details.
-            </p>
+      <div style="width: 200px;">
+        Place the file here:
+        <label class="dropimage fileupload">
+          <input title="Drop the file here or click" type="file" accept=".txt" onchange="loadFile(this)">
+        </label>
+      </div>
+      <p>
+        The file loaded on this page is kept on the browser and is not shared with any third party.
+        The coordinates contained in the file will be shared with Mapbox in order to visualize the map below.
+        See <a href="https://www.mapbox.com/legal/privacy">their privacy policy</a>,
+        particularly the point about APIs and Mobile SDKs, for details.
+      </p>
 
-            <div class="card flex" style="padding:20px">
-                <div>
-                    <span data-tooltip="Filename">File</span>: <span id="filename"></span>
-                </div>
-                <div>
-                    Date: <span id="date"></span>
-                </div>
-                <div>
-                    Duration: <span id="duration"></span>
-                </div>
-                <div>
-                    <span data-tooltip="Error: &plusmn;20m">Distance</span>: <span id="distance"></span>
-                </div>
-                <div>
-                    <span data-tooltip="Not always available">Steps</span>: <span id="steps"></span>
-                </div>
-                <div>
-                    <span data-tooltip="Average angle between 3 points">Angulature</span>: <span id="curviness"></span>
-                </div>
-            </div>
-
-            <div>
-                <div id="mapid"></div>
-            </div>
-
-            <p>Altitude chart</p>
-            <canvas id="altchart"></canvas>
-
-    </main>
-
-    <footer class="footer">
+      <div class="card flex" style="padding:20px">
         <div>
-            The content of this website is licensed with a <a
-                href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA
-                4.0</a> license.
+          <span data-tooltip="Filename">File</span>: <span id="filename"></span>
         </div>
         <div>
-            <a href="privacypolicy.html">App privacy policy.</a>
+          Date: <span id="date"></span>
         </div>
         <div>
-            <a href="acks.html">Acknoweldgements</a>
+          Duration: <span id="duration"></span>
         </div>
-    </footer>
+        <div>
+          <span data-tooltip="Error: &plusmn;20m">Distance</span>: <span id="distance"></span>
+        </div>
+        <div>
+          <span data-tooltip="Not always available">Steps</span>: <span id="steps"></span>
+        </div>
+        <div>
+          <span data-tooltip="Average angle between 3 points">Angulature</span>: <span id="curviness"></span>
+        </div>
+      </div>
 
-    <script>
-        let map = L.map('mapid')
-        map.setView([51.505, -0.09], 13)
+      <div>
+        <div id="mapid"></div>
+      </div>
 
-        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-          maxZoom: 18,
-          id: 'mapbox/streets-v11',
-          tileSize: 512,
-          zoomOffset: -1,
-          accessToken: 'pk.eyJ1IjoiZGFyaW9zYWx2aSIsImEiOiJja2dnYXpmYXUwMXdoMnB1ZXdjdGhybDA5In0.q-k_NkG166QsTD70Lozktw'
-        }).addTo(map)
+      <p>Altitude chart</p>
+      <canvas id="altchart"></canvas>
 
-let latlngs = []
-        let polyline
+  </main>
 
-        let chart
-        let altLabels = []
-        let altVals = []
+  <footer class="footer">
+    <div>
+      The content of this website is licensed with a <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC-BY-SA
+        4.0</a> license.
+    </div>
+    <div>
+      <a href="privacypolicy.html">App privacy policy.</a>
+    </div>
+    <div>
+      <a href="acks.html">Acknoweldgements</a>
+    </div>
+  </footer>
 
-        function module (pos) {
-          return Math.sqrt(
-            Math.pow((pos.coords.latitude), 2) +
-                Math.pow((pos.coords.longitude), 2))
+  <script>
+    let map = L.map('mapid')
+    map.setView([51.505, -0.09], 13)
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      maxZoom: 18,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: 'pk.eyJ1IjoiZGFyaW9zYWx2aSIsImEiOiJja2dnYXpmYXUwMXdoMnB1ZXdjdGhybDA5In0.q-k_NkG166QsTD70Lozktw'
+    }).addTo(map)
+
+    let latlngs = []
+    let polyline
+
+    let chart
+    let altLabels = []
+    let altVals = []
+
+    function module(pos) {
+      return Math.sqrt(
+        Math.pow((pos.coords.latitude), 2) +
+        Math.pow((pos.coords.longitude), 2))
+    }
+
+    function angleBetween(vertex, pos1, pos2) {
+      let a = {
+        coords: {
+          latitude: vertex.coords.latitude - pos1.coords.latitude,
+          longitude: vertex.coords.longitude - pos1.coords.longitude
         }
+      }
+      let b = {
+        coords: {
+          latitude: vertex.coords.latitude - pos2.coords.latitude,
+          longitude: vertex.coords.longitude - pos2.coords.longitude
+        }
+      }
 
-        function angleBetween (vertex, pos1, pos2) {
-          let a = {
-            coords: {
-              latitude: vertex.coords.latitude - pos1.coords.latitude,
-              longitude: vertex.coords.longitude - pos1.coords.longitude
+      let ab = (a.coords.latitude * b.coords.latitude) + (a.coords.longitude * b.coords.longitude)
+      let moda = module(a)
+      let modb = module(b)
+      let fract = ab / (moda * modb)
+      let angle = Math.acos(fract) * 57.295779513
+      return angle
+    }
+
+    function parseFile(txt) {
+      if (polyline) map.removeLayer(polyline)
+      latlngs = []
+      altLabels = []
+      altVals = []
+
+      const allLines = txt.split(/\r\n|\n/)
+      let state
+      let startTS
+      let pos1, vert
+      let curviness = 0
+      allLines.forEach((line) => {
+        let ts = line.substring(0, 24)
+        let type = line.substring(27, 28)
+        if (type === 'E') {
+          if (line.substring(31).startsWith('signal check start')) {
+            state = 'signalcheck'
+          }
+          if (line.substring(31).startsWith('test start')) {
+            state = 'started'
+            startTS = new Date(ts)
+            document.getElementById('date').innerText = ts
+          }
+          if (line.substring(31).startsWith('test end')) {
+            state = 'ended'
+            let end = JSON.parse(line.substring(40))
+            document.getElementById('duration').innerText = end.duration + ' min'
+            document.getElementById('distance').innerText = parseFloat(end.distance).toFixed(1) + ' m'
+          }
+        } else if (type === 'P') {
+          if (state === 'started') {
+            let typeRegex = /-\s([a-z])+/
+            let type = typeRegex.exec(line)[0].substring(2)
+            if (type === 'position') {
+              let position = JSON.parse(line.substring(40))
+              latlngs.push([position.coords.latitude, position.coords.longitude])
+              if (position.coords.altitude) {
+                altLabels.push(ts)
+                altVals.push(position.coords.altitude)
+              }
+              if (!pos1) { pos1 = position } else if (!vert) { vert = position } else {
+                let angle = angleBetween(vert, pos1, position)
+                curviness += ((180 - angle) / 180)
+                pos1 = vert
+                vert = position
+              }
             }
           }
-          let b = {
-            coords: {
-              latitude: vertex.coords.latitude - pos2.coords.latitude,
-              longitude: vertex.coords.longitude - pos2.coords.longitude
-            }
-          }
-
-          let ab = (a.coords.latitude * b.coords.latitude) + (a.coords.longitude * b.coords.longitude)
-          let moda = module(a)
-          let modb = module(b)
-          let fract = ab / (moda * modb)
-          let angle = Math.acos(fract) * 57.295779513
-          return angle
+        } else if (type === 'S') {
+          let steps = JSON.parse(line.substring(37))
+          document.getElementById('steps').innerText = steps.numberOfSteps
         }
+      })
 
-        function parseFile (txt) {
-          if (polyline) map.removeLayer(polyline)
-          latlngs = []
-          altLabels = []
-          altVals = []
+      document.getElementById('curviness').innerText = (curviness / allLines.length).toFixed(2)
 
-          const allLines = txt.split(/\r\n|\n/)
-          let state
-          let startTS
-          let pos1, vert
-          let curviness = 0
-          allLines.forEach((line) => {
-            let ts = line.substring(0, 24)
-            let type = line.substring(27, 28)
-            if (type === 'E') {
-              if (line.substring(31).startsWith('signal check start')) {
-                state = 'signalcheck'
-              }
-              if (line.substring(31).startsWith('test start')) {
-                state = 'started'
-                startTS = new Date(ts)
-                document.getElementById('date').innerText = ts
-              }
-              if (line.substring(31).startsWith('test end')) {
-                state = 'ended'
-                let end = JSON.parse(line.substring(40))
-                document.getElementById('duration').innerText = end.duration + ' min'
-                document.getElementById('distance').innerText = parseFloat(end.distance).toFixed(1) + ' m'
-              }
-            } else if (type === 'P') {
-              if (state === 'started') {
-                let typeRegex = /-\s([a-z])+/
-                let type = typeRegex.exec(line)[0].substring(2)
-                if (type === 'position') {
-                  let position = JSON.parse(line.substring(40))
-                  latlngs.push([position.coords.latitude, position.coords.longitude])
-                  if (position.coords.altitude) {
-                    altLabels.push(ts)
-                    altVals.push(position.coords.altitude)
-                  }
-                  if (!pos1) { pos1 = position } else if (!vert) { vert = position } else {
-                    let angle = angleBetween(vert, pos1, position)
-                    curviness += ((180 - angle) / 180)
-                    pos1 = vert
-                    vert = position
-                  }
-                }
-              }
-            } else if (type === 'S') {
-              let steps = JSON.parse(line.substring(37))
-              document.getElementById('steps').innerText = steps.numberOfSteps
-            }
-          })
+      if (state !== 'ended') {
+        document.getElementById('filename').innerText = 'ERROR: file is incomplete or corrupted'
+      }
 
-          document.getElementById('curviness').innerText = (curviness / allLines.length).toFixed(2)
+      polyline = L.polyline(latlngs, { color: 'red' })
+      map.addLayer(polyline)
+      // zoom the map to the polyline
+      map.fitBounds(polyline.getBounds())
 
-          if (state !== 'ended') {
-            document.getElementById('filename').innerText = 'ERROR: file is incomplete or corrupted'
-          }
+      if (chart) chart.destroy()
 
-          polyline = L.polyline(latlngs, { color: 'red' })
-          map.addLayer(polyline)
-          // zoom the map to the polyline
-          map.fitBounds(polyline.getBounds())
-
-          if (chart) chart.destroy()
-
-          chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: altLabels,
-              datasets: [{
-                fill: false,
-                pointRadius: 1,
-                pointBorderWidth: 1,
-                borderColor: 'rgba(0, 0, 200, 0.8)',
-                label: 'meters',
-                data: altVals
-              }]
-            },
-            options: {
-              responsive: true,
-              title: {
-                display: true,
-                text: 'Altitude'
-              },
-              scales: {
-                xAxes: [{
-                  display: false
-                }],
-                yAxes: [{
-                  display: true
-                }]
-              }
-            }
-          })
-        }
-
-        function loadFile (input) {
-          const file = input.files[0]
-          if (/\.(txt)$/i.test(file.name)) {
-            document.getElementById('filename').innerText = file.name
-            const reader = new FileReader()
-
-            reader.onload = (event) => {
-              const txt = event.target.result
-              parseFile(txt)
-            }
-
-            reader.onerror = function () {
-              document.getElementById('filename').innerText = 'ERROR:' + reader.error
-            }
-
-            if (file) {
-              reader.readAsText(file)
-            }
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: altLabels,
+          datasets: [{
+            fill: false,
+            pointRadius: 1,
+            pointBorderWidth: 1,
+            borderColor: 'rgba(0, 0, 200, 0.8)',
+            label: 'meters',
+            data: altVals
+          }]
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: 'Altitude'
+          },
+          scales: {
+            xAxes: [{
+              display: false
+            }],
+            yAxes: [{
+              display: true
+            }]
           }
         }
+      })
+    }
 
-        var ctx = document.getElementById('altchart').getContext('2d')
-    </script>
+    function loadFile(input) {
+      const file = input.files[0]
+      if (/\.(txt)$/i.test(file.name)) {
+        document.getElementById('filename').innerText = file.name
+        const reader = new FileReader()
+
+        reader.onload = (event) => {
+          const txt = event.target.result
+          parseFile(txt)
+        }
+
+        reader.onerror = function () {
+          document.getElementById('filename').innerText = 'ERROR:' + reader.error
+        }
+
+        if (file) {
+          reader.readAsText(file)
+        }
+      }
+    }
+
+    var ctx = document.getElementById('altchart').getContext('2d')
+  </script>
 
 </body>
 
