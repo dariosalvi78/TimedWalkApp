@@ -172,7 +172,7 @@ export default {
       let pre = ''
       if (event.type == 'motion') pre = 'M - motion '
       else if (event.type == 'orientation') pre = 'O - orientation '
-
+      delete event.type
       logger.log(pre + JSON.stringify(event))
     },
     async testStarted () {
