@@ -221,7 +221,11 @@ export default {
         duration: this.duration,
         date: new Date(),
         distance: distance,
-        steps: this.lastStep
+        steps: this.lastStep,
+        device: {
+          os: window.device.platform + ' ' + window.device.version,
+          model: window.device.manufacturer + ' ' + window.device.model
+        }
       }
 
       logger.log('E - test end ' + JSON.stringify(testReport))
