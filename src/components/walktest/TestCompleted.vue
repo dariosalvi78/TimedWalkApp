@@ -33,7 +33,7 @@ export default {
   props: [ 'testReport' ],
   async mounted () {
     // auto save
-    console.log('saving test')
+    console.log('Saving test in history')
     // save the results
     let history = await storage.getItem('history')
     if (!history) history = []
@@ -61,7 +61,7 @@ export default {
           }, resolve, reject)
         })
       } catch (err) {
-        this.$ons.notification.toast(this.$t('walk.fileError'), { timeout: 1000, animation: 'fall' })
+        this.$ons.notification.toast(this.$t('walk.fileError'), { timeout: 1000 })
         console.log('cannot share file', err)
       }
     }

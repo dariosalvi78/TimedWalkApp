@@ -226,7 +226,7 @@ export default {
       if (window.device) testReport.device = {
           os: window.device.platform + ' ' + window.device.version,
           model: window.device.manufacturer + ' ' + window.device.model
-        }
+      }
 
       logger.log('E - test end ' + JSON.stringify(testReport))
 

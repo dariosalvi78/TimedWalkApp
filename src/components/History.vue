@@ -68,6 +68,7 @@ export default {
           }, resolve, reject)
         })
       } catch (err) {
+        this.$ons.notification.toast(this.$t('history.shareError'), { timeout: 1000 })
         console.error(err)
       }
     }

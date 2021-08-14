@@ -6,5 +6,6 @@ export default {
     distance: 'Distance',
     steps: 'Steps'
   },
-  shareTopic: 'Timed walk history'
+  shareTopic: 'Timed walk history',
+  shareError: 'Cannot share history'
 }
