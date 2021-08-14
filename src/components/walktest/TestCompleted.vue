@@ -61,6 +61,7 @@ export default {
           }, resolve, reject)
         })
       } catch (err) {
+        this.$ons.notification.toast(this.$t('walk.fileError'), { timeout: 1000, animation: 'fall' })
         console.log('cannot share file', err)
       }
     }

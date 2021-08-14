@@ -15,5 +15,6 @@ export default {
   restart: 'Restart',
   shareButton: 'Share this test details',
   shareTopic: 'My timed walk test details',
-  shareMesssage: 'Please find attached the details of the test done on date: {date}.'
+  shareMesssage: 'Please find attached the details of the test done on date: {date}.',
+  fileError: 'Cannot read or share file.'
 }
