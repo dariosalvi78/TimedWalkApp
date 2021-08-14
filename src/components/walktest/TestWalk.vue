@@ -41,7 +41,7 @@ export default {
   data () {
     return {
       duration: 6,
-      countdown: 10,
+      countdown: 360,
       timer: undefined,
       isSignalCheck: true,
       lastStep: undefined,
@@ -50,7 +50,14 @@ export default {
     }
   },
   async mounted () {
-    console.log('Mounted, starting GPS')
+    console.log('Test started, checking GPS')
+    if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
+
+    // avoid screen going to sleep
+    if (window.plugins && window.plugins.insomnia) {
+      window.plugins.insomnia.keepAwake()
+    }
+
     let dur = await storage.getItem('duration')
     if (dur) {
       this.duration = dur
@@ -60,11 +67,6 @@ export default {
     this.isSignalCheck = true
     this.messageText = this.$t('walk.signalCheck')
     this.messageIcon = 'fa-satellite'
-
-    // avoid screen going to sleep
-    if (window.plugins && window.plugins.insomnia) {
-      window.plugins.insomnia.keepAwake()
-    }
 
     try {
       await files.deleteLog(TMP_FILENAME)
@@ -105,6 +107,7 @@ export default {
 
     // cancel UI stuff, again shouldn't be needed
     clearInterval(this.timer)
+    if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
     if (window.plugins && window.plugins.insomnia) {
       window.plugins.insomnia.allowSleepAgain()
     }
