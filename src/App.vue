@@ -1,6 +1,6 @@
 <template id="main-page">
   <v-ons-page id="tabbar-page">
-    <v-ons-tabbar swipeable position="auto" :visible="true" :index.sync="activeIndex" :tabs="tabs">
+    <v-ons-tabbar swipeable position="bottom" :visible="true" :index.sync="activeIndex" :tabs="tabs">
     </v-ons-tabbar>
   </v-ons-page>
 </template>
