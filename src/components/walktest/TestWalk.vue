@@ -104,11 +104,10 @@ export default {
     stepcounter.stopNotifications()
 
     // cancel UI stuff, again shouldn't be needed
+    clearInterval(this.timer)
     if (window.plugins && window.plugins.insomnia) {
       window.plugins.insomnia.allowSleepAgain()
     }
-    clearInterval(this.timer)
-    if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
   },
   computed: {
     minutes () {
@@ -208,11 +207,11 @@ export default {
       }, 1000)
     },
     async testCompleted () {
-      motion.stopNotifications()
-
       clearInterval(this.timer)
-      gps.stopNotifications()
       this.$refs.walkingMan.stop()
+
+      motion.stopNotifications()
+      gps.stopNotifications()
       stepcounter.stopNotifications()
 
       distanceAlgo.stopTest()
