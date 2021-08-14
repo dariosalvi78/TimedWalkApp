@@ -168,17 +168,18 @@ export default {
         }
       }
     },
-    async motionHandler (event) {
-      let pre = ''
-      if (event.type == 'motion') pre = 'M - motion '
-      else if (event.type == 'orientation') pre = 'O - orientation '
-      delete event.type
-      logger.log(pre + JSON.stringify(event))
-    },
     async testStarted () {
       logger.log('E - test start')
 
-      motion.startNotifications({}, this.motionHandler)
+      if (await motion.isAvailable()) {
+        motion.startNotifications({}, (event) => {
+          let pre = ''
+          if (event.type == 'motion') pre = 'M - motion '
+          else if (event.type == 'orientation') pre = 'O - orientation '
+          delete event.type
+          logger.log(pre + JSON.stringify(event))
+        })
+      }
 
       if (await stepcounter.isAvailable()) {
         stepcounter.startNotifications({}, async (steps) => {
@@ -186,6 +187,7 @@ export default {
           this.lastStep = steps.numberOfSteps
         })
       }
+
       this.isSignalCheck = false
       this.countdown = this.duration * 60
 
