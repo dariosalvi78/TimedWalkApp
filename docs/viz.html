@@ -83,10 +83,13 @@
         <div id="mapid"></div>
       </div>
 
-      <p>Altitude chart</p>
+      <p>Altitude</p>
       <div id="altChart"></div>
 
-      <p>Raw acceleration</p>
+      <p>Steps</p>
+      <div id="stepsChart"></div>
+
+      <p>Acceleration</p>
       <div id="accChart"></div>
 
   </main>
@@ -122,8 +125,10 @@
 
     let altChart
     let accChart
+    let stepsChart
     let altVals = []
     let accVals = []
+    let stepsVals = []
 
     function module(pos) {
       return Math.sqrt(
@@ -157,6 +162,8 @@
       if (polyline) map.removeLayer(polyline)
       latlngs = []
       altVals = []
+      accVals = []
+      stepsVals = []
 
       const allLines = txt.split(/\r\n|\n/)
       let state
@@ -203,6 +210,7 @@
         } else if (type === 'S') {
           let steps = JSON.parse(line.substring(37))
           document.getElementById('steps').innerText = steps.numberOfSteps
+          stepsVals.push({ x: ts, y: steps.numberOfSteps })
         } else if (type === 'M') {
           let motion = JSON.parse(line.substring(38))
           accVals.push({ x: ts, y: motion.acc.x, group: 0 })
@@ -227,7 +235,17 @@
       altChart = new vis.Graph2d(document.getElementById('altChart'), new vis.DataSet(altVals), {
         start: startTS,
         end: endTS,
-        drawPoints: false
+        drawPoints: false,
+        interpolation: { enabled: false }
+      })
+
+      if (stepsChart) stepsChart.destroy()
+
+      stepsChart = new vis.Graph2d(document.getElementById('stepsChart'), new vis.DataSet(stepsVals), {
+        start: startTS,
+        end: endTS,
+        drawPoints: false,
+        interpolation: { enabled: false }
       })
 
 
@@ -252,7 +270,8 @@
       var options = {
         start: startTS,
         end: endTS,
-        drawPoints: false
+        drawPoints: false,
+        interpolation: { enabled: false }
       };
       var graph2d = new vis.Graph2d(container, dataset, groups, options)
     }
