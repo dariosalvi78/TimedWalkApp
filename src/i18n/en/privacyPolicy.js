@@ -1,6 +1,6 @@
 export default `
 <p>
-Version: 2021-08-14
+Version: 2021-08-16
 </p>
 <p>
 When you perform a test, this app retrieves the following information from
@@ -14,6 +14,10 @@ your phone:
   <li>
     Movement measured by your phone, like acceleration, orientation and steps.
     This is used to complement the information about the distance.
+  </li>
+  <li>
+    Model of your phone and operating system.
+    This may be used to investigate the app has issues with particular phones.
   </li>
 </ul>
 <p>
