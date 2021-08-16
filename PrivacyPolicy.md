@@ -7,7 +7,7 @@ When you perform a test, this app retrieves the following information from
 your phone:
 - The geographical position of your phone. This is used to compute the distance you walk.
 - Movement measured by your phone, like acceleration, orientation and steps. This is used to complement the information about the distance.
-- Model of your phone and operating system. This may be used to investigate the app has issues with particular phones.
+- Model of your phone and operating system. This may be used to investigate if the app has issues with particular phones.
 
 During the test, these data are temporarily stored on the phone. You can decide
 to share these data at the end of the test, using the dedicated button.
