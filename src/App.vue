@@ -1,6 +1,12 @@
 <template id="main-page">
   <v-ons-page id="tabbar-page">
-    <v-ons-tabbar swipeable position="bottom" :visible="true" :index.sync="activeIndex" :tabs="tabs">
+    <v-ons-tabbar
+      swipeable
+      position="bottom"
+      :visible="true"
+      :index.sync="activeIndex"
+      :tabs="tabs"
+    >
     </v-ons-tabbar>
   </v-ons-page>
 </template>
@@ -18,25 +24,25 @@ export default {
       activeIndex: 0,
       tabs: [
         {
-          label: 'Home',
+          label: this.$t('menu.home'),
           icon: 'fa-home',
           key: 'homePage',
           page: homePage
         },
         {
-          label: 'Walk',
+          label: this.$t('menu.walk'),
           icon: 'fa-walking',
           key: 'walkPage',
           page: walkPage
         },
         {
-          label: 'History',
+          label: this.$t('menu.history'),
           icon: 'fa-history',
           key: 'historyPage',
           page: historyPage
         },
         {
-          label: 'About',
+          label: this.$t('menu.about'),
           icon: 'fa-question',
           key: 'aboutPage',
           page: aboutPage

@@ -35,8 +35,9 @@ export default `
   <li>cordova-plugin-geolocation</li>
   <li>cordova-plugin-pedometer</li>
   <li>cordova-plugin-insomnia</li>
-  <li>cordova-plugin-wkwebview-engine</li>
   <li>cordova-plugin-x-socialsharing</li>
+  <li>cordova-plugin-whitelist</li>
+  <li>cordova-plugin-tts</li>
 </ul>
 <p>
   The following free icons and images are used:

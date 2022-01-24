@@ -5,10 +5,10 @@ import walk from './walk'
 
 export default {
   menu: {
-    home: 'Home',
-    walk: 'Walk',
-    history: 'History',
-    about: 'About'
+    home: 'Inizio',
+    walk: 'Test',
+    history: 'Cronologia',
+    about: 'Info'
   },
   home,
   history,

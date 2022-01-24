@@ -1,6 +1,7 @@
 import walkIntro from './walkIntro'
 
 export default {
+  title: 'Walk test',
   walkIntro,
   signalCheck: 'Waiting for satellites signal, make sure you are outdoor and that satellite positioning is activated on the phone.',
   startNow: 'You can start now.',

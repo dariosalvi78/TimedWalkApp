@@ -3,7 +3,7 @@ export default {
   walk: `
   <p>
     The objective of this test is to walk <b>as far as possible</b> for the
-    duration of your choice, between 5 and 15 minutes.
+    duration of your choice, between 3 and 15 minutes.
   </p>
   <p>
     By walking for several minutes you will be exerting yourself.

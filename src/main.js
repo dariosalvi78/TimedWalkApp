@@ -8,12 +8,14 @@ import VueI18n from 'vue-i18n'
 import VueOnsen from 'vue-onsenui' // This imports 'onsenui', so no need to import it separately
 import App from './App.vue'
 import en from './i18n/en/en'
+import it from './i18n/it/it'
 
 Vue.use(VueOnsen) // VueOnsen set here as plugin to VUE. Done automatically if a call to window.Vue exists in the startup code.
 Vue.use(VueI18n) // this is used for ii18n
 
 const messages = {
-  en: en
+  en: en,
+  it: it
 }
 
 // Create VueI18n instance with options
