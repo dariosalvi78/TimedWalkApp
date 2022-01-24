@@ -1,3 +1,8 @@
+0.2.1
+
+- added support for Italian
+- updated libraries and dependencies
+
 0.2.0
 
 - improved textual instructions
