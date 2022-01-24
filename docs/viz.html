@@ -12,9 +12,11 @@
     integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
     crossorigin=""></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.4.9/vis-timeline-graph2d.min.js"></script>
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.4.9/vis-timeline-graph2d.min.css" />
+  <script type="text/javascript"
+    src="https://unpkg.com/vis-timeline/standalone/umd/vis-timeline-graph2d.min.js"></script>
+
+
+  <script src="outdoorDistance.js"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
@@ -72,11 +74,14 @@
           <span data-tooltip="Error: &plusmn;20m">Distance</span>: <span id="distance"></span>
         </div>
         <div>
-          <span data-tooltip="Not always available">Steps</span>: <span id="steps"></span>
+          <span data-tooltip="Error: &plusmn;20m">Re-computed distance</span>: <span id="redistance"></span>
         </div>
         <div>
-          <span data-tooltip="Average angle between 3 points">Angulature</span>: <span id="curviness"></span>
+          <span data-tooltip="Not always available">Steps</span>: <span id="steps"></span>
         </div>
+        <!-- <div>
+          <span data-tooltip="Average angle between 3 points">Angulature</span>: <span id="curviness"></span>
+        </div> -->
       </div>
 
       <div>
@@ -160,6 +165,8 @@
     }
 
     function parseFile(txt) {
+      ALGO.reset()
+
       if (polyline) map.removeLayer(polyline)
       latlngs = []
       altVals = []
@@ -182,6 +189,8 @@
             state = 'started'
             startTS = new Date(ts)
             document.getElementById('date').innerText = ts
+
+            ALGO.startTest()
           }
           if (line.substring(31).startsWith('test end')) {
             state = 'ended'
@@ -189,13 +198,18 @@
             let end = JSON.parse(line.substring(40))
             document.getElementById('duration').innerText = end.duration + ' min'
             document.getElementById('distance').innerText = parseFloat(end.distance).toFixed(1) + ' m'
+
+            ALGO.stopTest()
+            let reDist = ALGO.getDistance()
+            document.getElementById('redistance').innerText = reDist.toFixed(1) + ' m'
           }
         } else if (type === 'P') {
-          if (state === 'started') {
-            let typeRegex = /-\s([a-z])+/
-            let type = typeRegex.exec(line)[0].substring(2)
-            if (type === 'position') {
-              let position = JSON.parse(line.substring(40))
+          let typeRegex = /-\s([a-z])+/
+          let type = typeRegex.exec(line)[0].substring(2)
+          if (type === 'position') {
+            let position = JSON.parse(line.substring(40))
+            ALGO.addPosition(position)
+            if (state === 'started') {
               latlngs.push([position.coords.latitude, position.coords.longitude])
               if (position.coords.altitude) {
                 altVals.push({ x: ts, y: position.coords.altitude })
@@ -208,6 +222,7 @@
               }
             }
           }
+
         } else if (type === 'S') {
           let steps = JSON.parse(line.substring(37))
           document.getElementById('steps').innerText = steps.numberOfSteps
@@ -220,7 +235,7 @@
         }
       })
 
-      document.getElementById('curviness').innerText = (curviness / allLines.length).toFixed(2)
+      // document.getElementById('curviness').innerText = (curviness / allLines.length).toFixed(2)
 
       if (state !== 'ended') {
         document.getElementById('filename').innerText = 'ERROR: file is incomplete or corrupted'
