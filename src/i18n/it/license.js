@@ -1,6 +1,5 @@
 // translation from https://github.com/steptr/MIT-License/blob/master/MIT_License-it.txt
-export default {
-  license: `
+export default `
   <p><b>Licenza MIT</b></p>
   <p>Copyright (c) 2020 Dario Salvi</p>
   <p>
@@ -27,4 +26,3 @@ export default {
   </p>
   <p>Il codice sorgente di questa app è disponibile presso: https://github.com/dariosalvi78/TimedWalkApp</p>
   `
-}
