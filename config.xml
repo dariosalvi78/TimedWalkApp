@@ -69,7 +69,7 @@
             <string>The app needs to use location to compute the walked distance</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="merge" target="NSMotionUsageDescription">
-            <string>The app needs to use location to compute the walked distance</string>
+            <string>The app needs to use motion sensors to compute the walked distance</string>
         </edit-config>
     </platform>
 </widget>
