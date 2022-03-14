@@ -1,6 +1,6 @@
 export default `
 <p><b>MIT License</b></p>
-<p>Copyright (c) 2021 Dario Salvi</p>
+<p>Copyright (c) 2022 Dario Salvi</p>
 <p>
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),

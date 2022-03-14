@@ -1,7 +1,7 @@
 // translation from https://github.com/steptr/MIT-License/blob/master/MIT_License-it.txt
 export default `
   <p><b>Licenza MIT</b></p>
-  <p>Copyright (c) 2020 Dario Salvi</p>
+  <p>Copyright (c) 2022 Dario Salvi</p>
   <p>
     Si concede gratuitamente l'autorizzazione, a chiunque ottenga una copia di
     questo software e dei file di documentazione associati (il "Software"), di
