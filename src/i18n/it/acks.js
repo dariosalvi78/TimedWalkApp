@@ -1,6 +1,6 @@
 export default `
 <p>
-  Questa app è stata sviluppata da Dario Salvi nell'ambito della suo lavoro di
+  Questa app è stata sviluppata da Dario Salvi nell'ambito del suo lavoro di
   ricerca svolto presso il centro "Internet of Things and People" (IoTaP)
   dell' Universitá di Malmo, Svezia. Il centro è co-finanziato dalla Fondazione
   Svedese per la Conoscenza, KK-stiftelsen.
@@ -13,7 +13,7 @@ export default `
 </p>
 <p>
   Se desideri porti in contatto con l'autore, manda una email a dario.salvi@mau.se.
-  Ringraziamenti e collaboazioni nell'ambito della ricerca sono sempre benvenute!
+  Ringraziamenti e collaborazioni nell'ambito della ricerca sono sempre benvenuti!
 </p>
 <p>
   L'algoritmo che estrae la distanza dalle coordinate fornite dal GPS è basato sul

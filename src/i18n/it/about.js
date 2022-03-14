@@ -5,7 +5,7 @@ import privacyPolicy from './privacyPolicy'
 
 export default {
   title: 'Info',
-  smwtTitle: 'Il test di camminata dei 6 minuti',
+  smwtTitle: 'Il test del cammino su 6 minuti',
   acksTitle: 'Ringraziamenti',
   privacyPolicyTitle: 'Politica sulla riservatezza',
   licenseTitle: 'Licenza',

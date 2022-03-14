@@ -9,7 +9,7 @@ export default {
     Mentre cammini farai dell'esercizio fisico.
   </p>
   <p>
-    Dovresti riposare per lo meno 10 minuti prima dell'inizio del test, preferibilmente seduto/a.
+    Dovresti riposare perlomeno 10 minuti prima dell'inizio del test, preferibilmente seduto/a.
   </p>
   `,
   warnings: `
