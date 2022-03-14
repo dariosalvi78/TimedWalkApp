@@ -4,7 +4,9 @@ export default {
     date: 'Test date',
     duration: 'Duration',
     distance: 'Distance',
-    steps: 'Steps'
+    steps: 'Steps',
+    minutes: 'minutes',
+    meters: 'meters'
   },
   shareTopic: 'Timed walk history',
   shareError: 'Cannot share history'

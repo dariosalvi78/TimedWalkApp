@@ -12,8 +12,8 @@
         <div class="content">
           <v-ons-list>
             <v-ons-list-header><b>{{$t('history.item.date')}}:</b> &nbsp; {{ formatDate(test.date) }}</v-ons-list-header>
-            <v-ons-list-item><b>{{$t('history.item.duration')}}:</b> &nbsp; {{ test.duration }} minutes</v-ons-list-item>
-            <v-ons-list-item><b>{{$t('history.item.distance')}}:</b> &nbsp; {{ test.distance.toFixed(2) }} meters</v-ons-list-item>
+            <v-ons-list-item><b>{{$t('history.item.duration')}}:</b> &nbsp; {{ test.duration }} {{$t('history.item.minutes')}}</v-ons-list-item>
+            <v-ons-list-item><b>{{$t('history.item.distance')}}:</b> &nbsp; {{ test.distance.toFixed(2) }} {{$t('history.item.meters')}}</v-ons-list-item>
             <v-ons-list-item v-if="test.steps"><b>{{$t('history.item.steps')}}:</b> &nbsp; {{ test.steps }}</v-ons-list-item>
           </v-ons-list>
         </div>
