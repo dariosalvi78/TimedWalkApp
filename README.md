@@ -9,8 +9,8 @@ This app is not certified as a medical device and should be used only for genera
 
 You need:
 
-- Nodejs
-- Apache Cordova
+- Nodejs (recommended version 16.18.1)
+- Apache Cordova (tested with version 11.0.0)
 
 Then run:
 
