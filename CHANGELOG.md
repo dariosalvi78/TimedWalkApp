@@ -1,3 +1,8 @@
+0.3.1
+
+- added German language support
+- updated libraries and dependencies
+
 0.3.0
 
 - added support for Italian
