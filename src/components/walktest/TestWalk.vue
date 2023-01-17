@@ -1,10 +1,16 @@
 <template id="testWalk">
   <v-ons-page>
-    <div class="content" style="padding: 10px; text-align: center">
+    <div
+      class="content"
+      style="padding: 10px; text-align: center"
+    >
       <walking-man ref="walkingMan" />
       <div class="messageBox">
         <div style="text-align: center">
-          <v-ons-icon :icon="messageIcon" size="30px"></v-ons-icon>
+          <v-ons-icon
+            :icon="messageIcon"
+            size="30px"
+          ></v-ons-icon>
         </div>
         <h3>
           {{ messageText }}
@@ -227,8 +233,8 @@ export default {
       }
 
       if (window.device) testReport.device = {
-          os: window.device.platform + ' ' + window.device.version,
-          model: window.device.manufacturer + ' ' + window.device.model
+        os: window.device.platform + ' ' + window.device.version,
+        model: window.device.manufacturer + ' ' + window.device.model
       }
 
       logger.log('E - test end ' + JSON.stringify(testReport))
@@ -270,6 +276,6 @@ export default {
 
 .messageBox {
   margin-top: 40px;
-  height: 135px;
+  height: 155px;
 }
 </style>
