@@ -15,17 +15,18 @@
   },
   "main": "index.js",
   "dependencies": {
-    "core-js": "^3.27.0",
+    "core-js": "^3.8.3",
     "onsenui": "^2.12.8",
     "vue": "^2.6.14",
     "vue-i18n": "^8.27.2",
     "vue-onsenui": "^2.7.2"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.8",
-    "@vue/cli-plugin-eslint": "~5.0.8",
-    "@vue/cli-service": "~5.0.8",
-    "babel-eslint": "^10.1.0",
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
     "cordova-android": "^10.1.1",
     "cordova-ios": "^6.2.0",
     "cordova-plugin-device": "^2.0.3",
@@ -38,8 +39,8 @@
     "cordova-plugin-whitelist": "^1.3.5",
     "cordova-plugin-x-socialsharing": "^6.0.3",
     "es6-promise-plugin": "^4.2.2",
-    "eslint": "^7.5.0",
-    "eslint-plugin-vue": "^6.2.2",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.0.3",
     "vue-template-compiler": "^2.6.14"
   },
   "eslintConfig": {
@@ -52,7 +53,7 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser"
     },
     "rules": {}
   },
