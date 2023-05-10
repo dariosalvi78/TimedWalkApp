@@ -86,6 +86,12 @@ export default {
     }
     logger.log('E - signal check start')
 
+    // get permissions for motion
+    await motion.getPermission()
+    // get permission for pedometer
+    await stepcounter.getPermission()
+
+
     // start getting GPS
     gps.startNotifications((position) => {
       logger.log('P - position ' + JSON.stringify(position))
@@ -180,9 +186,6 @@ export default {
       logger.log('E - test start')
 
       if (await motion.isAvailable()) {
-        // first get permission
-        await motion.getPermission()
-
         // the start notifications
         motion.startNotifications({}, (event) => {
           let pre = ''
