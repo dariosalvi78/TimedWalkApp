@@ -15,7 +15,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "core-js": "^3.8.3",
+    "core-js": "^3.29.1",
     "onsenui": "^2.12.8",
     "vue": "^2.7.14",
     "vue-i18n": "^8.27.2",
