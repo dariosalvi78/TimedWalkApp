@@ -1,5 +1,3 @@
-'use strict'
-
 /**
 * Wrapper of the local storage or cordova native storage plugin
 * Needs this plugin: https://github.com/TheCocoaProject/cordova-plugin-nativestorage#README.md

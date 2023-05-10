@@ -180,6 +180,10 @@ export default {
       logger.log('E - test start')
 
       if (await motion.isAvailable()) {
+        // first get permission
+        await motion.getPermission()
+
+        // the start notifications
         motion.startNotifications({}, (event) => {
           let pre = ''
           if (event.type == 'motion') pre = 'M - motion '

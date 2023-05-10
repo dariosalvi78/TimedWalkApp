@@ -1,5 +1,3 @@
-'use strict'
-
 let mockGPS = {
   timerid: null,
   async isAvailable () {

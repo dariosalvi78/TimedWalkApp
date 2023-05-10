@@ -1,5 +1,3 @@
-'use strict'
-
 /**
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/

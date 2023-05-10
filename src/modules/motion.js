@@ -1,11 +1,22 @@
-'use strict'
-
 let callback
 
 let realMotion = {
   async isAvailable () {
     if (typeof DeviceMotionEvent !== 'undefined') return Promise.resolve(true)
     else return Promise.resolve(false)
+  },
+  async getPermission () {
+    if (typeof DeviceMotionEvent.requestPermission !== 'undefined') {
+      let response = await DeviceMotionEvent.requestPermission()
+      if (response !== 'granted') return false
+    }
+
+    if (typeof DeviceOrientationEvent.requestPermission !== 'undefined') {
+      let response = await DeviceOrientationEvent.requestPermission()
+      if (response !== 'granted') return false
+    }
+
+    return true
   },
   motionHandler (event) {
     let simplifiedEvent = {
