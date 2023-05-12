@@ -1,3 +1,9 @@
+0.3.2
+
+- updated dependencies
+- fixed a bug on iOS that prevented accelerometry to be gathered
+- placed all permissions at the beginning of the test
+
 0.3.1
 
 - added German language support
