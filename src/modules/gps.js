@@ -34,7 +34,7 @@ let realGPS = {
       // we need to create a copy of the position object because
       // Chromium does something strange that is not serialisable as JSON
       var copyPos = {}
-      copyPos.timestamp = new Date().getTime() // use current timestamp because some phones mess up the timestamps
+      copyPos.timestamp = position.timestamp // new Date().getTime() // use current timestamp because some phones mess up the timestamps
       copyPos.coords = {}
       copyPos.coords.latitude = position.coords.latitude
       copyPos.coords.longitude = position.coords.longitude
