@@ -27,11 +27,11 @@
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
-    "cordova-android": "^11.0.0",
-    "cordova-ios": "^6.2.0",
+    "cordova-android": "^12.0.1",
+    "cordova-ios": "^7.1.0",
     "cordova-plugin-device": "^2.1.0",
-    "cordova-plugin-file": "^7.0.0",
-    "cordova-plugin-geolocation": "^4.1.0",
+    "cordova-plugin-file": "^8.0.1",
+    "cordova-plugin-geolocation": "^5.0.0",
     "cordova-plugin-insomnia": "^4.3.0",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
@@ -81,8 +81,8 @@
       }
     },
     "platforms": [
-      "ios",
-      "android"
+      "android",
+      "ios"
     ]
   },
   "displayName": "TimedWalkApp",
