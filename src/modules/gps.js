@@ -47,7 +47,7 @@ let realGPS = {
       cbk(copyPos)
     }, error, {
       maximumAge: 5000,
-      timeout: 5000,
+      timeout: 1000,
       enableHighAccuracy: true
     })
   },
