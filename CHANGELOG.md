@@ -1,3 +1,9 @@
+0.3.3
+
+- updated dependencies
+- use real timestamps coming from GPS
+- increased GPS update frequency on iOS
+
 0.3.2
 
 - updated dependencies
