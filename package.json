@@ -1,6 +1,6 @@
 {
   "name": "timed-walk-app",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "private": true,
   "description": "App to compute distance of timed walks.",
   "author": {

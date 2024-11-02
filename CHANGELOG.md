@@ -1,3 +1,7 @@
+0.3.4
+
+- updated dependencies
+
 0.3.3
 
 - updated dependencies
