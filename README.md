@@ -1,4 +1,6 @@
 # Timed Walk App
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdariosalvi78%2FTimedWalkApp.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdariosalvi78%2FTimedWalkApp?ref=badge_shield)
+
 
 Apache Cordova app that allows people to perform timed walk tests, like the 6-minute walk test.
 The algorithm that computes the distance from the GPS is the same as the one used in [this paper](https://mhealth.jmir.org/2020/1/e13756/).
@@ -45,3 +47,7 @@ cordova build
 ```
 
 Then you need to sign the app and release it. Seek instructions online on how to do it.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdariosalvi78%2FTimedWalkApp.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdariosalvi78%2FTimedWalkApp?ref=badge_large)
