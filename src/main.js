@@ -10,6 +10,7 @@ import App from './App.vue'
 import en from './i18n/en/en'
 import it from './i18n/it/it'
 import de from './i18n/de/de'
+import dz from './i18n/dz/dz'
 
 Vue.use(VueOnsen) // VueOnsen set here as plugin to VUE. Done automatically if a call to window.Vue exists in the startup code.
 Vue.use(VueI18n) // this is used for ii18n
@@ -17,7 +18,8 @@ Vue.use(VueI18n) // this is used for ii18n
 const messages = {
   en: en,
   it: it,
-  de: de
+  de: de,
+  dz: dz
 }
 
 // Create VueI18n instance with options
