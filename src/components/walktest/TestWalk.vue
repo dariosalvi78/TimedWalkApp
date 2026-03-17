@@ -52,7 +52,8 @@ export default {
       isSignalCheck: true,
       lastStep: undefined,
       messageText: null,
-      messageIcon: null
+      messageIcon: null, 
+      dataQualityReport: null
     }
   },
   async mounted () {
@@ -90,7 +91,6 @@ export default {
     await motion.getPermission()
     // get permission for pedometer
     await stepcounter.getPermission()
-
 
     // start getting GPS
     gps.startNotifications((position) => {
@@ -223,6 +223,7 @@ export default {
       }, 1000)
     },
     async testCompleted () {
+      console.log('Test completed')
       clearInterval(this.timer)
       this.$refs.walkingMan.stop()
 
@@ -232,11 +233,13 @@ export default {
 
       distanceAlgo.stopTest()
       let distance = distanceAlgo.getDistance()
+      let qualityReport = distanceAlgo.getEstimationReportQuality()
       let testReport = {
         duration: this.duration,
         date: new Date(),
         distance: distance,
-        steps: this.lastStep
+        steps: this.lastStep,
+        quality: qualityReport
       }
 
       if (window.device) testReport.device = {

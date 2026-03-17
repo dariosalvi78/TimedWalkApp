@@ -7,6 +7,40 @@
       <div style="margin-top: 20px;"><b>{{$t('walk.distance')}}: </b> {{ testReport.distance.toFixed(2) }} meters</div>
       <div style="margin-top: 20px;"><b>{{$t('walk.duration')}}: </b> {{ testReport.duration }} minutes</div>
       <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{$t('walk.steps')}}: </b> {{ testReport.steps }}</div>
+      <!-- <div v-if="testReport.quality" style="margin-top: 20px;">
+        <b>{{$t('walk.quality')}}:</b>
+
+        <div style="margin-top: 10px;">
+          Mean time between consecutive samples: {{ testReport.quality.meanDt.toFixed(2) }} s
+        </div>
+
+        <div>
+          Mean Sampling frequency: {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz
+        </div>
+
+        <div>
+          Max time gap: {{ testReport.quality.maxDt.toFixed(2) }} s
+        </div>
+      </div> -->
+
+        <div 
+          v-if="testReport.quality && testReport.quality.hasWarning"
+          style="margin-top: 20px; padding: 15px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 8px;"
+        >
+          <v-ons-icon icon="fa-exclamation-triangle" style="color: #cc0000;" size="24px"></v-ons-icon>
+          <div style="margin-top: 10px;">
+            testReport.signalCheck.
+          </div>
+          
+          <div v-if="testReport.quality" style="margin-top: 20px;">
+          <b>{{$t('walk.quality')}}:</b>
+          {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz
+          </div> 
+          <div v-for="msg in testReport.quality.warningMessages" :key="msg">
+            {{ msg }}
+          </div>
+        </div>
+
       <div style="margin-top: 40px;">
         <v-ons-button modifier="outline" @click="share">
           <v-ons-icon icon="fa-share-alt"></v-ons-icon>

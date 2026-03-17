@@ -19,7 +19,7 @@ let mockGPS = {
           accuracy: counter < 5 ? 60 : 10
         }
       })
-    }, 1000)
+    }, 1000) 
   },
   async stopNotifications () {
     clearInterval(this.timerid)

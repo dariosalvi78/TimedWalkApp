@@ -2,6 +2,8 @@
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/
 */
+import signalCheck from './signalCheck'
+
 export default {
   // maximum allowable speed
   MAX_SPEED: 2,
@@ -29,6 +31,8 @@ export default {
   * Tells the algorithm that the test has officially started
   */
   startTest: function () {
+    signalCheck.reset()
+
     this.distance = 0
     this.started = true
     this.selectedPositions = []
@@ -77,6 +81,7 @@ export default {
   * @return for debugging purposes, returns true if the sample was selected
   */
   addPosition: function (position) {
+
     this.positions.unshift(position)
 
     if (this.started) {
@@ -90,6 +95,9 @@ export default {
           return true
         }
       }
+
+      signalCheck.update(position)
+
     }
     return false
   },
@@ -122,6 +130,13 @@ export default {
       // when not running, give the official one
       return this.distance
     }
+  },
+
+  /**
+   * Gives a report about the quality of the estimation, based on the sampling frequency and the stability of the samples
+   */
+  getEstimationReportQuality: function () {
+    return signalCheck.getReport()
   },
 
   // gives the distance between two points in direct line (crow flight distance)
