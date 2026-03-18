@@ -2,8 +2,7 @@
   <v-ons-page>
     <div
       class="content"
-      style="padding: 10px; text-align: center"
-    >
+      style="padding: 10px; text-align: center">
       <walking-man ref="walkingMan" />
       <div class="messageBox">
         <div style="text-align: center">
@@ -34,6 +33,7 @@ import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
 import motion from '../../modules/motion'
 import distanceAlgo from '../../modules/outdoorDistance'
+import curveClassifier from '../../modules/curveClassifier'
 import files from '../../modules/files'
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
@@ -58,6 +58,14 @@ export default {
   },
   async mounted () {
     console.log('Test started, checking GPS')
+    
+    // LOAD DATA FIRST (ONLY IN DEV)
+    if (process.env.NODE_ENV !== 'production') {
+      const track = localStorage.getItem('track') || 'subject_0/0_9'
+      await gps.loadCSV(`/data_realtracks/${track}/positions.csv`)
+      console.log('Loaded samples:', gps.data.length)
+    }
+    
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
 
     // avoid screen going to sleep
@@ -222,6 +230,7 @@ export default {
         }
       }, 1000)
     },
+
     async testCompleted () {
       console.log('Test completed')
       clearInterval(this.timer)
@@ -231,16 +240,27 @@ export default {
       gps.stopNotifications()
       stepcounter.stopNotifications()
 
+      console.log('distanceAlgo:', distanceAlgo)
+
       distanceAlgo.stopTest()
       let distance = distanceAlgo.getDistance()
-      let qualityReport = distanceAlgo.getEstimationReportQuality()
+
+      let positions = distanceAlgo.positions
       let testReport = {
         duration: this.duration,
         date: new Date(),
         distance: distance,
         steps: this.lastStep,
-        quality: qualityReport
+        positions: positions, 
       }
+      
+      const result = curveClassifier.classifyLogistic(testReport)
+      let qualityReport = distanceAlgo.getEstimationReportQuality(result)
+
+      testReport.quality = qualityReport
+      testReport.curvature = result
+
+      console.log('Curvature result:', result)
 
       if (window.device) testReport.device = {
         os: window.device.platform + ' ' + window.device.version,

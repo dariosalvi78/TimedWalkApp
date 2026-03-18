@@ -28,6 +28,13 @@ let ALGO = {
   started: false,
 
   /**
+  * Returns all available positions
+  */
+  getPositions: function () {
+    return this.positions
+  },
+
+  /**
   * Tells the algorithm that the test has officially started
   */
   startTest: function () {

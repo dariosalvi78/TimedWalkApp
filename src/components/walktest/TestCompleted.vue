@@ -7,37 +7,48 @@
       <div style="margin-top: 20px;"><b>{{$t('walk.distance')}}: </b> {{ testReport.distance.toFixed(2) }} meters</div>
       <div style="margin-top: 20px;"><b>{{$t('walk.duration')}}: </b> {{ testReport.duration }} minutes</div>
       <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{$t('walk.steps')}}: </b> {{ testReport.steps }}</div>
-      <!-- <div v-if="testReport.quality" style="margin-top: 20px;">
-        <b>{{$t('walk.quality')}}:</b>
+      <!-- Negative warning block -->
+      <div 
+        v-if="testReport.quality && testReport.quality.hasWarning"
+        style="margin-top: 20px; padding: 15px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 8px;">
+        <v-ons-icon icon="fa-exclamation-triangle" style="color: #cc0000;" size="24px"></v-ons-icon>
 
-        <div style="margin-top: 10px;">
-          Mean time between consecutive samples: {{ testReport.quality.meanDt.toFixed(2) }} s
-        </div>
-
-        <div>
-          Mean Sampling frequency: {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz
-        </div>
-
-        <div>
-          Max time gap: {{ testReport.quality.maxDt.toFixed(2) }} s
-        </div>
-      </div> -->
-
-        <div 
-          v-if="testReport.quality && testReport.quality.hasWarning"
-          style="margin-top: 20px; padding: 15px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 8px;"
-        >
-          <v-ons-icon icon="fa-exclamation-triangle" style="color: #cc0000;" size="24px"></v-ons-icon>
-          <div style="margin-top: 10px;">
-            testReport.signalCheck.
-          </div>
-          
-          <div v-if="testReport.quality" style="margin-top: 20px;">
-          <b>{{$t('walk.quality')}}:</b>
+        <!-- Sampling frequency warning -->
+        <div v-if="testReport.quality.warningLowSampling" style="margin-top: 10px;">
+          <b>{{$t('walk.fs')}}:</b>
           {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz
-          </div> 
-          <div v-for="msg in testReport.quality.warningMessages" :key="msg">
-            {{ msg }}
+          <div>
+            Be careful to keep the phone screen on during the whole walk. (low fs)
+          </div>
+        </div>
+
+        <!-- Large gap warning -->
+        <div v-if="testReport.quality.warningLargeGap" style="margin-top: 10px;">
+          <div>
+            Be careful to keep the phone screen on during the whole walk. (data gaps)
+          </div>
+        </div>
+
+        <!-- Curvature / path irregularity warning -->
+        <!-- <div>
+          DEBUG: curvature={{ testReport.curvature }}
+          warningCurvature={{ testReport.quality.warningCurvature }}
+        </div> -->
+        <div v-if="testReport.quality.warningCurvature" style="margin-top: 10px;">
+          <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }}
+          <div>
+            Too many turns or irregular path, try to walk in a straighter path.
+          </div>
+        </div>
+      </div>
+
+      <!-- Positive warning block -->
+       <div 
+          v-if="testReport.quality && !testReport.quality.hasWarning"
+          style="margin-top: 20px; padding: 15px; background-color: #e6ffe6; border: 1px solid #33cc33; border-radius: 8px;">
+          <v-ons-icon icon="fa-check-circle" style="color: #2eb82e;" size="24px"></v-ons-icon>
+          <div style="margin-top: 10px;">
+            <b>{{$t('walk.goodQuality')}}</b>
           </div>
         </div>
 
