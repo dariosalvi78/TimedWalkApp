@@ -30,10 +30,6 @@
         </div>
 
         <!-- Curvature / path irregularity warning -->
-        <!-- <div>
-          DEBUG: curvature={{ testReport.curvature }}
-          warningCurvature={{ testReport.quality.warningCurvature }}
-        </div> -->
         <div v-if="testReport.quality.warningCurvature" style="margin-top: 10px;">
           <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }}
           <div>

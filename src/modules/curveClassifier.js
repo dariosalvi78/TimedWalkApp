@@ -1,4 +1,4 @@
-import model from '../assets/pipeline_params.json'
+import model from '../modules/pipeline_params.json'
 
 /* =========================
    --- BASIC UTILITIES -----

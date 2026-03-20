@@ -1,4 +1,3 @@
-// src/modules/signalCheck.js
 const QUALITY_THRESHOLDS = {
   minSamplingFrequency: 0.2,     // Hz
   maxAllowedGap: 5000,           // milliseconds
