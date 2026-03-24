@@ -23,7 +23,7 @@ const getArg = (flag, def) => {
   return i !== -1 ? args[i + 1] : def
 }
 const DATA_DIR  = getArg('--data',  'public/data_realtracks')
-const MODEL_PATH = getArg('--model', 'src/assets/pipeline_params.json')
+const MODEL_PATH = getArg('--model', 'src/modules/pipeline_params.json')
 const OUT_CSV   = getArg('--out',   'curvature_results.csv')
 
 // ─── Load model ──────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ function computeHeadingFeatures(headings, timestamps) {
     console.log("Less than 3 samples")
     return null
   }
-  console.log("Timestamps: ", timestamps)
+  // console.log("Timestamps: ", timestamps)
   // remove NaNs
   const clean = []
   for (let i = 0; i < headings.length; i++) {

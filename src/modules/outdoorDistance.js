@@ -2,7 +2,7 @@
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/
 */
-import signalCheck from './signalCheck'
+import signalCheck from './signalCheck.js'
 
 export default {
   // maximum allowable speed
@@ -84,6 +84,7 @@ export default {
   /** Resest the internals of the algorithm
   */
   reset: function () {
+    signalCheck.reset()
     this.distance = 0
     this.showdistance = 0
     this.started = false
@@ -112,7 +113,7 @@ export default {
 
     this.positions.unshift(position)
     signalCheck.update(position)
-    
+
     if (this.started) {
       // selection criterium
       if ((position.timestamp - this.selectedPositions[0].timestamp) >= (this.SELECTION_PERIOD * 1000)) {

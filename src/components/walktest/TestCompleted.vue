@@ -15,26 +15,30 @@
 
         <!-- Sampling frequency warning -->
         <div v-if="testReport.quality.warningLowSampling" style="margin-top: 10px;">
-          <b>{{$t('walk.fs')}}:</b>
-          {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz
+          <!--b>{{$t('walk.fs')}}:</b>
+          {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz -->
           <div>
-            Be careful to keep the phone screen on during the whole walk. (low fs)
+            It looks like some technical issues have happened.
           </div>
         </div>
 
         <!-- Large gap warning -->
         <div v-if="testReport.quality.warningLargeGap" style="margin-top: 10px;">
           <div>
-            Be careful to keep the phone screen on during the whole walk. (data gaps)
+            Be careful to keep the phone screen on during the whole walk.
           </div>
         </div>
 
         <!-- Curvature / path irregularity warning -->
         <div v-if="testReport.quality.warningCurvature" style="margin-top: 10px;">
-          <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }}
+          <!-- <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }} -->
           <div>
-            Too many turns or irregular path, try to walk in a straighter path.
+            It looks like you took a lot of turns while walking, <br> try to turn less times.
           </div>
+        </div>
+        <div>
+          <br>
+          Remember to share the test details <br> and if it is possible, do the test one more time!
         </div>
       </div>
 
@@ -44,7 +48,7 @@
           style="margin-top: 20px; padding: 15px; background-color: #e6ffe6; border: 1px solid #33cc33; border-radius: 8px;">
           <v-ons-icon icon="fa-check-circle" style="color: #2eb82e;" size="24px"></v-ons-icon>
           <div style="margin-top: 10px;">
-            <b>{{$t('walk.goodQuality')}}</b>
+            <b>{{$t('walk.goodQuality')}}<br>{{$t('walk.sharingDetails')}}</b>
           </div>
         </div>
 

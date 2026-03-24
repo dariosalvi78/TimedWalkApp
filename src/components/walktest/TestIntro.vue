@@ -67,7 +67,7 @@
         <v-ons-range
           v-model="duration"
           style="width: 100%;"
-          min="0.5"
+          min="1"
           max="15"
           step="0."
         />

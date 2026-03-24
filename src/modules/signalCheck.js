@@ -3,6 +3,8 @@ const QUALITY_THRESHOLDS = {
   maxAllowedGap: 5000,           // milliseconds
 }
 
+// /* eslint-disable */ 
+
 let lastTimestamp = null
 
 
@@ -52,6 +54,10 @@ function getReport(curvature = null) {
   const samplingFrequency =
     qualityState.meanDt > 0 ? 1 / (qualityState.meanDt/1000) : 0
 
+  // const warningLowSampling = false
+  // const warningLargeGap = false
+  // const warningCurvature = false
+
   const warningLowSampling = samplingFrequency <  QUALITY_THRESHOLDS.minSamplingFrequency
   const warningLargeGap = qualityState.maxDt > QUALITY_THRESHOLDS.maxAllowedGap  
   const warningCurvature = curvature.label === 2
@@ -59,11 +65,10 @@ function getReport(curvature = null) {
 
   let warningMessages = []
 
-  if (warningLowSampling)
-    warningMessages.push("Sampling frequency too low")
-
-  if (warningLargeGap)
+  if (warningLargeGap){
     warningMessages.push("Large data gap detected")
+  } else if (warningLowSampling)
+    warningMessages.push("Sampling frequency too low")
 
   if (warningCurvature)
     warningMessages.push("You may have turned too many times in your walk")

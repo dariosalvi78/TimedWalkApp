@@ -26,7 +26,6 @@
     ]
   },
   "model": {
-    "type": "RidgeClassifier",
     "coef": [
       [
         -1.159285269311734,
