@@ -18,14 +18,14 @@
           <!--b>{{$t('walk.fs')}}:</b>
           {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz -->
           <div>
-            It looks like some technical issues have happened.
+            {{$t('check.technicalIssue')}}
           </div>
         </div>
 
         <!-- Large gap warning -->
         <div v-if="testReport.quality.warningLargeGap" style="margin-top: 10px;">
           <div>
-            Be careful to keep the phone screen on during the whole walk.
+            {{$t('check.phoneScreenOn')}}
           </div>
         </div>
 
@@ -33,12 +33,12 @@
         <div v-if="testReport.quality.warningCurvature" style="margin-top: 10px;">
           <!-- <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }} -->
           <div>
-            It looks like you took a lot of turns while walking, <br> try to turn less times.
+            {{$t('check.turns1')}}<br>{{$t('check.turns2')}}
           </div>
         </div>
         <div>
           <br>
-          Remember to share the test details <br> and if it is possible, do the test one more time!
+           {{$t('check.share')}}<br>{{$t('check.redoTest')}}
         </div>
       </div>
 

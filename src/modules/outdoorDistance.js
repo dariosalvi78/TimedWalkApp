@@ -122,11 +122,10 @@ export default {
         if (selected) {
           this.distance += this.crowDist(this.selectedPositions[0], selected)
           this.selectedPositions.unshift(selected)
-          console.log("Selected position at timestamp: ", position.timestamp)
+          // console.log("Selected position at timestamp: ", position.timestamp)
           return true
         }
       }
-      // signalCheck.update(position)
     }
     return false
   },

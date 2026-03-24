@@ -3,8 +3,6 @@ const QUALITY_THRESHOLDS = {
   maxAllowedGap: 5000,           // milliseconds
 }
 
-// /* eslint-disable */ 
-
 let lastTimestamp = null
 
 
@@ -29,11 +27,11 @@ function update(position) {
 
   if (lastTimestamp !== null) {
     const dt = (position.timestamp - lastTimestamp) // This is in milliseconds 
-    console.log("--------------------")
-    console.log("Position at latitude ", position.coords.latitude)
-    console.log("Position with timestamp ", position.timestamp)
-    console.log("Previous timestamp: ", lastTimestamp)
-    console.log("Delta timestamp: ", position.timestamp, " - ", lastTimestamp, " = ", dt.toFixed(3), "milliseconds, in seconds: ", dt.toFixed(3) / 1000)
+    // console.log("--------------------")
+    // console.log("Position at latitude ", position.coords.latitude)
+    // console.log("Position with timestamp ", position.timestamp)
+    // console.log("Previous timestamp: ", lastTimestamp)
+    // console.log("Delta timestamp: ", position.timestamp, " - ", lastTimestamp, " = ", dt.toFixed(3), "milliseconds, in seconds: ", dt.toFixed(3) / 1000)
 
     if (dt > 0) {
       qualityState.sampleCount++
@@ -46,7 +44,7 @@ function update(position) {
     }
   }
   
-  console.log("Mean delta timestamp: ", qualityState.meanDt.toFixed(3), "milliseconds, in seconds: ", qualityState.meanDt.toFixed(3) / 1000)
+  // console.log("Mean delta timestamp: ", qualityState.meanDt.toFixed(3), "milliseconds, in seconds: ", qualityState.meanDt.toFixed(3) / 1000)
   lastTimestamp = position.timestamp
 }
 
@@ -67,10 +65,13 @@ function getReport(curvature = null) {
 
   if (warningLargeGap){
     warningMessages.push("Large data gap detected")
+    console.log("Large data gap detected: ", qualityState.maxDt )
   } else if (warningLowSampling)
+    console.log("Low fs ", samplingFrequency)
     warningMessages.push("Sampling frequency too low")
 
   if (warningCurvature)
+    console.log("High curvature:  ", curvature.label)
     warningMessages.push("You may have turned too many times in your walk")
 
   return {
