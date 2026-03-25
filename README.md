@@ -19,6 +19,14 @@ npm install
 cordova prepare
 ```
 
+## Unit tests
+
+```bash
+node --test
+```
+
+add `--watch` for live reload
+
 ## Run
 
 Emulated on web at localhost:8080
