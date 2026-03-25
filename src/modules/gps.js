@@ -1,31 +1,33 @@
-let mockGPS = {
-  timerid: null,
-  async isAvailable () {
-    return Promise.resolve(true)
-  },
-  startNotifications (cbk) {
-    let startLat = 51.751985
-    let startLong = -1.257609
-    let counter = 0
-    if (this.timerid) clearInterval(this.timerid)
-    this.timerid = setInterval(function () {
-      counter++
-      cbk({
-        timestamp: new Date().getTime(),
-        coords: {
-          latitude: startLat + (counter * 2.1055e-6),
-          longitude: startLong + (counter * 1.83055e-5),
-          altitude: 69.82,
-          accuracy: counter < 5 ? 60 : 10
-        }
-      })
-    }, 1000)
-  },
-  async stopNotifications () {
-    clearInterval(this.timerid)
-    return Promise.resolve()
-  }
-}
+import csvReplayGPS from './csvReplayGPS'
+
+// let mockGPS = {
+//   timerid: null,
+//   async isAvailable () {
+//     return Promise.resolve(true)
+//   },
+//   startNotifications (cbk) {
+//     let startLat = 51.751985
+//     let startLong = -1.257609
+//     let counter = 0
+//     if (this.timerid) clearInterval(this.timerid)
+//     this.timerid = setInterval(function () {
+//       counter++
+//       cbk({
+//         timestamp: new Date().getTime(),
+//         coords: {
+//           latitude: startLat + (counter * 2.1055e-6),
+//           longitude: startLong + (counter * 1.83055e-5),
+//           altitude: 69.82,
+//           accuracy: counter < 5 ? 60 : 10
+//         }
+//       })
+//     }, 1000) 
+//   },
+//   async stopNotifications () {
+//     clearInterval(this.timerid)
+//     return Promise.resolve()
+//   }
+// }
 
 let realGPS = {
   watchid: null,
@@ -57,4 +59,6 @@ let realGPS = {
   }
 }
 
-export default (process.env.NODE_ENV === 'production') ? realGPS : mockGPS
+// export default (process.env.NODE_ENV === 'production') ? realGPS : mockGPS
+
+export default (process.env.NODE_ENV === 'production') ? realGPS : csvReplayGPS

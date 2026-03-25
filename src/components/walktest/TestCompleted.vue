@@ -7,6 +7,51 @@
       <div style="margin-top: 20px;"><b>{{$t('walk.distance')}}: </b> {{ testReport.distance.toFixed(2) }} meters</div>
       <div style="margin-top: 20px;"><b>{{$t('walk.duration')}}: </b> {{ testReport.duration }} minutes</div>
       <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{$t('walk.steps')}}: </b> {{ testReport.steps }}</div>
+      <!-- Negative warning block -->
+      <div 
+        v-if="testReport.quality && testReport.quality.hasWarning"
+        style="margin-top: 20px; padding: 15px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 8px;">
+        <v-ons-icon icon="fa-exclamation-triangle" style="color: #cc0000;" size="24px"></v-ons-icon>
+
+        <!-- Sampling frequency warning -->
+        <div v-if="testReport.quality.warningLowSampling" style="margin-top: 10px;">
+          <!--b>{{$t('walk.fs')}}:</b>
+          {{ testReport.quality.samplingFrequency.toFixed(2) }} Hz -->
+          <div>
+            {{$t('check.technicalIssue')}}
+          </div>
+        </div>
+
+        <!-- Large gap warning -->
+        <div v-if="testReport.quality.warningLargeGap" style="margin-top: 10px;">
+          <div>
+            {{$t('check.phoneScreenOn')}}
+          </div>
+        </div>
+
+        <!-- Curvature / path irregularity warning -->
+        <div v-if="testReport.quality.warningCurvature" style="margin-top: 10px;">
+          <!-- <b>{{$t('walk.curvature')}}:</b> {{ testReport.curvature.label_txt }} -->
+          <div>
+            {{$t('check.turns1')}}<br>{{$t('check.turns2')}}
+          </div>
+        </div>
+        <div>
+          <br>
+           {{$t('check.share')}}<br>{{$t('check.redoTest')}}
+        </div>
+      </div>
+
+      <!-- Positive warning block -->
+       <div 
+          v-if="testReport.quality && !testReport.quality.hasWarning"
+          style="margin-top: 20px; padding: 15px; background-color: #e6ffe6; border: 1px solid #33cc33; border-radius: 8px;">
+          <v-ons-icon icon="fa-check-circle" style="color: #2eb82e;" size="24px"></v-ons-icon>
+          <div style="margin-top: 10px;">
+            <b>{{$t('walk.goodQuality')}}<br>{{$t('walk.sharingDetails')}}</b>
+          </div>
+        </div>
+
       <div style="margin-top: 40px;">
         <v-ons-button modifier="outline" @click="share">
           <v-ons-icon icon="fa-share-alt"></v-ons-icon>

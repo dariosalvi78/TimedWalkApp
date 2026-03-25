@@ -2,6 +2,8 @@
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/
 */
+import signalCheck from './signalCheck.js'
+
 export default {
   // maximum allowable speed
   MAX_SPEED: 2,
@@ -14,6 +16,7 @@ export default {
 
   // holder of all positions
   positions: [],
+  
   // holder of a selected number of positions
   selectedPositions: [],
 
@@ -25,10 +28,27 @@ export default {
   // tells if the actual test has started
   started: false,
 
+  computeHeading: function (p1, p2) {
+    const lat1 = this.toRad(p1.coords.latitude)
+    const lat2 = this.toRad(p2.coords.latitude)
+    const dLon = this.toRad(p2.coords.longitude - p1.coords.longitude)
+
+    const y = Math.sin(dLon) * Math.cos(lat2)
+    const x =
+      Math.cos(lat1) * Math.sin(lat2) -
+      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
+
+    let bearing = Math.atan2(y, x)
+    bearing = (bearing * 180) / Math.PI
+    return (bearing + 360) % 360
+  },
+
   /**
   * Tells the algorithm that the test has officially started
   */
   startTest: function () {
+    signalCheck.reset()
+
     this.distance = 0
     this.started = true
     this.selectedPositions = []
@@ -64,6 +84,7 @@ export default {
   /** Resest the internals of the algorithm
   */
   reset: function () {
+    signalCheck.reset()
     this.distance = 0
     this.showdistance = 0
     this.started = false
@@ -77,7 +98,21 @@ export default {
   * @return for debugging purposes, returns true if the sample was selected
   */
   addPosition: function (position) {
+
+    // this.positions.unshift(position)
+    if (this.positions.length > 0) {
+      const prev = this.positions[0]
+      if (position.heading < 0) {
+        position.heading = this.computeHeading(prev, position)
+      } else {
+        position.heading = position.coords.heading
+      }
+    } else {
+      position.heading = 0
+    }
+
     this.positions.unshift(position)
+    signalCheck.update(position)
 
     if (this.started) {
       // selection criterium
@@ -87,6 +122,7 @@ export default {
         if (selected) {
           this.distance += this.crowDist(this.selectedPositions[0], selected)
           this.selectedPositions.unshift(selected)
+          // console.log("Selected position at timestamp: ", position.timestamp)
           return true
         }
       }
@@ -122,6 +158,13 @@ export default {
       // when not running, give the official one
       return this.distance
     }
+  },
+
+  /**
+   * Gives a report about the quality of the estimation, based on the sampling frequency and the stability of the samples
+   */
+  getEstimationReportQuality: function (curvature = null) {
+    return signalCheck.getReport(curvature)
   },
 
   // gives the distance between two points in direct line (crow flight distance)

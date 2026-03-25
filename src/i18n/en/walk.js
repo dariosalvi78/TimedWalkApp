@@ -12,10 +12,12 @@ export default {
   completed: 'Test completed!',
   distance: 'Distance',
   duration: 'Duration',
+  fs: 'Sampling frequency',
+  curvature:'Walk path turning',
   steps: 'Steps',
   restart: 'Restart',
   shareButton: 'Share this test details',
   shareTopic: 'My timed walk test details',
   shareMesssage: 'Please find attached the details of the test done on date: {date}.',
-  fileError: 'Cannot read or share file.'
+  fileError: 'Cannot read or share file.',
 }

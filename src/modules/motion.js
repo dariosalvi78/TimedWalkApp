@@ -15,7 +15,6 @@ let realMotion = {
       let response = await DeviceOrientationEvent.requestPermission()
       if (response !== 'granted') return false
     }
-
     return true
   },
   motionHandler (event) {
