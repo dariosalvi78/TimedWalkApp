@@ -1,149 +1,71 @@
-import model from '../modules/pipeline_params.json'
+import model from '../modules/curveClassfier_params.json'
+import { mean, variance, skewness, kurtosis } from './stats'
 
-/* =========================
-   --- BASIC UTILITIES -----
-   ========================= */
+const DEBUG = true
 
-function mean(arr) {
-  return arr.reduce((a, b) => a + b, 0) / arr.length
-}
 
-function variance(arr) {
-  const m = mean(arr)
-  return mean(arr.map(x => (x - m) ** 2))
-}
-
-function std(arr) {
-  return Math.sqrt(variance(arr))
-}
-
-function skewness(arr) {
-  const m = mean(arr)
-  const s = std(arr)
-  if (s === 0) return 0
-  return mean(arr.map(x => ((x - m) / s) ** 3))
-}
-
-function kurtosis(arr) {
-  const m = mean(arr)
-  const s = std(arr)
-  if (s === 0) return 0
-  return mean(arr.map(x => ((x - m) / s) ** 4)) - 3
-}
-
-/* =========================
-   --- AUTOCORRELATION -----
-   ========================= */
-
-// function autocorrelation(x, lag) {
-//   const n = x.length
-//   const m = mean(x)
-
-//   let num = 0
-//   let denom = 0
-
-//   for (let i = 0; i < n; i++) {
-//     denom += (x[i] - m) ** 2
-//   }
-
-//   for (let i = 0; i < n - lag; i++) {
-//     num += (x[i] - m) * (x[i + lag] - m)
-//   }
-
-//   return denom === 0 ? 0 : num / denom
-// }
-
-// function computingAutocorrelation(x) {
-//   const maxLag = Math.min(20, Math.floor(x.length / 2))
-//   let bestLag = 1
-//   let bestVal = -Infinity
-
-//   for (let lag = 1; lag <= maxLag; lag++) {
-//     const val = autocorrelation(x, lag)
-//     if (val > bestVal) {
-//       bestVal = val
-//       bestLag = lag
-//     }
-//   }
-
-//   return [bestVal, bestLag]
-// }
-
-/* =========================
-   --- SUBSAMPLING ---------
-   ========================= */
-
+/**
+ * Subsample headings from a list of position objects.
+ * @param {Array<Object>} positions - array of position objects
+ * @returns {Array<Object>} subsampled position objects
+ */
 function subsampleHeadings(positions) {
-  let buffer = []
   let deltaT = 0
   let prevMs = 0
-  
-  const ordered = [...positions].reverse() 
-  const subsampledHeadings = []
-  const subsampledTimestamps = []
 
-  for (let i = 0; i < ordered.length; i++) {
-    
-    const row = ordered[i]
+  const sortedPositions = [...positions].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+  const subsampledPositions = []
 
-    const timestamp = row.timestamp
+  for (let i = 0; i < sortedPositions.length; i++) {
+
+    const row = sortedPositions[i]
+
+    const timestamp = row.timestamp.getTime() // unix timestamp in ms
     if (timestamp <= 0) continue
 
     // FIRST VALID SAMPLE
     if (prevMs === 0) {
       prevMs = timestamp
-      buffer.push(row)
+      subsampledPositions.push(row)
       continue
     }
-    
+
     const dt = timestamp - prevMs
 
     if (deltaT < 5000) {
       deltaT += dt
-      buffer.push(row)
       prevMs = timestamp
     } else {
       deltaT += dt
-      buffer.push(row)
       prevMs = timestamp
 
-      subsampledHeadings.push(buffer[0].heading)
-      subsampledTimestamps.push(buffer[0].timestamp)
+      // only add if we have a valid heading and timestamp
+      if (row.heading !== undefined && !isNaN(row.heading) && row.timestamp !== undefined && !isNaN(row.timestamp)) {
+        subsampledPositions.push(row)
+      }
 
       // reset
       deltaT = 0
-      buffer = []
     }
   }
 
-  return {
-    headings: subsampledHeadings,
-    timestamps: subsampledTimestamps
-  }
+  return subsampledPositions
 }
 
-/* =========================
-   --- FEATURE EXTRACTION --
-   ========================= */
 
-function computeHeadingFeatures(headings, timestamps) {
-  if (!headings || headings.length < 3) return null
+/**
+ * Compute heading features from subsampled positions.
+ * @param {Array<Object>} subsampledPositions - array of position objects subsampled every 5s
+ * @returns {Object} computed features
+ */
+function computeHeadingFeatures(subsampledPositions) {
 
-  // remove NaNs
-  const clean = []
-  for (let i = 0; i < headings.length; i++) {
-    if (!isNaN(headings[i]) && !isNaN(timestamps[i])) {
-      clean.push({ h: headings[i], t: timestamps[i] })
-    }
-  }
-
-  if (clean.length < 3) return null
-
-  headings = clean.map(x => x.h)
+  if (!subsampledPositions || subsampledPositions.length < 3) throw new Error('Not enough heading data to compute features')
 
   // -----------------------------
   // BASIC STATS
   // -----------------------------
+  const headings = subsampledPositions.map(p => p.heading)
   const heading_var = variance(headings)
   const heading_kurtosis = kurtosis(headings)
   const heading_skewness = skewness(headings)
@@ -196,10 +118,12 @@ function computeHeadingFeatures(headings, timestamps) {
   }
 }
 
-/* =========================
-   --- MODEL INFERENCE -----
-   ========================= */
 
+/**
+ * Standardize features using the trained scaler.
+ * @param {Array<number>} features
+ * @returns {Array<number>} standardized features
+ */
 function standardize(features) {
   const mean = model.scaler.mean
   const scale = model.scaler.scale
@@ -210,23 +134,35 @@ function standardize(features) {
   })
 }
 
-// ─── Softmax ──────────────────────────────────────────────────────────────────
+/**
+ * Softmax function to convert raw scores to probabilities for multiclass classification.
+ * Softmax activation function converts a vector of raw numerical scores into a
+ * probability distribution, where each value is between 0 and 1, and all values sum to 1.
+ * $softmax(x_i) = \frac{e^{x_i - \max(x)}}{\sum_{j} e^{x_j - \max(x)}}$$
+ * @param {Array<number>} scores
+ * @returns {Array<number>} probabilities corresponding to each class
+ */
 function softmax(scores) {
-  const max = Math.max(...scores)          // subtract max for numerical stability
+  const max = Math.max(...scores) // subtract max for numerical stability
   const exps = scores.map(s => Math.exp(s - max))
   const sum = exps.reduce((a, b) => a + b, 0)
   return exps.map(e => e / sum)
 }
 
+/**
+ * Classify curve type using a logistic regression model.
+ * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
+ * @returns {Object} classification result with label, probabilities, and features
+ */
 function classifyLogistic(testReport) {
-  if (!testReport.positions) return null
+  if (!testReport.positions) throw new Error('No position data available in test report')
 
   // 1. Subsampling
-  const { headings, timestamps } = subsampleHeadings(testReport.positions)
+  const subsampledPositions = subsampleHeadings(testReport.positions)
 
   // 2. Features
-  const f = computeHeadingFeatures(headings, timestamps)
-  if (!f) return null
+  const f = computeHeadingFeatures(subsampledPositions)
+  if (!f) throw new Error('Not enough valid heading data to compute features')
 
   // IMPORTANT: exact order used during training
   const featureVector = [
@@ -264,31 +200,35 @@ function classifyLogistic(testReport) {
     2: 'high curvature'
   }
 
-  console.log('Features:',      featureVector)
-  console.log('Standardized:',  x)
-  console.log('Raw scores:',    rawScores)
-  console.log('Probabilities:', probabilities)
+  if (DEBUG) {
+    console.log('Features:',      featureVector)
+    console.log('Standardized:',  x)
+    console.log('Raw scores:',    rawScores)
+    console.log('Probabilities:', probabilities)
+  }
 
   return {
     label:         classes[maxIdx],
     label_txt:     labelMap[classes[maxIdx]],
-    probabilities,                          // replaces raw `scores`
+    probabilities, // replaces raw `scores`
     features:      f
   }
 }
 
 /**
- * MAIN ENTRY POINT
+ * Classify curve type using a ridge regression model (original version).
+ * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
+ * @returns {Object} classification result with label, probabilities, and features
  */
 function classifyRidge(testReport) {
-  if (!testReport.positions) return null
+  if (!testReport.positions) throw new Error('No position data available in test report')
 
   // 1. Subsampling
   const { headings, timestamps } = subsampleHeadings(testReport.positions)
 
   // 2. Features
   const f = computeHeadingFeatures(headings, timestamps)
-  if (!f) return null
+  if (!f) throw new Error('Not enough valid heading data to compute features')
 
   // IMPORTANT: exact order used during training
   const featureVector = [
@@ -325,9 +265,11 @@ function classifyRidge(testReport) {
         return s + intercepts[i]
     })
 
-    console.log('Features:', featureVector)
-    console.log('Standardized:', x)
-    console.log('Scores:', scores)
+    if (DEBUG) {
+        console.log('Features:', featureVector)
+        console.log('Standardized:', x)
+        console.log('Scores:', scores)
+    }
 
     let maxIdx = 0
     for (let i = 1; i < scores.length; i++) {
