@@ -7,17 +7,17 @@ const QUALITY_THRESHOLDS = {
 }
 
 
-export function checkReportSampling(report) {
-  if (report.positions.length < 20) return false
-  const freq = report.positions.length / (report.duration) // in Hz
+export function checkReportSampling(positions) {
+  if (positions.length < 20) return false
+  const freq = positions.length / (positions[positions.length - 1].timestamp - positions[0].timestamp) * 1000 // in Hz
   // we want at least one position every 5 seconds in average
   return freq >= QUALITY_THRESHOLDS.minSamplingFrequency
 }
 
-export function checkReportGaps(report) {
-  if (report.positions.length < 20) return false
-  for (let i = 1; i < report.positions.length; i++) {
-    const dt = report.positions[i].timestamp - report.positions[i - 1].timestamp
+export function checkReportGaps(positions) {
+  if (positions.length < 20) return false
+  for (let i = 1; i < positions.length; i++) {
+    const dt = positions[i].timestamp - positions[i - 1].timestamp
     if (dt > QUALITY_THRESHOLDS.maxAllowedGapMs) {
       return false
     }
@@ -175,11 +175,11 @@ function softmax(scores) {
  * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
  * @returns {Object} classification result with label, probabilities, and features
  */
-function classifyLogistic(testReport) {
-  if (!testReport.positions) throw new Error('No position data available in test report')
+function classifyLogistic(positions) {
+  if (!positions) throw new Error('No position data available')
 
   // 1. Subsampling
-  const subsampledPositions = subsampleHeadings(testReport.positions)
+  const subsampledPositions = subsampleHeadings(positions)
 
   // 2. Features
   const f = computeHeadingFeatures(subsampledPositions)
@@ -241,11 +241,11 @@ function classifyLogistic(testReport) {
  * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
  * @returns {Object} classification result with label, probabilities, and features
  */
-function classifyRidge(testReport) {
-  if (!testReport.positions) throw new Error('No position data available in test report')
+function classifyRidge(positions) {
+  if (!positions) throw new Error('No position data available')
 
   // 1. Subsampling
-  const { headings, timestamps } = subsampleHeadings(testReport.positions)
+  const { headings, timestamps } = subsampleHeadings(positions)
 
   // 2. Features
   const f = computeHeadingFeatures(headings, timestamps)

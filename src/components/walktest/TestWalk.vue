@@ -238,22 +238,19 @@ export default {
       distanceAlgo.stopTest()
       let distance = distanceAlgo.getDistance()
 
-      let positions = distanceAlgo.positions
       let testReport = {
         duration: this.duration,
         date: new Date(),
         distance: distance,
         steps: this.lastStep,
-        positions: positions,
       }
 
-      const result = curveClassifier.classifyLogistic(testReport)
-      let qualityReport = distanceAlgo.getEstimationReportQuality(result)
-
-      testReport.quality = qualityReport
-      testReport.curvature = result
-
-      console.log('Curvature result:', result)
+      // compute and add quality checks
+      // do the quality checks
+      testReport.quality = {}
+      testReport.quality.samplingWarning = ! checkReportSampling(distanceAlgo.positions)
+      testReport.quality.gapsWarning = ! checkReportGaps(distanceAlgo.positions)
+      testReport.quality.curvatureClass = classifyCurvature(distanceAlgo.positions, 'logistic').label
 
       if (window.device) testReport.device = {
         os: window.device.platform + ' ' + window.device.version,
