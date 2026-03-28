@@ -82,7 +82,13 @@ export default {
     // save the results
     let history = await storage.getItem('history')
     if (!history) history = []
-    history.push(this.testReport)
+    history.push({
+      date: new Date().toISOString(),
+      distance: this.testReport.distance,
+      duration: this.testReport.duration,
+      steps: this.testReport.steps,
+      quality: this.testReport.quality
+    })
     await storage.setItem('history', history)
   },
   methods: {
