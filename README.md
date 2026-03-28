@@ -14,9 +14,34 @@ You need:
 
 Then run:
 
-``` bash
+```bash
 npm install
 cordova prepare
+```
+
+Prepare a .env file if you want to run simulated modules with:
+
+```env
+# as for Vue CLI 'production' in production mode, 'test' in test mode, and defaults to 'development' otherwise
+NODE_ENV=development
+
+# if true, debug logs will be printed in the console
+VUE_APP_DEBUG=true
+
+# possible values: 'real' (default), 'mock', 'csv'
+VUE_APP_GPS=mock
+
+# 'real' (default) for real device, 'mock' for simulated
+VUE_APP_MOTION=mock
+
+# possible values: 'real' (default), 'mock' for simulated
+VUE_APP_STEPCOUNTER=mock
+
+# possible values: 'real' (default) for app, 'local' for testing in browser
+VUE_APP_STORAGE=local
+
+# possible values: 'real' (default) for app, 'localStorage' for browser
+VUE_APP_FILES=localStorage
 ```
 
 ## Unit tests
@@ -31,22 +56,20 @@ add `--watch` for live reload
 
 Emulated on web at localhost:8080
 
-``` bash
+```bash
 npm run serve
 ```
 
 Run it on device:
 
-``` bash
+```bash
 npm run build
 cordova run
 ```
 
-
 ## Deploy
 
-
-``` bash
+```bash
 npm run build
 cordova prepare
 cordova build
