@@ -1,18 +1,21 @@
-import walkIntro from './walkIntro'
 
 export default {
-  title: 'Quality signal check',
-  walkIntro,
-
-  fileError: 'Cannot read or share file.',
-  samplingfrequency: 'Sampling frequency',
-  warningmessage: 'You ....',
-
-  techincalIssue: 'It looks like some technical issues have happened.',
-  phoneScreenOn: 'Be careful to keep the phone screen on during the whole walk.',
-  turns1: 'It looks like you took a lot of turns while walking,',
-  turns2: 'try to turn less times.',
-  share: 'Remember to share the test details',
-  redoTest: 'and if it is possible, do the test one more time!',
-  goodQuality:'Good job, everything went well!',
+  samplingWarning: `There are too few location points to compute the distance reliably,
+  this may be because the screen of your phone was switched off, or because there is low GPS coverage, like indoor.
+  <br>
+  <b>This test should not be considered valid.</b>
+  <br>
+  Consider redoing the test when you have recovered.`,
+  gapsWarning: `The data recieved contains large gaps, which may lead to an unreliable distance estimation.
+  This may be because the screen of your phone was switched off.
+  <br>
+  <b>This test should not be considered valid.</b>
+  <br>
+  Consider redoing the test when you have recovered, and make sure to keep the screen on during the test.`,
+  curvatureClass3Warning: `The path of the test appears to be very irregular, with many turns, which may lead to an unreliable distance estimation.
+  This may be because the test was performed in a small area, or by walking back and forth.
+  <br>
+  <b>This test should not be considered valid.</b>
+  <br>
+  Consider redoing the test when you have recovered, and make sure to walk in a straight, or gently curved line.`,
 }
