@@ -1,7 +1,5 @@
-import model from '../modules/curveClassfier_params.json'
-import { mean, variance, skewness, kurtosis } from './stats'
-
-const DEBUG = true
+import model from './curveClassfier_params.json' with { type: "json" }
+import { mean, variance, skewness, kurtosis } from './stats.js'
 
 
 /**
@@ -200,7 +198,7 @@ function classifyLogistic(testReport) {
     2: 'high curvature'
   }
 
-  if (DEBUG) {
+  if (process.env.VUE_APP_DEBUG) {
     console.log('Features:',      featureVector)
     console.log('Standardized:',  x)
     console.log('Raw scores:',    rawScores)
@@ -265,7 +263,7 @@ function classifyRidge(testReport) {
         return s + intercepts[i]
     })
 
-    if (DEBUG) {
+    if (process.env.VUE_APP_DEBUG) {
         console.log('Features:', featureVector)
         console.log('Standardized:', x)
         console.log('Scores:', scores)

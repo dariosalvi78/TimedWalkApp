@@ -70,5 +70,5 @@ let storage = {
 
 // set the following to false to use the browser storage (deleted after a week
 // on iOS!!!)
-storage.useNative = (process.env.NODE_ENV === 'production')
+storage.useNative = (process.env.VUE_APP_STORAGE === 'real')
 export default storage

@@ -1,5 +1,64 @@
 let callback
 
+let mockMotion = {
+  motionTimer : null,
+  orientationTimer : null,
+  async isAvailable () {
+    return Promise.resolve(true)
+  },
+  async getPermission () {
+    return Promise.resolve(true)
+  },
+  startNotifications (options, cbk) {
+    callback = cbk
+    this.motionTimer = setInterval(() => {
+      // Simulate some motion data
+      const simulatedEvent = {
+        type: 'motion',
+        acc: {
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          z: Math.random() * 2 - 1
+        },
+        accG: {
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          z: Math.random() * 2 - 1
+        },
+        rotRate: {
+          alpha: Math.random() * 360,
+          beta: Math.random() * 360,
+          gamma: Math.random() * 360
+        },
+        interval: 100
+      }
+      callback(simulatedEvent)
+    }, options.interval || 100)
+
+    this.orientationTimer = setInterval(() => {
+      // Simulate some orientation data
+      const simulatedEvent = {
+        type: 'orientation',
+        abs: Math.random() > 0.5,
+        alpha: Math.random() * 360,
+        beta: Math.random() * 360,
+        gamma: Math.random() * 360
+      }
+      callback(simulatedEvent)
+    }, options.interval || 100)
+  },
+  async stopNotifications () {
+    if (this.motionTimer) {
+      clearInterval(this.motionTimer)
+    }
+    if (this.orientationTimer) {
+      clearInterval(this.orientationTimer)
+    }
+    callback = null
+  }
+}
+
+
 let realMotion = {
   async isAvailable () {
     if (typeof DeviceMotionEvent !== 'undefined') return Promise.resolve(true)
@@ -62,4 +121,4 @@ let realMotion = {
   }
 }
 
-export default realMotion
+export default (process.env.VUE_APP_MOTION === 'mock') ? mockMotion : realMotion
