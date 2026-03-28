@@ -2,7 +2,6 @@
 * Six Minute Walk Test algorithm for the outdoor test.
 * Based on https://mhealth.jmir.org/2020/1/e13756/
 */
-import signalCheck from './signalCheck.js'
 
 export default {
   // maximum allowable speed
@@ -16,7 +15,7 @@ export default {
 
   // holder of all positions
   positions: [],
-  
+
   // holder of a selected number of positions
   selectedPositions: [],
 
@@ -47,8 +46,6 @@ export default {
   * Tells the algorithm that the test has officially started
   */
   startTest: function () {
-    signalCheck.reset()
-
     this.distance = 0
     this.started = true
     this.selectedPositions = []
@@ -84,7 +81,6 @@ export default {
   /** Resest the internals of the algorithm
   */
   reset: function () {
-    signalCheck.reset()
     this.distance = 0
     this.showdistance = 0
     this.started = false
@@ -112,7 +108,6 @@ export default {
     }
 
     this.positions.unshift(position)
-    signalCheck.update(position)
 
     if (this.started) {
       // selection criterium
@@ -131,9 +126,9 @@ export default {
   },
 
   /**
-  * Tells if the signal is of enough quality
+  * Tells if the GPS signal is of enough quality to start the test
   */
-  isSignalOK: function () {
+  isGPSOkToStart: function () {
     // we define "enough quality" when there is altitude (means that the GPS is on)
     // and the accuracy is less than CHECKSIGNAL_MINACCURACY
     if (this.positions.length === 0) return false
@@ -158,13 +153,6 @@ export default {
       // when not running, give the official one
       return this.distance
     }
-  },
-
-  /**
-   * Gives a report about the quality of the estimation, based on the sampling frequency and the stability of the samples
-   */
-  getEstimationReportQuality: function (curvature = null) {
-    return signalCheck.getReport(curvature)
   },
 
   // gives the distance between two points in direct line (crow flight distance)
