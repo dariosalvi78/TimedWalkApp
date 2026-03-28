@@ -5,13 +5,14 @@
   "description": "App to compute distance of timed walks.",
   "author": {
     "name": "Dario Salvi",
-    "institution": "Internet of Things and People, Malmö University"
+    "institution": "Malmö University"
   },
+  "type": "module",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "test": "node --test"
+    "test": "node --env-file=.env --test"
   },
   "main": "index.js",
   "dependencies": {
