@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import classifier from '../src/modules/curveClassifier.js'
+import { classifyCurvature } from '../src/modules/testQualityCheck.js'
 
 describe('Testing the curvature classifier', () => {
 
@@ -15,11 +15,11 @@ describe('Testing the curvature classifier', () => {
     //     for (let i = 0; i < 360; i++) {
     //         testReport.positions.push({
     //             timestamp: new Date(ts.getTime() + i * 1000),
-    //             heading: 0 // always same heading, no curves
+    //             heading: 150 // always same heading, no curves
     //         })
     //     }
 
-    //     const result = classifier.classifyLogistic(testReport)
+    //     const result = classifyCurvature(testReport, 'logistic')
     //     assert.strictEqual(result.label, 0)
     // })
 
@@ -33,15 +33,15 @@ describe('Testing the curvature classifier', () => {
         for (let i = 0; i < 360; i++) {
             testReport.positions.push({
                 timestamp: new Date(ts.getTime() + i * 1000),
-                heading: 0 + Math.sin((i/10) * 2* Math.PI)*10 // little oscillations every 10 seconds
+                heading: 0 + Math.sin((i/10) * 2* Math.PI) * 10 // 10 degree oscillations every 10 seconds
             })
         }
 
-        const result = classifier.classifyLogistic(testReport)
+        const result = classifyCurvature(testReport, 'logistic')
         assert.strictEqual(result.label, 0)
     })
 
-    test ('a 6MWT with moderate curves is classified as such', () => {
+    test ('a 6MWT with 3 90 degrees curves is classified as moderate', () => {
       const ts = new Date()
         const testReport = {
             positions: [
@@ -73,12 +73,12 @@ describe('Testing the curvature classifier', () => {
             })
         }
 
-        const result = classifier.classifyLogistic(testReport)
+        const result = classifyCurvature(testReport, 'logistic')
         assert.strictEqual(result.label, 1)
     })
 
 
-    test ('a 6MWT with lots of curves is classified as such', () => {
+    test ('a 6MWT with lots of curves is classified as high', () => {
       const ts = new Date()
         const testReport = {
             positions: [
@@ -92,7 +92,7 @@ describe('Testing the curvature classifier', () => {
             })
         }
 
-        const result = classifier.classifyLogistic(testReport)
+        const result = classifyCurvature(testReport, 'logistic')
         assert.strictEqual(result.label, 2)
     })
   })

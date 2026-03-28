@@ -1,6 +1,29 @@
 import model from './curveClassfier_params.json' with { type: "json" }
 import { mean, variance, skewness, kurtosis } from './stats.js'
 
+const QUALITY_THRESHOLDS = {
+  minSamplingFrequency: 0.2,     // Hz -> at least one position every 5 seconds in average
+  maxAllowedGapMs: 30000,           // milliseconds -> no gap larger than 30 seconds
+}
+
+
+export function checkReportSampling(report) {
+  if (report.positions.length < 20) return false
+  const freq = report.positions.length / (report.duration) // in Hz
+  // we want at least one position every 5 seconds in average
+  return freq >= QUALITY_THRESHOLDS.minSamplingFrequency
+}
+
+export function checkReportGaps(report) {
+  if (report.positions.length < 20) return false
+  for (let i = 1; i < report.positions.length; i++) {
+    const dt = report.positions[i].timestamp - report.positions[i - 1].timestamp
+    if (dt > QUALITY_THRESHOLDS.maxAllowedGapMs) {
+      return false
+    }
+  }
+  return true
+}
 
 /**
  * Subsample headings from a list of position objects.
@@ -291,9 +314,12 @@ function classifyRidge(testReport) {
   }
 }
 
-export default {
-  classifyRidge,
-  classifyLogistic,
-  subsampleHeadings,
-  computeHeadingFeatures
+export function classifyCurvature(testReport, modelType = 'logistic') {
+  if (modelType === 'logistic') {
+    return classifyLogistic(testReport)
+  } else if (modelType === 'ridge') {
+    return classifyRidge(testReport)
+  } else {
+    throw new Error(`Unknown model type: ${modelType}`)
+  }
 }
