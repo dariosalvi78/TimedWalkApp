@@ -41,7 +41,7 @@ export default {
   * @param {boolean} temporary - uses the temporary folder
   */
   async openFile(filename, temporary, forcecreate) {
-    if (process.env.VUE_APP_FILES !== 'localStorage') {
+    if (process.env.VUE_APP_FILES === 'localStorage') {
       return filename
     }
     let folder
@@ -62,7 +62,7 @@ export default {
   },
 
   async getFilePath(filename, temporary) {
-    if (process.env.VUE_APP_FILES !== 'localStorage') {
+    if (process.env.VUE_APP_FILES === 'localStorage') {
       return filename
     }
     let file = await this.openFile(filename, temporary, false)
@@ -74,7 +74,7 @@ export default {
   * @param {Object} file - the file to be opened
   */
   async read(file) {
-    if (process.env.VUE_APP_FILES !== 'localStorage') {
+    if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.getItem(file)
     }
 
@@ -94,7 +94,7 @@ export default {
   * @param {Object} file - the file to be deleted
   */
   async deleteFile(file) {
-    if (process.env.VUE_APP_FILES !== 'localStorage') {
+    if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.removeItem(file)
     }
 
@@ -109,7 +109,7 @@ export default {
   * @param {string} txt - is the text to be saved
   */
   async save(file, txt) {
-    if (process.env.VUE_APP_FILES !== 'localStorage') {
+    if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.setItem(file, txt)
     }
 
@@ -132,7 +132,7 @@ export default {
   */
   async createLog(filename) {
     let file = null
-    if (process.env.VUE_APP_FILES === 'localStorage') file = await this.openFile(filename, true, true)
+    if (process.env.VUE_APP_FILES !== 'localStorage') file = await this.openFile(filename, true, true)
 
     return {
       buffer: '',
@@ -169,7 +169,8 @@ export default {
 
         return new Promise((resolve, reject) => {
           // simulation in browser
-          if (process.env.VUE_APP_FILES !== 'localStorage') {
+          if (process.env.VUE_APP_FILES === 'localStorage') {
+            console.log(line)
             let pretxt = window.localStorage.getItem(filename)
             if (pretxt) this.buffer = pretxt + this.buffer
             window.localStorage.setItem(filename, this.buffer)
