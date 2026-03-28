@@ -3,7 +3,40 @@
 * Needs this plugin: https://github.com/TheCocoaProject/cordova-plugin-nativestorage#README.md
 */
 
-let storage = {
+const LocalStorage = {
+
+  callbacks: {},
+
+  setChangeListener (key, cbk) {
+    this.callbacks[key] = cbk
+  },
+
+  unsetChangeListener (key) {
+    this.callbacks[key] = undefined
+  },
+
+  async getItem (key) {
+    return JSON.parse(window.localStorage.getItem(key))
+  },
+
+  async setItem (key, value) {
+    let promise = window.localStorage.setItem(key, JSON.stringify(value))
+    if (this.callbacks[key]) this.callbacks[key](value)
+    return promise
+  },
+
+  async removeItem (key) {
+    let promise = window.localStorage.removeItem(key)
+    if (this.callbacks[key]) this.callbacks[key](null)
+    return promise
+  },
+
+  async clear () {
+    return window.localStorage.clear()
+  }
+}
+
+const nativeStorage = {
   useNative: false,
 
   callbacks: {},
@@ -68,7 +101,4 @@ let storage = {
   }
 }
 
-// set the following to false to use the browser storage (deleted after a week
-// on iOS!!!)
-storage.useNative = (process.env.VUE_APP_STORAGE === 'real')
-export default storage
+export default (process.env.VUE_APP_STORAGE === 'local') ? LocalStorage : nativeStorage
