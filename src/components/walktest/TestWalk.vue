@@ -52,20 +52,13 @@ export default {
       isSignalCheck: true,
       lastStep: undefined,
       messageText: null,
-      messageIcon: null, 
+      messageIcon: null,
       dataQualityReport: null
     }
   },
   async mounted () {
     console.log('Test started, checking GPS')
-    
-    // LOAD DATA FIRST (ONLY IN DEV)
-    if (process.env.NODE_ENV !== 'production') {
-      const track = localStorage.getItem('track') || 'subject_0/0_9'
-      await gps.loadCSV(`/data_realtracks/${track}/positions.csv`)
-      console.log('Loaded samples:', gps.data.length)
-    }
-    
+
     if (this.$refs.walkingMan) this.$refs.walkingMan.stop()
 
     // avoid screen going to sleep
@@ -251,9 +244,9 @@ export default {
         date: new Date(),
         distance: distance,
         steps: this.lastStep,
-        positions: positions, 
+        positions: positions,
       }
-      
+
       const result = curveClassifier.classifyLogistic(testReport)
       let qualityReport = distanceAlgo.getEstimationReportQuality(result)
 
