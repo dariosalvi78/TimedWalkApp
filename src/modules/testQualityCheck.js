@@ -6,7 +6,11 @@ const QUALITY_THRESHOLDS = {
   maxAllowedGapMs: 30000,           // milliseconds -> no gap larger than 30 seconds
 }
 
-
+/**
+ * Checks that the sampling frequency of the position data is sufficient for reliable analysis.
+ * @param {Array<Object>} positions
+ * @returns true is sampling is sufficient, false if there are too few points or if the frequency is too low
+ */
 export function checkReportSampling(positions) {
   if (positions.length < 20) return false
   const freq = positions.length / (positions[positions.length - 1].timestamp - positions[0].timestamp) * 1000 // in Hz
@@ -14,6 +18,11 @@ export function checkReportSampling(positions) {
   return freq >= QUALITY_THRESHOLDS.minSamplingFrequency
 }
 
+/**
+ * Checks that there are no large gaps in the position data.
+ * @param {Array<Object>} positions
+ * @returns true if there are no large gaps, false if there is at least one gap larger than the threshold
+ */
 export function checkReportGaps(positions) {
   if (positions.length < 20) return false
   for (let i = 1; i < positions.length; i++) {
