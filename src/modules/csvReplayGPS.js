@@ -1,6 +1,11 @@
-// src/modules/csvReplayGPS.js
-
 import Papa from 'papaparse'
+
+// LOAD DATA FIRST (ONLY IN DEV)
+// if (process.env.NODE_ENV !== 'production') {
+//   const track = localStorage.getItem('track') || 'subject_0/0_9'
+//   await gps.loadCSV(`/data_realtracks/${track}/positions.csv`)
+//   console.log('Loaded samples:', gps.data.length)
+// }
 
 let csvReplayGPS = {
   timerid: null,
@@ -8,7 +13,7 @@ let csvReplayGPS = {
   index: 0,
   startTime: null,
 
-  async loadCSV(path) {
+  async loadCSV (path) {
     return new Promise((resolve, reject) => {
       Papa.parse(path, {
         download: true,
@@ -22,7 +27,7 @@ let csvReplayGPS = {
               row.ms > 0 &&
               row.latitude &&
               row.longitude &&
-              row.heading 
+              row.heading
             )
             .sort((a, b) => a.ms - b.ms)
 
@@ -34,56 +39,89 @@ let csvReplayGPS = {
     })
   },
 
-  async isAvailable() {
+  async isAvailable () {
     return Promise.resolve(true)
   },
 
-  startNotifications(cbk) {
-    if (!this.data.length) {
-      console.error('No CSV data loaded')
-      return
-    }
+  startNotifications (cbk) {
+    const fileInput = document.getElementById('csv-file-input')
+    fileInput.onchange = async (event) => {
+      // get the file from the input
+      const file = event.target.files[0]
+      if (!file) {
+        console.error('No file selected')
+        return
+      }
+      // parse the file with papaparse
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        complete: (results) => {
+          this.data = results.data
+            .filter(row =>
+              row.ms !== undefined &&
+              row.ms > 0 &&
+              row.latitude &&
+              row.longitude &&
+              row.heading
+            )
+            .sort((a, b) => a.ms - b.ms)
 
-    if (this.timerid) clearTimeout(this.timerid)
+          this.index = 0
+          console.log('Loaded samples:', this.data.length)
+          // start the replay
+          if (!this.data.length) {
+            throw new Error('No CSV data loaded')
+          }
 
-    this.index = 0
-    // this.startTime = Date.now()
-    this.startTime = 0
-    console.log("Start notifications csvReplayGPS, StartTime : ", this.startTime)
+          if (this.timerid) clearTimeout(this.timerid)
 
-    const run = () => {
-      if (this.index >= this.data.length - 1) return
+          this.index = 0
+          // this.startTime = Date.now()
+          this.startTime = 0
+          console.log("Start notifications csvReplayGPS, StartTime : ", this.startTime)
 
-      const current = this.data[this.index]
-      const next = this.data[this.index + 1]
+          const run = () => {
+            if (this.index >= this.data.length - 1) return
 
-      // ✅ convert relative ms → real timestamp
-      const timestamp = this.startTime + current.ms
+            const current = this.data[this.index]
+            const next = this.data[this.index + 1]
 
-      cbk({
-        timestamp: timestamp,
-        coords: {
-          latitude: current.latitude,
-          longitude: current.longitude,
-          altitude: current.altitude || 0,
-          accuracy: current.confInterval || 10,
-          heading: current.heading >= 0 ? current.heading : null,
-          speed: current.speed >= 0 ? current.speed : null
+            // convert relative ms → real timestamp
+            const timestamp = this.startTime + current.ms
+
+            cbk({
+              timestamp: timestamp,
+              coords: {
+                latitude: current.latitude,
+                longitude: current.longitude,
+                altitude: current.altitude || 0,
+                accuracy: current.confInterval || 10,
+                heading: current.heading >= 0 ? current.heading : null,
+                speed: current.speed >= 0 ? current.speed : null
+              }
+            })
+
+            // preserve real timing
+            const dt = Math.max(0, next.ms - current.ms)
+
+            this.index++
+            this.timerid = setTimeout(run, dt)
+          }
+
+          run()
+        },
+        error: (err) => {
+          console.error('Error parsing CSV file:', err)
         }
-      }) 
-
-      // ✅ preserve real timing
-      const dt = Math.max(0, next.ms - current.ms)
-
-      this.index++
-      this.timerid = setTimeout(run, dt)
-      // console.log("Index of sample", this.index, "current.ms: ", current.ms)
+      })
     }
 
-    run()
+    fileInput.click()
   },
 
-  async stopNotifications() {
+
+  async stopNotifications () {
     clearTimeout(this.timerid)
     return Promise.resolve()
   }

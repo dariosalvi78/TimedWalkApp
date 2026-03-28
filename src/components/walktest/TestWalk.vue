@@ -22,6 +22,7 @@
         </v-ons-button>
       </div>
     </div>
+    <input type="file" id="csv-file-input" style="display: none;" />
   </v-ons-page>
 </template>
 
