@@ -103,7 +103,7 @@ export default {
 
       if (this.isSignalCheck) {
         // start if the signal is OK
-        if (distanceAlgo.isSignalOK()) {
+        if (distanceAlgo.isGPSOkToStart()) {
           // start the next phase
           this.testStarted()
         }
