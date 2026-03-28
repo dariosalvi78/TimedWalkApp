@@ -33,7 +33,7 @@ import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
 import motion from '../../modules/motion'
 import distanceAlgo from '../../modules/outdoorDistance'
-import curveClassifier from '../../modules/curveClassifier'
+import { checkReportSampling, checkReportGaps, classifyCurvature } from '../../modules/testQualityCheck.js'
 import files from '../../modules/files'
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
@@ -49,7 +49,7 @@ export default {
       duration: 6,
       countdown: 360,
       timer: undefined,
-      isSignalCheck: true,
+      isSignalBeingChecked: true,
       lastStep: undefined,
       messageText: null,
       messageIcon: null,
@@ -72,7 +72,7 @@ export default {
       this.countdown = dur * 60
     }
 
-    this.isSignalCheck = true
+    this.isSignalBeingChecked = true
     this.messageText = this.$t('walk.signalCheck')
     this.messageIcon = 'fa-satellite'
 
@@ -101,7 +101,7 @@ export default {
       }
       distanceAlgo.addPosition(position)
 
-      if (this.isSignalCheck) {
+      if (this.isSignalBeingChecked) {
         // start if the signal is OK
         if (distanceAlgo.isGPSOkToStart()) {
           // start the next phase
@@ -154,7 +154,7 @@ export default {
     sendMessage () {
       let durSecs = this.duration * 60
       let ctdwnRmn = this.countdown % 60
-      if (!this.isSignalCheck) {
+      if (!this.isSignalBeingChecked) {
         if (durSecs >= this.countdown && this.countdown >= durSecs - 3) {
           this.messageText = this.$t('walk.startNow')
           this.messageIcon = 'fa-exclamation'
@@ -204,7 +204,7 @@ export default {
         })
       }
 
-      this.isSignalCheck = false
+      this.isSignalBeingChecked = false
       this.countdown = this.duration * 60
 
       this.sendMessage()
