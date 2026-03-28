@@ -1,4 +1,11 @@
-0.3.5
+0.4
+
+- added quality check of the measurement
+- added Swedish language
+- better support of testing
+- updated dependencies
+
+  0.3.5
 
 - added support for Dzongkha
 - updated dependencies
