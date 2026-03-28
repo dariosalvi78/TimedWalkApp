@@ -19,7 +19,7 @@ npm install
 cordova prepare
 ```
 
-Prepare a .env file if you want to run simulated modules with:
+Prepare a `.env.local` file if you want to run simulated modules with:
 
 ```env
 # as for Vue CLI 'production' in production mode, 'test' in test mode, and defaults to 'development' otherwise
