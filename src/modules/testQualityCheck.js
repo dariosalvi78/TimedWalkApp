@@ -43,14 +43,14 @@ function subsampleHeadings(positions) {
   let deltaT = 0
   let prevMs = 0
 
-  const sortedPositions = [...positions].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+  const sortedPositions = [...positions].sort((a, b) => a.timestamp - b.timestamp)
   const subsampledPositions = []
 
   for (let i = 0; i < sortedPositions.length; i++) {
 
     const row = sortedPositions[i]
 
-    const timestamp = row.timestamp.getTime() // unix timestamp in ms
+    const timestamp = row.timestamp// unix timestamp in ms
     if (timestamp <= 0) continue
 
     // FIRST VALID SAMPLE
