@@ -3,45 +3,44 @@ export default `
 Version: 2021-08-16
 </p>
 <p>
-When you perform a test, this app retrieves the following information from
-your phone:
+När du utför ett test hämtar den här appen följande information från
+din telefon:
 </p>
 <ul>
-  <li>
-    The geographical position of your phone. This is used to compute
-    the distance you walk.
-  </li>
-  <li>
-    Movement measured by your phone, like acceleration, orientation and steps.
-    This is used to complement the information about the distance.
-  </li>
-  <li>
-    Model of your phone and operating system.
-    This may be used to investigate if the app has issues with particular phones.
-  </li>
+<li>
+Din telefons geografiska position. Detta används för att beräkna
+avståndet du går.
+</li>
+<li>
+Rörelse mätt av din telefon, som acceleration, orientering och steg.
+Detta används för att komplettera informationen om avståndet.
+</li>
+<li>
+Din telefonmodell och operativsystem.
+Detta kan användas för att undersöka om appen har problem med specifika telefoner.
+</li>
 </ul>
 <p>
-During the test, these data are temporarily stored on the phone. You can decide
-to share these data at the end of the test, using the dedicated button.
-This will allow you to select the mean (email, SMS or else) and the recipient and
-is totally under your control. When starting a new test, these data will
-be deleted.
-</p>
+Under testet lagras dessa data tillfälligt på telefonen. Du kan välja
+att dela dessa data i slutet av testet med hjälp av den dedikerade knappen.
+Detta låter dig välja medelvärde (e-post, SMS eller annat) och mottagare och
+är helt under din kontroll. När du startar ett nytt test kommer dessa data
+att raderas. </p>
 
 <p>
-A history of past tests is also kept. In this history only the date of the test,
-the duration, the distance you have walked and the number of steps are recorded.
-You can also decide to share this history, if you wish, using email, SMS or other
-with whom you prefer by tapping on the share button.
+En historik över tidigare prov sparas också. I denna historik registreras endast provdatum,
+längd, avstånd och antal steg.
+Du kan också välja att dela denna historik, om du vill, via e-post, SMS eller annat
+med vem du föredrar genom att trycka på delningsknappen.
 </p>
 <p>
-To keep your data safe, it is recommendable to set a password, or any other
-protection mean, on your phone to prevent any unauthorised person to
-access your data.
+För att skydda dina data rekommenderas det att du ställer in ett lösenord eller något annat
+skyddsmedel på din telefon för att förhindra att obehöriga personer
+kommer åt dina data.
 </p>
 <p>
-This app is released by the University of Malmö, Sweden. For any question
-related to data privacy, you can contact the author of the app at dario.salvi@mau.se
-or University's Data Protection Officer at dataskyddsombud@mau.se
+Denna app är utgiven av Malmö universitet. För alla frågor
+relaterade till dataskydd kan du kontakta appens författare på dario.salvi@mau.se
+eller universitetets dataskyddsombud på dataskyddsombud@mau.se
 </p>
 `
