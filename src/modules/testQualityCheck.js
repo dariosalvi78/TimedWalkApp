@@ -11,7 +11,7 @@ const QUALITY_THRESHOLDS = {
  * @param {Array<Object>} positions
  * @returns true is sampling is sufficient, false if there are too few points or if the frequency is too low
  */
-export function checkReportSampling(positions) {
+export function checkReportSampling (positions) {
   if (positions.length < 20) return false
   const freq = positions.length / Math.abs((positions[positions.length - 1].timestamp - positions[0].timestamp) * 1000) // in Hz
   // we want at least one position every 5 seconds in average
@@ -23,7 +23,7 @@ export function checkReportSampling(positions) {
  * @param {Array<Object>} positions
  * @returns true if there are no large gaps, false if there is at least one gap larger than the threshold
  */
-export function checkReportGaps(positions) {
+export function checkReportGaps (positions) {
   if (positions.length < 20) return false
   for (let i = 1; i < positions.length; i++) {
     const dt = positions[i].timestamp - positions[i - 1].timestamp
@@ -34,23 +34,43 @@ export function checkReportGaps(positions) {
   return true
 }
 
+// Converts numeric degrees to radians
+function toRad (Value) {
+  return Value * Math.PI / 180
+}
+
+function computeHeading (p1, p2) {
+  const lat1 = toRad(p1.coords.latitude)
+  const lat2 = toRad(p2.coords.latitude)
+  const dLon = toRad(p2.coords.longitude - p1.coords.longitude)
+
+  const y = Math.sin(dLon) * Math.cos(lat2)
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
+
+  let bearing = Math.atan2(y, x)
+  bearing = (bearing * 180) / Math.PI
+  return (bearing + 360) % 360
+}
+
+
 /**
  * Subsample headings from a list of position objects.
- * @param {Array<Object>} positions - array of position objects
+ * @param {Array<Object>} positions - array of position objects, sorted by timestamp incrasingly
  * @returns {Array<Object>} subsampled position objects
  */
-function subsampleHeadings(positions) {
+function subsampleHeadings (positions) {
   let deltaT = 0
   let prevMs = 0
 
-  const sortedPositions = [...positions].sort((a, b) => a.timestamp - b.timestamp)
   const subsampledPositions = []
 
-  for (let i = 0; i < sortedPositions.length; i++) {
+  for (let i = 0; i < positions.length; i++) {
 
-    const row = sortedPositions[i]
+    const row = positions[i]
 
-    const timestamp = row.timestamp// unix timestamp in ms
+    const timestamp = row.timestamp // unix timestamp in ms
     if (timestamp <= 0) continue
 
     // FIRST VALID SAMPLE
@@ -69,8 +89,14 @@ function subsampleHeadings(positions) {
       deltaT += dt
       prevMs = timestamp
 
+      const prev = positions[i - 1]
+      // fix heading if missing or negative
+      if (row.coords.heading < 0) {
+        row.coords.heading = computeHeading(prev, row)
+      }
+
       // only add if we have a valid heading and timestamp
-      if (row.heading !== undefined && !isNaN(row.heading) && row.timestamp !== undefined && !isNaN(row.timestamp)) {
+      if (row.coords.heading !== undefined && !isNaN(row.coords.heading) && row.timestamp !== undefined && !isNaN(row.timestamp)) {
         subsampledPositions.push(row)
       }
 
@@ -88,14 +114,14 @@ function subsampleHeadings(positions) {
  * @param {Array<Object>} subsampledPositions - array of position objects subsampled every 5s
  * @returns {Object} computed features
  */
-function computeHeadingFeatures(subsampledPositions) {
+function computeHeadingFeatures (subsampledPositions) {
 
   if (!subsampledPositions || subsampledPositions.length < 3) throw new Error('Not enough heading data to compute features')
 
   // -----------------------------
   // BASIC STATS
   // -----------------------------
-  const headings = subsampledPositions.map(p => p.heading)
+  const headings = subsampledPositions.map(p => p.coords.heading)
   const heading_var = variance(headings)
   const heading_kurtosis = kurtosis(headings)
   const heading_skewness = skewness(headings)
@@ -130,9 +156,9 @@ function computeHeadingFeatures(subsampledPositions) {
     const prev = dtheta[i - 1]
     const curr = dtheta[i]
     if ((prev > 0 && curr < 0) || (prev < 0 && curr > 0)) {
-        zero_crossings++
-        }
+      zero_crossings++
     }
+  }
 
   const zero_crossing_rate = zero_crossings / dtheta.length
 
@@ -154,7 +180,7 @@ function computeHeadingFeatures(subsampledPositions) {
  * @param {Array<number>} features
  * @returns {Array<number>} standardized features
  */
-function standardize(features) {
+function standardize (features) {
   const mean = model.scaler.mean
   const scale = model.scaler.scale
 
@@ -172,7 +198,7 @@ function standardize(features) {
  * @param {Array<number>} scores
  * @returns {Array<number>} probabilities corresponding to each class
  */
-function softmax(scores) {
+function softmax (scores) {
   const max = Math.max(...scores) // subtract max for numerical stability
   const exps = scores.map(s => Math.exp(s - max))
   const sum = exps.reduce((a, b) => a + b, 0)
@@ -181,14 +207,15 @@ function softmax(scores) {
 
 /**
  * Classify curve type using a logistic regression model.
- * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
+ * @param {Object} positions - array of position objects (with heading and timestamp) from the test report
  * @returns {Object} classification result with label, probabilities, and features
  */
-function classifyLogistic(positions) {
+function classifyLogistic (positions) {
   if (!positions) throw new Error('No position data available')
 
   // 1. Subsampling
-  const subsampledPositions = subsampleHeadings(positions)
+  const sortedPositions = [...positions].sort((a, b) => a.timestamp - b.timestamp)
+  const subsampledPositions = subsampleHeadings(sortedPositions)
 
   // 2. Features
   const f = computeHeadingFeatures(subsampledPositions)
@@ -208,9 +235,9 @@ function classifyLogistic(positions) {
   const x = standardize(featureVector)
 
   // 4. Linear scores (same as before)
-  const coefs      = model.model.coef
+  const coefs = model.model.coef
   const intercepts = model.model.intercept
-  const classes    = model.model.classes
+  const classes = model.model.classes
 
   const rawScores = coefs.map((coefRow, i) =>
     coefRow.reduce((s, c, j) => s + c * x[j], 0) + intercepts[i]
@@ -231,30 +258,31 @@ function classifyLogistic(positions) {
   }
 
   if (process.env.VUE_APP_DEBUG) {
-    console.log('Features:',      featureVector)
-    console.log('Standardized:',  x)
-    console.log('Raw scores:',    rawScores)
+    console.log('Features:', featureVector)
+    console.log('Standardized:', x)
+    console.log('Raw scores:', rawScores)
     console.log('Probabilities:', probabilities)
   }
 
   return {
-    label:         classes[maxIdx],
-    label_txt:     labelMap[classes[maxIdx]],
+    label: classes[maxIdx],
+    label_txt: labelMap[classes[maxIdx]],
     probabilities, // replaces raw `scores`
-    features:      f
+    features: f
   }
 }
 
 /**
  * Classify curve type using a ridge regression model (original version).
- * @param {Object} testReport - report of the full test, containing all data (positions, events, etc.)
+ * @param {Object} positions - array of position objects (with heading and timestamp) from the test report
  * @returns {Object} classification result with label, probabilities, and features
  */
-function classifyRidge(positions) {
+function classifyRidge (positions) {
   if (!positions) throw new Error('No position data available')
 
   // 1. Subsampling
-  const { headings, timestamps } = subsampleHeadings(positions)
+  const sortedPositions = [...positions].sort((a, b) => a.timestamp - b.timestamp)
+  const { headings, timestamps } = subsampleHeadings(sortedPositions)
 
   // 2. Features
   const f = computeHeadingFeatures(headings, timestamps)
@@ -274,46 +302,46 @@ function classifyRidge(positions) {
   // 3. Standardization
   const x = standardize(featureVector)
 
-    //   // 4. Linear model
-    //   const score = dot(model.coef, x) + model.intercept
-    //   console.log('Score:', score)
+  //   // 4. Linear model
+  //   const score = dot(model.coef, x) + model.intercept
+  //   console.log('Score:', score)
 
-    //   const label = score > 0
-    //     ? model.classes[1]
-    //     : model.classes[0]
-    // MULTICLASS SCORES
+  //   const label = score > 0
+  //     ? model.classes[1]
+  //     : model.classes[0]
+  // MULTICLASS SCORES
 
-    const coefs = model.model.coef
-    const intercepts = model.model.intercept
-    const classes = model.model.classes
+  const coefs = model.model.coef
+  const intercepts = model.model.intercept
+  const classes = model.model.classes
 
-    const scores = coefs.map((coefRow, i) => {
-        let s = 0
-        for (let j = 0; j < coefRow.length; j++) {
-        s += coefRow[j] * x[j]
-        }
-        return s + intercepts[i]
-    })
-
-    if (process.env.VUE_APP_DEBUG) {
-        console.log('Features:', featureVector)
-        console.log('Standardized:', x)
-        console.log('Scores:', scores)
+  const scores = coefs.map((coefRow, i) => {
+    let s = 0
+    for (let j = 0; j < coefRow.length; j++) {
+      s += coefRow[j] * x[j]
     }
+    return s + intercepts[i]
+  })
 
-    let maxIdx = 0
-    for (let i = 1; i < scores.length; i++) {
-        if (scores[i] > scores[maxIdx]) {
-        maxIdx = i
-        }
+  if (process.env.VUE_APP_DEBUG) {
+    console.log('Features:', featureVector)
+    console.log('Standardized:', x)
+    console.log('Scores:', scores)
+  }
+
+  let maxIdx = 0
+  for (let i = 1; i < scores.length; i++) {
+    if (scores[i] > scores[maxIdx]) {
+      maxIdx = i
     }
+  }
 
 
-    const labelMap = {
-        0: 'straight',
-        1: 'moderate curvature',
-        2: 'high curvature'
-    }
+  const labelMap = {
+    0: 'straight',
+    1: 'moderate curvature',
+    2: 'high curvature'
+  }
 
   return {
     label: classes[maxIdx],
@@ -323,7 +351,7 @@ function classifyRidge(positions) {
   }
 }
 
-export function classifyCurvature(testReport, modelType = 'logistic') {
+export function classifyCurvature (testReport, modelType = 'logistic') {
   if (modelType === 'logistic') {
     return classifyLogistic(testReport)
   } else if (modelType === 'ridge') {

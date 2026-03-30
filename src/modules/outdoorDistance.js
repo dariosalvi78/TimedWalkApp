@@ -27,21 +27,6 @@ export default {
   // tells if the actual test has started
   started: false,
 
-  computeHeading: function (p1, p2) {
-    const lat1 = this.toRad(p1.coords.latitude)
-    const lat2 = this.toRad(p2.coords.latitude)
-    const dLon = this.toRad(p2.coords.longitude - p1.coords.longitude)
-
-    const y = Math.sin(dLon) * Math.cos(lat2)
-    const x =
-      Math.cos(lat1) * Math.sin(lat2) -
-      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
-
-    let bearing = Math.atan2(y, x)
-    bearing = (bearing * 180) / Math.PI
-    return (bearing + 360) % 360
-  },
-
   /**
   * Tells the algorithm that the test has officially started
   */
@@ -94,18 +79,6 @@ export default {
   * @return for debugging purposes, returns true if the sample was selected
   */
   addPosition: function (position) {
-
-    // this.positions.unshift(position)
-    if (this.positions.length > 0) {
-      const prev = this.positions[0]
-      if (position.heading < 0) {
-        position.heading = this.computeHeading(prev, position)
-      } else {
-        position.heading = position.coords.heading
-      }
-    } else {
-      position.heading = 0
-    }
 
     this.positions.unshift(position)
 
@@ -170,7 +143,7 @@ export default {
     lat2 = this.toRad(lat2)
 
     let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
+      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
     let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     let d = R * c
     return d * 1000
@@ -221,7 +194,7 @@ export default {
         }
       } else {
         // just ignore this point
-        // console.log('what a jump! speed: '+speed, pos);
+        // console.log('what a jump! speed: ' + speed, pos);
       }
     }
     return this.positions[bestAccuracyI]
