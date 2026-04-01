@@ -12,7 +12,7 @@ export default {
   <b>Questo test non dovrebbe essere considerato valido.</b>
   <br>
   Considera di rifare il test quando ti sarai ripreso e mantieni lo schermo acceso durante il test.`,
-  curvatureClass3Warning: `Il percorso del test sembra essere molto irregolare o con molte curve, il che può portare a una stima della distanza non affidabile.
+  curvatureClassWarning: `Il percorso del test sembra essere molto irregolare o con molte curve, il che può portare a una stima della distanza non affidabile.
   Questo può essere dovuto al fatto che il test è stato svolto in un'area ridotta, o camminando avanti e indietro.
   <br>
   <b>Questo test non dovrebbe essere considerato valido.</b>

@@ -10,7 +10,7 @@
 
       <!-- Negative warning block -->
       <div
-        v-if="testReport.quality && testReport.quality.samplingWarning || testReport.quality.gapsWarning || testReport.quality.curvatureClass === 3"
+        v-if="testReport.quality && testReport.quality.samplingWarning || testReport.quality.gapsWarning || testReport.quality.curvatureClass >= 2"
         style="margin-top: 20px; padding: 15px; background-color: #ffe6e6; border: 1px solid #ff4d4d; border-radius: 8px;">
         <v-ons-icon icon="fa-exclamation-triangle" style="color: #cc0000;" size="24px"></v-ons-icon>
 
@@ -24,7 +24,7 @@
 
 
         <!-- Curvature / path irregularity warning -->
-        <div v-else-if="testReport.quality.curvatureClass === 3" style="margin-top: 10px;" v-html="this.$t('check.curvatureClass3Warning')">
+        <div v-else-if="testReport.quality.curvatureClass >= 2" style="margin-top: 10px;" v-html="this.$t('check.curvatureClassWarning')">
         </div>
       </div>
 

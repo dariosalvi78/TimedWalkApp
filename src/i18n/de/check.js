@@ -11,7 +11,7 @@ export default {
   <b>Dieser Test sollte nicht als gültig betrachtet werden.</b>
   <br>
   Erwägen Sie, den Test erneut durchzuführen, wenn Sie sich erholt haben, und stellen Sie sicher, dass der Bildschirm während des Tests eingeschaltet bleibt.`,
-  curvatureClass3Warning: `Der Pfad des Tests scheint sehr unregelmäßig zu sein, mit vielen Kurven, was zu einer unzuverlässigen Entfernungsschätzung führen kann.
+  curvatureClassWarning: `Der Pfad des Tests scheint sehr unregelmäßig zu sein, mit vielen Kurven, was zu einer unzuverlässigen Entfernungsschätzung führen kann.
   Dies kann daran liegen, dass der Test in einem kleinen Bereich durchgeführt wurde oder indem man hin und her gelaufen ist.
   <br>
   <b>Dieser Test sollte nicht als gültig betrachtet werden.</b>
