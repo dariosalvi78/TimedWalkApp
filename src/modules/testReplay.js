@@ -90,12 +90,14 @@ export default {
           }
         }
       } else if (type === ' - P - ') {
-        // position
-        let positionObj = JSON.parse(content.split('position ')[1])
+        if (content.startsWith('position ')) {
+          let positionObj = JSON.parse(content.split('position ')[1])
 
-        if (this.positionCallback) {
-          this.positionCallback(positionObj)
+          if (this.positionCallback) {
+            this.positionCallback(positionObj)
+          }
         }
+
       } else if (type === ' - M - ') {
         // motion
         let motionObj = JSON.parse(content.split('motion ')[1])
