@@ -1,4 +1,5 @@
 import csvReplayGPS from './csvReplayGPS'
+import testReplay from './testReplay'
 
 let mockGPS = {
   timerid: null,
@@ -28,6 +29,34 @@ let mockGPS = {
     return Promise.resolve()
   }
 }
+
+let testReplayGPS = {
+
+  startNotifications: (cbk) => {
+    const fileInput = document.getElementById('csv-file-input')
+    fileInput.onchange = async (event) => {
+      // get the file from the input
+      const file = event.target.files[0]
+      if (!file) {
+        console.error('No file selected')
+        return
+      }
+
+      await testReplay.loadTxtFile(file)
+
+      testReplay.registerPositionCallback(cbk)
+      testReplay.startReplay(true)
+    }
+
+    fileInput.click()
+  },
+
+  stopNotifications: () => {
+    testReplay.stopReplay()
+    return Promise.resolve()
+  }
+}
+
 
 let realGPS = {
   watchid: null,
@@ -59,4 +88,4 @@ let realGPS = {
   }
 }
 
-export default (process.env.VUE_APP_GPS === 'mock') ? mockGPS : (process.env.VUE_APP_GPS === 'csv') ? csvReplayGPS :  realGPS
+export default (process.env.VUE_APP_GPS === 'mock') ? mockGPS : (process.env.VUE_APP_GPS === 'csv') ? csvReplayGPS : (process.env.VUE_APP_GPS === 'txt') ? testReplayGPS : realGPS

@@ -4,8 +4,22 @@ import { checkReportSampling, checkReportGaps } from '../src/modules/testQuality
 
 describe('Testing the report checking functions', () => {
 
+  test('a 6MWT with no data does not pass sampling check', () => {
+    const positions = [] // no samples at all
+
+    const result = checkReportSampling(positions)
+    assert.strictEqual(result, false)
+  })
+
   test('a 6MWT with little data does not pass sampling check', () => {
     const positions = []
+
+    for (let i = 0; i < 36; i++) {
+      positions.push({
+        timestamp: new Date().getTime() + i * 10000, // one sample every 10 s
+        heading: 0 + Math.sin((i / 10) * 2 * Math.PI) * 10 // little oscillations every 10 seconds
+      })
+    }
 
     const result = checkReportSampling(positions)
     assert.strictEqual(result, false)
@@ -14,9 +28,9 @@ describe('Testing the report checking functions', () => {
   test('a 6MWT with enough data passes sampling check', () => {
     const positions = []
 
-    for (let i = 0; i < 180; i++) {
+    for (let i = 0; i < 360; i++) {
       positions.push({
-        timestamp: new Date().getTime() + i * 1000,
+        timestamp: new Date().getTime() + i * 1000, // one sample every second
         heading: 0 + Math.sin((i / 10) * 2 * Math.PI) * 10 // little oscillations every 10 seconds
       })
     }

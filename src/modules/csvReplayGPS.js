@@ -1,12 +1,4 @@
 import Papa from 'papaparse'
-
-// LOAD DATA FIRST (ONLY IN DEV)
-// if (process.env.NODE_ENV !== 'production') {
-//   const track = localStorage.getItem('track') || 'subject_0/0_9'
-//   await gps.loadCSV(`/data_realtracks/${track}/positions.csv`)
-//   console.log('Loaded samples:', gps.data.length)
-// }
-
 let csvReplayGPS = {
   timerid: null,
   data: [],
