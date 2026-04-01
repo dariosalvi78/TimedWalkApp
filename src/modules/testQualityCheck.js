@@ -13,7 +13,7 @@ const QUALITY_THRESHOLDS = {
  */
 export function checkReportSampling (positions) {
   if (positions.length < 20) return false
-  const freq = positions.length / Math.abs((positions[positions.length - 1].timestamp - positions[0].timestamp) * 1000) // in Hz
+  const freq = positions.length / Math.abs((positions[positions.length - 1].timestamp - positions[0].timestamp) / 1000) // in Hz
   // we want at least one position every 5 seconds in average
   return freq >= QUALITY_THRESHOLDS.minSamplingFrequency
 }

@@ -11,6 +11,20 @@ describe('Testing the report checking functions', () => {
     assert.strictEqual(result, false)
   })
 
+  test('a 6MWT with enough data passes sampling check', () => {
+    const positions = []
+
+    for (let i = 0; i < 180; i++) {
+      positions.push({
+        timestamp: new Date().getTime() + i * 1000,
+        heading: 0 + Math.sin((i / 10) * 2 * Math.PI) * 10 // little oscillations every 10 seconds
+      })
+    }
+
+    const result = checkReportSampling(positions)
+    assert.strictEqual(result, true)
+  })
+
 
   test('a 6MWT with a gap > 30s data does not pass gap check', () => {
     const positions = []
