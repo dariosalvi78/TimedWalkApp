@@ -44,7 +44,13 @@ let testReplayGPS = {
 
       await testReplay.loadTxtFile(file)
 
-      testReplay.registerPositionCallback(cbk)
+      let lastSteps = null
+      testReplay.registerPositionCallback((p) => {
+        cbk({ ...p, steps: lastSteps })
+      })
+      testReplay.registerStepsCallback((s) => {
+        lastSteps = s
+      })
       testReplay.startReplay(true)
     }
 
