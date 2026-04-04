@@ -7,18 +7,21 @@ export default {
   eventCallback: null,
   timerid: null,
 
-  async loadTxtFile (file) {
+  async readWebTextFile (file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.addEventListener("load", () => {
         resolve(reader.result)
-        this.lines = reader.result.split('\n')
       })
       reader.addEventListener("error", () => {
         reject(reader.error)
       })
       reader.readAsText(file, 'UTF-8')
     })
+  },
+
+  loadTxtFile (fileTxt) {
+    this.lines = fileTxt.split(/\r?\n/).filter(line => line.trim() !== '')
   },
 
   registerPositionCallback (callback) {
@@ -35,6 +38,10 @@ export default {
 
   registerStepsCallback (callback) {
     this.stepsCallback = callback
+  },
+
+  registerEventCallback (callback) {
+    this.eventCallback = callback
   },
 
   run: false,

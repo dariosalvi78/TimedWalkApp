@@ -18,8 +18,9 @@
  *
  */
 import path from 'path'
-import fs from 'node:fs';
-import csvReplay from '../src/modules/csvReplay.js';
+import fs from 'node:fs'
+import csvReplay from '../src/modules/csvReplay.js'
+import testReplay from '../src/modules/testReplay.js'
 import outdoorDistance from '../src/modules/outdoorDistance.js'
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -118,6 +119,7 @@ async function main () {
 
     // skip tests with insufficient duration if --filter-minutes is set
     let testDuration = 0
+    let replayer
 
     if (track.type === 'csv') {
       await csvReplay.loadCsvFiles(fs.readFileSync(track.positionsPath, 'utf-8'), track.stepsPath ? fs.readFileSync(track.stepsPath, 'utf-8') : null)
@@ -128,8 +130,23 @@ async function main () {
         continue
       }
       testDuration = (csvReplay.events[csvReplay.events.length - 1].ms - csvReplay.events[0].ms) / 1000
+
+      replayer = csvReplay
     } else {
-      // await testReplay.loadTxtFile(track.txtPath)
+      testReplay.loadTxtFile(fs.readFileSync(track.txtPath, 'utf-8'))
+      console.log(`    Loaded lines       : ${testReplay.lines.length}`)
+      if (testReplay.lines.length < 2) {
+        console.warn(`    ⚠ Skipping, too few events`)
+        skippedCount++
+        continue
+      }
+
+      // get the last line, parse the timestamp and compute duration
+      const lastLine = testReplay.lines[testReplay.lines.length - 1]
+      const jsonPart = JSON.parse(lastLine.split('test end ')[1])
+      testDuration = jsonPart.duration * 60  // convert minutes to seconds
+
+      replayer = testReplay
     }
 
     if (FILTER_MINUTES > 0 &&
@@ -144,52 +161,67 @@ async function main () {
     // replay positions through outdoorDistance and compute distance
     outdoorDistance.reset()
 
-    if (track.type === 'csv') {
-      csvReplay.registerPositionCallback((p) => {
-        outdoorDistance.addPosition(p)
 
+    replayer.registerPositionCallback((p) => {
+      outdoorDistance.addPosition(p)
+
+      if (track.type === 'csv') {
         // test starts when ms >=0
         if (!outdoorDistance.started && p.timestamp >= 0) {
           outdoorDistance.startTest()
         }
+      }
+    })
+
+    if (track.type === 'txt') {
+      replayer.registerEventCallback((e) => {
+        if (e === 'test start') {
+          outdoorDistance.startTest()
+        }
+        if (e === 'test end') {
+          outdoorDistance.stopTest()
+        }
       })
-      csvReplay.startReplay(false)
+    }
 
+    replayer.startReplay(false)
+
+    if (track.type === 'csv') {
       outdoorDistance.stopTest()
-      csvReplay.events = []  // free memory after replay
+    }
 
-      const distance = outdoorDistance.getDistance()
+    replayer.stopReplay()
 
-      console.log(`  ✓ Computed distance: ${distance.toFixed(1)} m`)
-      console.log(`  ✓ Ground-truth from metadata: ${testMeta.distanceReference.toFixed(1)} m`)
+    const distance = outdoorDistance.getDistance()
 
-      // write to the output CSV
-      if (OUT_CSV) {
-        const row = [
-          testMeta.testName,
-          testMeta.subject,
-          testMeta.isPatient,
-          testMeta.duration,
-          distance.toFixed(2),
-          testMeta.distanceReference.toFixed(2)
-        ]
-        fs.appendFileSync(OUT_CSV, row.join(',') + '\n')
-      }
+    console.log(`  ✓ Computed distance: ${distance.toFixed(1)} m`)
+    console.log(`  ✓ Ground-truth from metadata: ${testMeta.distanceReference.toFixed(1)} m`)
 
-      // if group by is specified
-      if (GROUP_BY) {
-        results[testMeta[GROUP_BY]] = results[testMeta[GROUP_BY]] || {}
-        results[testMeta[GROUP_BY]].distance = results[testMeta[GROUP_BY]].distance || []
-        results[testMeta[GROUP_BY]].distance.push(distance)
-        results[testMeta[GROUP_BY]].reference = results[testMeta[GROUP_BY]].reference || []
-        results[testMeta[GROUP_BY]].reference.push(testMeta.distanceReference)
-      } else {
-        results.distance = results.distance || []
-        results.distance.push(distance)
-        results.reference = results.reference || []
-        results.reference.push(testMeta.distanceReference)
-      }
+    // write to the output CSV
+    if (OUT_CSV) {
+      const row = [
+        testMeta.testName,
+        testMeta.subject,
+        testMeta.isPatient,
+        testMeta.duration,
+        distance.toFixed(2),
+        testMeta.distanceReference.toFixed(2)
+      ]
+      fs.appendFileSync(OUT_CSV, row.join(',') + '\n')
+    }
 
+    // if group by is specified
+    if (GROUP_BY) {
+      results[testMeta[GROUP_BY]] = results[testMeta[GROUP_BY]] || {}
+      results[testMeta[GROUP_BY]].distance = results[testMeta[GROUP_BY]].distance || []
+      results[testMeta[GROUP_BY]].distance.push(distance)
+      results[testMeta[GROUP_BY]].reference = results[testMeta[GROUP_BY]].reference || []
+      results[testMeta[GROUP_BY]].reference.push(testMeta.distanceReference)
+    } else {
+      results.distance = results.distance || []
+      results.distance.push(distance)
+      results.reference = results.reference || []
+      results.reference.push(testMeta.distanceReference)
     }
 
     // end of track loop
