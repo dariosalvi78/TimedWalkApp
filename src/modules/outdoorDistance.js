@@ -45,6 +45,9 @@ export default {
   /** Tells the algorithm that the test has officially ended
   */
   stopTest: function () {
+    if (!this.started) {
+      throw new Error('Test was not started')
+    }
     this.started = false
     // if there were no steps, then just give zero
     if (this.positions[0].steps !== undefined && this.positions[0].steps === 0) {
