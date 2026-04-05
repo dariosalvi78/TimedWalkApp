@@ -1,9 +1,9 @@
-export default {
+let realFiles = {
 
   /**
   * Utility function that translates the error code to a string
   */
-  errorCodeToString(code) {
+  errorCodeToString (code) {
     switch (code) {
       case 1:
         return 'NOT_FOUND_ERR'
@@ -40,7 +40,7 @@ export default {
   * @param {boolean} forcecreate - if true the file is created if does not exist
   * @param {boolean} temporary - uses the temporary folder
   */
-  async openFile(filename, temporary, forcecreate) {
+  async openFile (filename, temporary, forcecreate) {
     if (process.env.VUE_APP_FILES === 'localStorage') {
       return filename
     }
@@ -61,7 +61,7 @@ export default {
     })
   },
 
-  async getFilePath(filename, temporary) {
+  async getFilePath (filename, temporary) {
     if (process.env.VUE_APP_FILES === 'localStorage') {
       return filename
     }
@@ -73,7 +73,7 @@ export default {
   * Reads a file and delivers the content as an object
   * @param {Object} file - the file to be opened
   */
-  async read(file) {
+  async read (file) {
     if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.getItem(file)
     }
@@ -93,7 +93,7 @@ export default {
   * Deletes a file from the file system.
   * @param {Object} file - the file to be deleted
   */
-  async deleteFile(file) {
+  async deleteFile (file) {
     if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.removeItem(file)
     }
@@ -108,7 +108,7 @@ export default {
   * @param {Object} file - file where to save
   * @param {string} txt - is the text to be saved
   */
-  async save(file, txt) {
+  async save (file, txt) {
     if (process.env.VUE_APP_FILES === 'localStorage') {
       return window.localStorage.setItem(file, txt)
     }
@@ -130,14 +130,14 @@ export default {
   * Creates a temporary logfile where to append text
   * @param {string} filename - the file name
   */
-  async createLog(filename) {
+  async createLog (filename) {
     let file = null
     if (process.env.VUE_APP_FILES !== 'localStorage') file = await this.openFile(filename, true, true)
 
     return {
       buffer: '',
       writing: false,
-      writeBuffer(completed, error) {
+      writeBuffer (completed, error) {
         this.writing = true
         let toWrite = this.buffer
         this.buffer = ''
@@ -163,14 +163,14 @@ export default {
       * If the logger is busy writing, the promise resolves immediately
       * @param {string} line - the text to be appended, a timestamp and newline are added to it
       */
-      async log(line) {
+      async log (line) {
         // add the line to the buffer
         this.buffer += new Date().toISOString() + ' - ' + line + '\n'
 
         return new Promise((resolve, reject) => {
           // simulation in browser
           if (process.env.VUE_APP_FILES === 'localStorage') {
-            console.log(line)
+            // console.log(line)
             let pretxt = window.localStorage.getItem(filename)
             if (pretxt) this.buffer = pretxt + this.buffer
             window.localStorage.setItem(filename, this.buffer)
@@ -190,7 +190,7 @@ export default {
   * Reads a temporary logfile.
   * @param {string} filename - the file name
   */
-  async readLog(filename) {
+  async readLog (filename) {
     let file = await this.openFile(filename, true, true)
     let txt = await this.read(file)
     return txt
@@ -200,9 +200,106 @@ export default {
   * Deletes a temporary logfile.
   * @param {string} filename - the file name
   */
-  async deleteLog(filename) {
+  async deleteLog (filename) {
     let file = await this.openFile(filename, true, false)
     return this.deleteFile(file)
   }
-
 }
+
+let localStorageFiles = {
+
+  async openFile (filename) {
+    return filename
+  },
+
+  async getFilePath (filename) {
+    return filename
+  },
+
+  async read (file) {
+    return window.localStorage.getItem(file)
+  },
+
+  async deleteFile (file) {
+    return window.localStorage.removeItem(file)
+  },
+
+  async save (file, txt) {
+    return window.localStorage.setItem(file, txt)
+  },
+
+  /**
+  * Creates a temporary logfile where to append text
+  * @param {string} filename - the file name
+  */
+  async createLog (filename) {
+    return {
+      buffer: '',
+      writing: false,
+      async log (line) {
+        // add the line to the buffer
+        this.buffer += new Date().toISOString() + ' - ' + line + '\n'
+
+        return new Promise((resolve) => {
+          let pretxt = window.localStorage.getItem(filename)
+          if (pretxt) this.buffer = pretxt + this.buffer
+          window.localStorage.setItem(filename, this.buffer)
+          this.buffer = ''
+          resolve()
+        })
+      }
+    }
+  },
+
+  /**
+  * Reads a temporary logfile.
+  * @param {string} filename - the file name
+  */
+  async readLog (filename) {
+    let file = await this.openFile(filename, true, true)
+    let txt = await this.read(file)
+    return txt
+  },
+
+  /**
+  * Deletes a temporary logfile.
+  * @param {string} filename - the file name
+  */
+  async deleteLog (filename) {
+    let file = await this.openFile(filename, true, false)
+    return this.deleteFile(file)
+  }
+}
+
+let mockFiles = {
+
+  async openFile () {
+    return
+  },
+
+  async getFilePath () {
+    return ''
+  },
+
+  async read () {
+    return ''
+  },
+
+  async deleteFile () {
+    return
+  },
+
+  async save () {
+    return
+  },
+
+  async createLog () {
+    return {
+      async log () {
+        return
+      }
+    }
+  }
+}
+
+export default (process.env.VUE_APP_FILES === 'mock') ? mockFiles : (process.env.VUE_APP_FILES === 'localStorage') ? localStorageFiles : realFiles
