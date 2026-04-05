@@ -228,10 +228,6 @@ let localStorageFiles = {
     return window.localStorage.setItem(file, txt)
   },
 
-  /**
-  * Creates a temporary logfile where to append text
-  * @param {string} filename - the file name
-  */
   async createLog (filename) {
     return {
       buffer: '',
@@ -251,20 +247,12 @@ let localStorageFiles = {
     }
   },
 
-  /**
-  * Reads a temporary logfile.
-  * @param {string} filename - the file name
-  */
   async readLog (filename) {
     let file = await this.openFile(filename, true, true)
     let txt = await this.read(file)
     return txt
   },
 
-  /**
-  * Deletes a temporary logfile.
-  * @param {string} filename - the file name
-  */
   async deleteLog (filename) {
     let file = await this.openFile(filename, true, false)
     return this.deleteFile(file)
@@ -299,6 +287,13 @@ let mockFiles = {
         return
       }
     }
+  },
+
+  async readLog () {
+    return ''
+  },
+
+  async deleteLog () {
   }
 }
 
