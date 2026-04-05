@@ -29,12 +29,12 @@ NODE_ENV=development
 VUE_APP_DEBUG=true
 
 # possible values: 'real' (default), 'mock', 'csv', 'txt'
-VUE_APP_GPS=txt
+VUE_APP_GPS=csv
 
 # 'real' (default) for real device, 'mock' for simulated
 VUE_APP_MOTION=mock
 
-# possible values: 'real' (default), 'mock' for simulated
+# possible values: 'real' (default), 'mock' for simulated, 'none' for nothing
 VUE_APP_STEPCOUNTER=mock
 
 # possible values: 'real' (default) for app, 'local' for testing in browser

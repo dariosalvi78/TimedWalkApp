@@ -90,4 +90,19 @@ let mockStepCounter = {
   }
 }
 
-export default (process.env.VUE_APP_STEPCOUNTER === 'mock') ? mockStepCounter : realStepCounter
+let noneStepCounter = {
+  async isAvailable () {
+    return Promise.resolve(false)
+  },
+  async getPermission () {
+    return Promise.resolve(true)
+  },
+  startNotifications () {
+    // do nothing
+  },
+  async stopNotifications () {
+    return Promise.resolve()
+  }
+}
+
+export default (process.env.VUE_APP_STEPCOUNTER === 'mock') ? mockStepCounter : (process.env.VUE_APP_STEPCOUNTER === 'none') ? noneStepCounter : realStepCounter
