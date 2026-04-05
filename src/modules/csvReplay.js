@@ -93,6 +93,10 @@ export default {
     this.stepsCallback = callback
   },
 
+  registerEventCallback (callback) {
+    this.eventCallback = callback
+  },
+
   stopReplay () {
     // clear any pending timeouts
     if (this.timerid) {
@@ -115,6 +119,10 @@ export default {
     const processNextEvent = () => {
       if (currentEventIndex >= this.events.length) {
         console.log('Finished replaying all events.')
+        if (this.eventCallback) {
+          this.eventCallback('test end')
+          this.run = false
+        }
         return
       }
       let event = this.events[currentEventIndex]
@@ -135,18 +143,6 @@ export default {
         // then we should wait 2s (delay= dt - dt2 = 2000ms) before processing the current line
         delay = dt - dt2
         if (delay < 0) delay = 0
-      }
-
-      if (!signalCheckStarted && event.ms < 0) {
-        if (this.eventCallback) {
-          this.eventCallback('signal check start')
-          signalCheckStarted = true
-        }
-      } else if (!testStarted && event.ms >= 0) {
-        if (this.eventCallback) {
-          this.eventCallback('test start')
-          testStarted = true
-        }
       }
 
       if (event.type === 'position') {
@@ -207,6 +203,18 @@ export default {
             floorsDown: event.floorsDown,
             distance: event.distance
           })
+        }
+      }
+
+      if (!signalCheckStarted && event.ms < 0) {
+        if (this.eventCallback) {
+          this.eventCallback('signal check start')
+          signalCheckStarted = true
+        }
+      } else if (!testStarted && event.type === 'position' && event.ms >= 0) {
+        if (this.eventCallback) {
+          this.eventCallback('test start')
+          testStarted = true
         }
       }
 

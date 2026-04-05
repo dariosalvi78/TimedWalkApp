@@ -41,8 +41,8 @@ let csvReplayGPS = {
         return
       }
 
-      await csvReplay.readWebTextFile(file)
-      await csvReplay.loadCsvFiles(file)
+      let text = await csvReplay.readWebTextFile(file)
+      await csvReplay.loadCsvFiles(text)
       csvReplay.registerPositionCallback((p) => {
         cbk(p)
       })

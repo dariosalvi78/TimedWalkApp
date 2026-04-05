@@ -164,31 +164,19 @@ async function main () {
 
     replayer.registerPositionCallback((p) => {
       outdoorDistance.addPosition(p)
+    })
 
-      if (track.type === 'csv') {
-        // test starts when ms >=0
-        if (!outdoorDistance.started && p.timestamp >= 0) {
-          outdoorDistance.startTest()
-        }
+    replayer.registerEventCallback((e) => {
+      if (e === 'test start') {
+        outdoorDistance.startTest()
+      }
+      if (e === 'test end') {
+        outdoorDistance.stopTest()
       }
     })
 
-    if (track.type === 'txt') {
-      replayer.registerEventCallback((e) => {
-        if (e === 'test start') {
-          outdoorDistance.startTest()
-        }
-        if (e === 'test end') {
-          outdoorDistance.stopTest()
-        }
-      })
-    }
-
     replayer.startReplay(false)
 
-    if (track.type === 'csv') {
-      outdoorDistance.stopTest()
-    }
 
     replayer.stopReplay()
 
