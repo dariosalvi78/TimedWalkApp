@@ -1,5 +1,5 @@
 import csvReplay from './csvReplay'
-import testReplay from './testReplay'
+import txtReplay from './txtReplay'
 
 let mockGPS = {
   timerid: null,
@@ -58,7 +58,7 @@ let csvReplayGPS = {
   }
 }
 
-let testReplayGPS = {
+let txtReplayGPS = {
 
   startNotifications: (cbk) => {
     const fileInput = document.getElementById('replay-file-input')
@@ -70,20 +70,20 @@ let testReplayGPS = {
         return
       }
 
-      let txt = await testReplay.readWebTextFile(file)
-      testReplay.loadTxtFile(txt)
+      let txt = await txtReplay.readWebTextFile(file)
+      txtReplay.loadTxtFile(txt)
 
-      testReplay.registerPositionCallback((p) => {
+      txtReplay.registerPositionCallback((p) => {
         cbk(p)
       })
-      testReplay.startReplay(true)
+      txtReplay.startReplay(true)
     }
 
     fileInput.click()
   },
 
   stopNotifications: () => {
-    testReplay.stopReplay()
+    txtReplay.stopReplay()
     return Promise.resolve()
   }
 }
@@ -119,4 +119,4 @@ let realGPS = {
   }
 }
 
-export default (process.env.VUE_APP_GPS === 'mock') ? mockGPS : (process.env.VUE_APP_GPS === 'csv') ? csvReplayGPS : (process.env.VUE_APP_GPS === 'txt') ? testReplayGPS : realGPS
+export default (process.env.VUE_APP_GPS === 'mock') ? mockGPS : (process.env.VUE_APP_GPS === 'csv') ? csvReplayGPS : (process.env.VUE_APP_GPS === 'txt') ? txtReplayGPS : realGPS

@@ -20,7 +20,7 @@
 import path from 'path'
 import fs from 'node:fs'
 import csvReplay from '../src/modules/csvReplay.js'
-import testReplay from '../src/modules/testReplay.js'
+import txtReplay from '../src/modules/txtReplay.js'
 import outdoorDistance from '../src/modules/outdoorDistance.js'
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -133,20 +133,20 @@ async function main () {
 
       replayer = csvReplay
     } else {
-      testReplay.loadTxtFile(fs.readFileSync(track.txtPath, 'utf-8'))
-      console.log(`    Loaded lines       : ${testReplay.lines.length}`)
-      if (testReplay.lines.length < 2) {
+      txtReplay.loadTxtFile(fs.readFileSync(track.txtPath, 'utf-8'))
+      console.log(`    Loaded lines       : ${txtReplay.lines.length}`)
+      if (txtReplay.lines.length < 2) {
         console.warn(`    ⚠ Skipping, too few events`)
         skippedCount++
         continue
       }
 
       // get the last line, parse the timestamp and compute duration
-      const lastLine = testReplay.lines[testReplay.lines.length - 1]
+      const lastLine = txtReplay.lines[txtReplay.lines.length - 1]
       const jsonPart = JSON.parse(lastLine.split('test end ')[1])
       testDuration = jsonPart.duration * 60  // convert minutes to seconds
 
-      replayer = testReplay
+      replayer = txtReplay
     }
 
     if (FILTER_MINUTES > 0 &&
