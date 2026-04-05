@@ -28,8 +28,8 @@ NODE_ENV=development
 # if true, debug logs will be printed in the console
 VUE_APP_DEBUG=true
 
-# possible values: 'real' (default), 'mock', 'csv'
-VUE_APP_GPS=mock
+# possible values: 'real' (default), 'mock', 'csv', 'txt'
+VUE_APP_GPS=txt
 
 # 'real' (default) for real device, 'mock' for simulated
 VUE_APP_MOTION=mock
@@ -40,8 +40,8 @@ VUE_APP_STEPCOUNTER=mock
 # possible values: 'real' (default) for app, 'local' for testing in browser
 VUE_APP_STORAGE=local
 
-# possible values: 'real' (default) for app, 'localStorage' for browser
-VUE_APP_FILES=localStorage
+# possible values: 'real' (default) for app, 'localStorage' for browser, 'mock' for nothing
+VUE_APP_FILES=mock
 ```
 
 ## Unit tests
