@@ -250,7 +250,7 @@ export default {
       // do the quality checks
       testReport.quality = {}
       testReport.quality.samplingWarning = ! checkReportSampling(distanceAlgo.positions)
-      testReport.quality.gapsWarning = ! checkReportGaps(distanceAlgo.positions)
+      testReport.quality.gapsWarning = ! checkReportGaps(distanceAlgo.selectedPositions)
       testReport.quality.curvatureClass = classifyCurvature(distanceAlgo.positions, 'logistic').label
 
       if (window.device) testReport.device = {
