@@ -1,4 +1,4 @@
-import csvReplayGPS from './csvReplayGPS'
+import csvReplay from './csvReplay'
 import testReplay from './testReplay'
 
 let mockGPS = {
@@ -30,10 +30,9 @@ let mockGPS = {
   }
 }
 
-let testReplayGPS = {
-
+let csvReplayGPS = {
   startNotifications: (cbk) => {
-    const fileInput = document.getElementById('csv-file-input')
+    const fileInput = document.getElementById('replay-file-input')
     fileInput.onchange = async (event) => {
       // get the file from the input
       const file = event.target.files[0]
@@ -42,14 +41,40 @@ let testReplayGPS = {
         return
       }
 
-      await testReplay.loadTxtFile(file)
-
-      let lastSteps = null
-      testReplay.registerPositionCallback((p) => {
-        cbk({ ...p, steps: lastSteps })
+      await csvReplay.readWebTextFile(file)
+      await csvReplay.loadCsvFiles(file)
+      csvReplay.registerPositionCallback((p) => {
+        cbk(p)
       })
-      testReplay.registerStepsCallback((s) => {
-        lastSteps = s
+      csvReplay.startReplay(true)
+    }
+
+    fileInput.click()
+  },
+
+  stopNotifications: () => {
+    csvReplay.stopReplay()
+    return Promise.resolve()
+  }
+}
+
+let testReplayGPS = {
+
+  startNotifications: (cbk) => {
+    const fileInput = document.getElementById('replay-file-input')
+    fileInput.onchange = async (event) => {
+      // get the file from the input
+      const file = event.target.files[0]
+      if (!file) {
+        console.error('No file selected')
+        return
+      }
+
+      let txt = await testReplay.readWebTextFile(file)
+      testReplay.loadTxtFile(txt)
+
+      testReplay.registerPositionCallback((p) => {
+        cbk(p)
       })
       testReplay.startReplay(true)
     }

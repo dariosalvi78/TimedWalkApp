@@ -61,9 +61,12 @@ export default {
     this.run = true
 
     let currentLineIndex = 0
-    let prevTs = null
+    let firstTs = null
+    let startTs = new Date().getTime()
+    let lastSteps = null
 
     const processNextLine = () => {
+      console.log('Processing line index: ', currentLineIndex, '/', this.lines.length)
       if (currentLineIndex >= this.lines.length) {
         console.log('Finished replaying all lines.')
         return
@@ -76,11 +79,22 @@ export default {
       let type = parts[1]
       let content = parts[2]
 
+      if (!firstTs) firstTs = ts
+
+      // time to wait before processing the next line
       let delay = 0
       if (realtime && currentLineIndex > 1) {
-        delay = ts - prevTs
+        // time passed since first line in the file
+        let dt = ts.getTime() - firstTs.getTime()
+        // time passed since starting the replay
+        let dt2 = new Date().getTime() - startTs
+        // time to wait before processing the next line
+        // for example, if the current line is at 10s (dt=10000ms)
+        // and 8s have already passed since starting the replay (dt2=8000ms),
+        // then we should wait 2s (delay= dt - dt2 = 2000ms) before processing the current line
+        delay = dt - dt2
+        if (delay < 0) delay = 0
       }
-      prevTs = ts
 
       if (type === ' - E - ') {
         if (content.startsWith('signal check start')) {
@@ -98,34 +112,35 @@ export default {
         }
       } else if (type === ' - P - ') {
         if (content.startsWith('position ')) {
-          let positionObj = JSON.parse(content.split('position ')[1])
-
           if (this.positionCallback) {
-            this.positionCallback(positionObj)
+            let positionObj = JSON.parse(content.split('position ')[1])
+            this.positionCallback({ ...positionObj, steps: lastSteps === null ? null : lastSteps })
           }
         }
 
       } else if (type === ' - M - ') {
         // motion
-        let motionObj = JSON.parse(content.split('motion ')[1])
-
         if (this.motionCallback) {
+          let motionObj = JSON.parse(content.split('motion ')[1])
           this.motionCallback(motionObj)
         }
       } else if (type === ' - O - ') {
         // orientation
-        let orientationObj = JSON.parse(content.split('orientation ')[1])
-
         if (this.orientationCallback) {
+          let orientationObj = JSON.parse(content.split('orientation ')[1])
           this.orientationCallback(orientationObj)
         }
       } else if (type === ' - S - ') {
         // steps
-        let stepsObj = JSON.parse(content.split('steps ')[1])
-
-        if (this.stepsCallback) {
-          this.stepsCallback(stepsObj)
+        if (this.positionCallback || this.stepsCallback) {
+          let stepsObj = JSON.parse(content.split('steps ')[1])
+          lastSteps = stepsObj.steps
+          if (this.stepsCallback) {
+            this.stepsCallback(stepsObj)
+          }
         }
+      } else {
+        console.warn('Unknown line type in replay file: ', type)
       }
 
       if (this.run) {

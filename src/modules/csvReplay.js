@@ -106,7 +106,8 @@ export default {
     this.run = true
 
     let currentEventIndex = 0
-    let prevTs = null
+    let firstTs = null
+    let startTs = new Date().getTime()
     let signalCheckStarted = false
     let testStarted = false
     let lastSteps = null
@@ -119,11 +120,22 @@ export default {
       let event = this.events[currentEventIndex]
       currentEventIndex++
 
+      if (!firstTs) firstTs = event.ms
+
+      // time to wait before processing the next line
       let delay = 0
       if (realtime && currentEventIndex > 1) {
-        delay = event.ms - prevTs
+        // time passed since first line in the file
+        let dt = event.ms - firstTs
+        // time passed since starting the replay
+        let dt2 = new Date().getTime() - startTs
+        // time to wait before processing the next line
+        // for example, if the current line is at 10s (dt=10000ms)
+        // and 8s have already passed since starting the replay (dt2=8000ms),
+        // then we should wait 2s (delay= dt - dt2 = 2000ms) before processing the current line
+        delay = dt - dt2
+        if (delay < 0) delay = 0
       }
-      prevTs = event.ms
 
       if (!signalCheckStarted && event.ms < 0) {
         if (this.eventCallback) {
