@@ -66,7 +66,6 @@ export default {
     let lastSteps = null
 
     const processNextLine = () => {
-      console.log('Processing line index: ', currentLineIndex, '/', this.lines.length)
       if (currentLineIndex >= this.lines.length) {
         console.log('Finished replaying all lines.')
         return

@@ -14,7 +14,6 @@ import path from 'path'
 import fs from 'node:fs';
 import csvReplay from '../src/modules/csvReplay.js'
 import txtReplay from '../src/modules/txtReplay.js'
-import qualityChecker from '../src/modules/testQualityChecker.js'
 import testQualityChecker from '../src/modules/testQualityChecker.js';
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -25,16 +24,6 @@ const DATA_DIR = getArg('--data', '../../tracks')
 const OUT_CSV = getArg('--out')
 const FILTER_MINUTES = parseFloat(getArg('--filter-minutes'))
 
-// ─── Statistics helpers ───────────────────────────────────────────────────────
-const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length
-const stdev = arr => {
-  const m = mean(arr)
-  return Math.sqrt(mean(arr.map(x => (x - m) ** 2)))
-}
-const mae = errs => mean(errs.map(e => Math.abs(e)))
-const rmse = errs => Math.sqrt(mean(errs.map(e => e ** 2)))
-const min = arr => Math.min(...arr)
-const max = arr => Math.max(...arr)
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main () {

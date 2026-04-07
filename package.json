@@ -17,7 +17,6 @@
   "dependencies": {
     "core-js": "^3.42.0",
     "onsenui": "^2.12.8",
-    "papaparse": "^5.5.3",
     "vue": "^2.6.14",
     "vue-i18n": "^8.27.2",
     "vue-onsenui": "^2.7.2"
