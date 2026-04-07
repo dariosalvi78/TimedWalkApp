@@ -39,15 +39,9 @@ export default {
     } else {
       const dt = timestamp - this.lastSubsampledPositionTime
       if (dt >= 5000) {
-        // take the last position before this one
-        const prev = this.subSampledPositions[this.subSampledPositions.length - 1]
-        // fix heading if missing or negative
-        if (position.coords.heading < 0) {
-          position.coords.heading = this.computeHeading(prev, position)
-        }
 
         // only add if we have a valid heading and timestamp
-        if (position.coords.heading !== undefined && !isNaN(position.coords.heading) && position.timestamp !== undefined && !isNaN(position.timestamp)) {
+        if (position.coords.heading !== undefined && !isNaN(position.coords.heading) && (position.coords.heading > 0) && position.timestamp !== undefined && !isNaN(position.timestamp)) {
           // oldest (lowest timestamp) are at the beginning
           // newest (highest timestamp) are at the end
           this.subSampledPositions.push(position)
@@ -201,6 +195,8 @@ export default {
  */
   classifyLogistic () {
     if (this.subSampledPositions.length < 3) throw new Error('No position data available')
+    console.log(`Subsampled ${this.subSampledPositions.length} positions`)
+
 
     // 2. Features
     const f = this.computeHeadingFeatures()

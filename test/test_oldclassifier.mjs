@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict'
-import { beforeEach, describe, test } from 'node:test'
-import qualityChecker from '../src/modules/testQualityChecker.js'
+import { describe, test } from 'node:test'
+import { classifyCurvature } from '../src/modules/oldtestQualityCheck.js'
 
 describe('Testing the curvature classifier', () => {
-
-  beforeEach(() => {
-    qualityChecker.reset()
-  })
 
   // TODO: fix
   // test ('a 6MWT no curves is classified as such', () => {
@@ -28,95 +24,99 @@ describe('Testing the curvature classifier', () => {
   // })
 
   test('a 6MWT with litle oscillations is classified as straight', () => {
+    console.log('OLD TEST')
     const ts = new Date()
+    let positions = []
 
     for (let i = 0; i < 360; i++) {
-      qualityChecker.addPosition({
-        timestamp: ts.getTime() + (i * 1000),
+      positions.push({
+        timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 100 + Math.sin((i / 10) * 2 * Math.PI) * 10 // 10 degree oscillations every 10 seconds
         }
-      }, false)
+      })
     }
 
-    const result = qualityChecker.classifyCurvature('logistic')
+    const result = classifyCurvature(positions, 'logistic')
     assert.strictEqual(result.label, 0)
   })
 
   test('a 6MWT with 3 x 90 degrees curves is classified as moderate', () => {
     const ts = new Date()
+    let positions = []
 
     for (let i = 0; i < 90; i++) {
-      qualityChecker.addPosition({
+      positions.push({
         timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 0
         }
-      }, false)
+      })
     }
-
     for (let i = 90; i < 180; i++) {
-      qualityChecker.addPosition({
+      positions.push({
         timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 90
         }
-      }, false)
+      })
     }
     for (let i = 180; i < 270; i++) {
-      qualityChecker.addPosition({
+      positions.push({
         timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 180
         }
-      }, false)
+      })
     }
     for (let i = 270; i < 360; i++) {
-      qualityChecker.addPosition({
+      positions.push({
         timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 360
         }
-      }, false)
+      })
     }
 
-    const result = qualityChecker.classifyCurvature('logistic')
+    const result = classifyCurvature(positions, 'logistic')
     assert.strictEqual(result.label, 1)
   })
 
   test('a 6MWT with 10 x 90 degrees curves is classified as high', () => {
+    const positions = []
+
     const numCurves = 10
     const pointsPerCurve = 360 / numCurves
-
     for (let i = 0; i < numCurves; i++) {
       for (let j = 0; j < pointsPerCurve; j++) {
-        qualityChecker.addPosition({
+        positions.push({
           timestamp: (((i * pointsPerCurve) + j) * 1000),
           coords: {
             heading: (i * 90) % 360
           }
-        }, false)
+        })
       }
     }
 
-    const result = qualityChecker.classifyCurvature('logistic')
+    const result = classifyCurvature(positions, 'logistic')
     assert.strictEqual(result.label, 2)
   })
 
 
   test('a 6MWT with lots of curves is classified as high', () => {
     const ts = new Date()
+    let positions = []
 
     for (let i = 0; i < 360; i++) {
-      qualityChecker.addPosition({
+      positions.push({
         timestamp: ts.getTime() + i * 1000,
         coords: {
           heading: 200 + Math.sin((i / 30) * 2 * Math.PI) * 180 // simulate a lot of curves by making the heading oscillate between 0 and 180 degrees every 30 seconds
         }
-      }, false)
+      })
     }
 
-    const result = qualityChecker.classifyCurvature('logistic')
+    const result = classifyCurvature(positions, 'logistic')
     assert.strictEqual(result.label, 2)
   })
 })
