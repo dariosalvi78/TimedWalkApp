@@ -117,7 +117,6 @@ async function main () {
       continue
     }
 
-    // skip tests with insufficient duration if --filter-minutes is set
     let testDuration = 0
     let replayer
 
@@ -189,8 +188,6 @@ async function main () {
     if (OUT_CSV) {
       const row = [
         testMeta.testName,
-        testMeta.subject,
-        testMeta.isPatient,
         testMeta.duration,
         distance.toFixed(2),
         testMeta.distanceReference.toFixed(2)

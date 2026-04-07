@@ -12,8 +12,10 @@
  */
 import path from 'path'
 import fs from 'node:fs';
-import Papa from 'papaparse'
-import { classifyCurvature } from '../src/modules/testQualityCheck.js'
+import csvReplay from '../src/modules/csvReplay.js'
+import txtReplay from '../src/modules/txtReplay.js'
+import qualityChecker from '../src/modules/testQualityChecker.js'
+import testQualityChecker from '../src/modules/testQualityChecker.js';
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2)
@@ -23,20 +25,16 @@ const DATA_DIR = getArg('--data', '../../tracks')
 const OUT_CSV = getArg('--out')
 const FILTER_MINUTES = parseFloat(getArg('--filter-minutes'))
 
-async function parseCSV (filePath) {
-  const text = fs.readFileSync(filePath, 'utf8');
-  return new Promise((resolve, reject) => {
-    Papa.parse(text, {
-      delimiter: ',',
-      header: true,
-      skipEmptyLines: true,
-      dynamicTyping: true,
-      complete: resolve,
-      error: reject
-    })
-  })
+// ─── Statistics helpers ───────────────────────────────────────────────────────
+const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length
+const stdev = arr => {
+  const m = mean(arr)
+  return Math.sqrt(mean(arr.map(x => (x - m) ** 2)))
 }
-
+const mae = errs => mean(errs.map(e => Math.abs(e)))
+const rmse = errs => Math.sqrt(mean(errs.map(e => e ** 2)))
+const min = arr => Math.min(...arr)
+const max = arr => Math.max(...arr)
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main () {
@@ -45,7 +43,7 @@ async function main () {
 
   // write to the output CSV
   if (OUT_CSV) {
-    fs.writeFileSync(OUT_CSV, 'testName,subject,isPatient,duration,curvature,curvatureReference\n', 'utf8');
+    fs.writeFileSync(OUT_CSV, 'testName,duration,curvature,curvatureReference\n')
   }
 
   // ── Load ground-truth metadata ─────────────────────────────────────────────
@@ -54,68 +52,121 @@ async function main () {
     process.exit(1)
   }
 
-  const metaInfo = await parseCSV(`${DATA_DIR}/metadata_tracks.csv`)
+  const metaInfo = await csvReplay.parseCSV(fs.readFileSync(`${DATA_DIR}/metadata_tracks.csv`, 'utf-8'))
 
-  if (metaInfo.data.length === 0) {
+  if (metaInfo.length === 0) {
     console.error('No metadata entries found in metadata_tracks.csv')
     process.exit(1)
   }
 
-  // ── Discover tracks ────────────────────────────────────────────────────────
-  const tracks = {}
-  for (const subject of fs.readdirSync(DATA_DIR).sort()) {
-    if (subject.startsWith('.')) continue  // skip hidden files
-    const subjPath = path.join(DATA_DIR, subject)
-    if (!fs.statSync(subjPath).isDirectory()) continue
-    for (const trial of fs.readdirSync(subjPath).sort()) {
-      if (trial.startsWith('.')) continue  // skip hidden files
-      const trialPath = path.join(subjPath, trial)
-      tracks[trial] = { subject, trial, path: trialPath }
-    }
-  }
-  if (Object.keys(tracks).length === 0) {
-    console.error('No tracks found — check your --data path')
-    process.exit(1)
-  }
-  console.log(`Found ${Object.keys(tracks).length} tracks.\n`)
 
   let results = {}
   let skippedCount = 0
+  let tracks = []
 
-  for (const testMeta of metaInfo.data) {
-    console.log(`\n──── ${testMeta.testName} ────────────────────────`)
-    // skip tests with insufficient duration if --filter-minutes is set
+
+  for (const subdir of fs.readdirSync(DATA_DIR).sort()) {
+    if (subdir.startsWith('.')) continue  // skip hidden files
+    const subPath = path.join(DATA_DIR, subdir)
+    if (!fs.statSync(subPath).isDirectory()) continue
+    for (const subItem of fs.readdirSync(subPath).sort()) {
+      if (subItem.startsWith('.')) continue  // skip hidden files
+      const subItemPath = path.join(subPath, subItem)
+
+      // expect finding more subfolders
+      if (fs.statSync(subItemPath).isDirectory()) {
+        // csv files structure is fixed
+        if (fs.existsSync(`${subItemPath}/positions.csv`)) {
+          tracks.push({
+            type: 'csv',
+            testName: subItem,
+            positionsPath: `${subItemPath}/positions.csv`,
+            stepsPath: fs.existsSync(`${subItemPath}/steps.csv`) ? `${subItemPath}/steps.csv` : null,
+          })
+        } else {
+          // txt file structure is not fixed, we look for any txt file in the subfolders
+          for (const subsubItem of fs.readdirSync(subItemPath).sort()) {
+            if (subsubItem.startsWith('.')) continue  // skip hidden files
+            const subsubItemPath = path.join(subItemPath, subsubItem)
+            if (subsubItemPath.endsWith('.txt')) {
+              tracks.push({
+                type: 'txt',
+                testName: subsubItem.split('.txt')[0],
+                txtPath: subsubItemPath
+              })
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (const track of tracks) {
+    console.log(`  Found track: ${track.type === 'csv' ? track.positionsPath : track.txtPath}`)
+    // find the corresponding metadata entry
+    const testMeta = metaInfo.find(m => m.testName === track.testName)
+    if (!testMeta) {
+      console.warn(`    ⚠ No metadata entry found for testName: ${track.testName}, skipping this track`)
+      continue
+    }
+
+    let testDuration = 0
+    let replayer
+
+    if (track.type === 'csv') {
+      await csvReplay.loadCsvFiles(fs.readFileSync(track.positionsPath, 'utf-8'), track.stepsPath ? fs.readFileSync(track.stepsPath, 'utf-8') : null)
+      console.log(`    Loaded events       : ${csvReplay.events.length}`)
+      if (csvReplay.events.length < 2) {
+        console.warn(`    ⚠ Skipping, too few events`)
+        skippedCount++
+        continue
+      }
+      testDuration = (csvReplay.events[csvReplay.events.length - 1].ms - csvReplay.events[0].ms) / 1000
+
+      replayer = csvReplay
+    } else {
+      txtReplay.loadTxtFile(fs.readFileSync(track.txtPath, 'utf-8'))
+      console.log(`    Loaded lines       : ${txtReplay.lines.length}`)
+      if (txtReplay.lines.length < 2) {
+        console.warn(`    ⚠ Skipping, too few events`)
+        skippedCount++
+        continue
+      }
+
+      // get the last line, parse the timestamp and compute duration
+      const lastLine = txtReplay.lines[txtReplay.lines.length - 1]
+      const jsonPart = JSON.parse(lastLine.split('test end ')[1])
+      testDuration = jsonPart.duration * 60  // convert minutes to seconds
+
+      replayer = txtReplay
+    }
+
     if (FILTER_MINUTES > 0 &&
-      testMeta.duration < (FILTER_MINUTES * 60) - 30 ||
-      testMeta.duration > (FILTER_MINUTES * 60) + 30
+      testDuration < (FILTER_MINUTES * 60) - 30 ||
+      testDuration > (FILTER_MINUTES * 60) + 30
     ) {
-      console.log(`  ⚠ Skipping (duration ${testMeta.duration} s < ${FILTER_MINUTES * 60} s)`)
+      console.log(`  ⚠ Skipping (duration ${testDuration} s != ${FILTER_MINUTES * 60} s)`)
       skippedCount++
       continue
     }
-    const gpsCsv = await parseCSV(tracks[testMeta.testName].path + '/positions.csv')
-    console.log(`Positions rows       : ${gpsCsv.data.length}`)
 
-    if (gpsCsv.data.length < 2) {
-      console.error(`  ✗  Discarded, too few positions`)
-      continue
-    }
+    testQualityChecker.reset()
 
-    const stepsCsv = await parseCSV(tracks[testMeta.testName].path + '/steps.csv')
-    console.log(`Steps rows           : ${stepsCsv.data.length}`)
 
-    let positions = gpsCsv.data.map(row => ({
-      timestamp: row.ms,
-      coords: {
-        longitude: row.longitude,
-        latitude: row.latitude,
-        accuracy: row.confInterval,
-        altitude: row.altitude,
-        heading: row.heading
+
+    replayer.registerEventCallback((e) => {
+      if (e === 'test start') {
+        replayer.registerPositionCallback((p) => {
+          testQualityChecker.addPosition(p)
+        })
       }
-    })).filter((p) => p.timestamp >= 0)
+    })
 
-    const classification = classifyCurvature(positions, 'logistic')
+    replayer.startReplay(false)
+
+    replayer.stopReplay()
+
+    const classification = testQualityChecker.classifyCurvature('logistic')
 
     console.log(`  ✓ Computed curvature: ${classification.label}`)
     console.log(`  ✓ Ground-truth from metadata: ${testMeta.path_curvature}`)
@@ -124,8 +175,6 @@ async function main () {
     if (OUT_CSV) {
       const row = [
         testMeta.testName,
-        testMeta.subject,
-        testMeta.isPatient,
         testMeta.duration,
         classification.label,
         testMeta.path_curvature
