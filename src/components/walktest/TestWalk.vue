@@ -34,7 +34,7 @@ import gps from '../../modules/gps'
 import stepcounter from '../../modules/stepcounter'
 import motion from '../../modules/motion'
 import distanceAlgo from '../../modules/outdoorDistance'
-import { checkReportSampling, checkReportGaps, classifyCurvature } from '../../modules/testQualityCheck.js'
+import testQualityChecker from '../../modules/testQualityChecker.js'
 import files from '../../modules/files'
 
 // from https://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
@@ -100,7 +100,8 @@ export default {
       if (this.lastStep) {
         position.steps = this.lastStep
       }
-      distanceAlgo.addPosition(position)
+      const selected = distanceAlgo.addPosition(position)
+      testQualityChecker.addPosition(position, selected)
 
       if (this.isSignalBeingChecked) {
         // start if the signal is OK
@@ -208,6 +209,9 @@ export default {
       this.isSignalBeingChecked = false
       this.countdown = this.duration * 60
 
+      // reset the quality checker state for the new test
+      testQualityChecker.reset()
+
       this.sendMessage()
 
       if (this.$refs.walkingMan) this.$refs.walkingMan.play()
@@ -249,9 +253,9 @@ export default {
       // compute and add quality checks
       // do the quality checks
       testReport.quality = {}
-      testReport.quality.samplingWarning = ! checkReportSampling(distanceAlgo.positions)
-      testReport.quality.gapsWarning = ! checkReportGaps(distanceAlgo.selectedPositions)
-      testReport.quality.curvatureClass = classifyCurvature(distanceAlgo.positions, 'logistic').label
+      testReport.quality.samplingWarning = ! testQualityChecker.isSamplingFrequencySufficient()
+      testReport.quality.gapsWarning = testQualityChecker.isGapsDetected()
+      testReport.quality.curvatureClass = testQualityChecker.classifyCurvature('logistic').label
 
       if (window.device) testReport.device = {
         os: window.device.platform + ' ' + window.device.version,

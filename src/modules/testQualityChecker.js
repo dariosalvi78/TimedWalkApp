@@ -14,6 +14,9 @@ export default {
   lastSelectedPositionTime: null,
   samplesNumber: 0,
 
+  /**
+   * Resets the internal state of the quality checker before processing a new test report.
+   */
   reset () {
     this.subSampledPositions = []
     this.gapsDetected = false
@@ -23,6 +26,11 @@ export default {
     this.samplesNumber = 0
   },
 
+  /**
+   * Process a new position sample for quality checking.
+   * @param {Object} position
+   * @param {boolean} isSelected
+   */
   addPosition (position, isSelected) {
     this.samplesNumber++
 
