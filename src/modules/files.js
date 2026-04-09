@@ -41,12 +41,12 @@ let realFiles = {
   * @param {boolean} temporary - uses the temporary folder
   */
   async openFile (filename, temporary, forcecreate) {
-    if (process.env.VUE_APP_FILES === 'localStorage') {
-      return filename
-    }
     let folder
     if (temporary) folder = window.TEMPORARY
     else folder = window.LocalFileSystem.PERSISTENT
+    // the persistent folder uses the app sandbox on both iOS and Android
+    // see https://source.android.com/docs/security/app-sandbox
+    // see https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
     return new Promise((resolve, reject) => {
       // test code start
       // window.resolveLocalFileSystemURL(window.cordova.file.externalDataDirectory, function (dirEntry) {
@@ -62,9 +62,6 @@ let realFiles = {
   },
 
   async getFilePath (filename, temporary) {
-    if (process.env.VUE_APP_FILES === 'localStorage') {
-      return filename
-    }
     let file = await this.openFile(filename, temporary, false)
     return file.nativeURL
   },
@@ -74,10 +71,6 @@ let realFiles = {
   * @param {Object} file - the file to be opened
   */
   async read (file) {
-    if (process.env.VUE_APP_FILES === 'localStorage') {
-      return window.localStorage.getItem(file)
-    }
-
     return new Promise((resolve, reject) => {
       file.file(function (file) {
         var reader = new FileReader()
@@ -94,10 +87,6 @@ let realFiles = {
   * @param {Object} file - the file to be deleted
   */
   async deleteFile (file) {
-    if (process.env.VUE_APP_FILES === 'localStorage') {
-      return window.localStorage.removeItem(file)
-    }
-
     return new Promise((resolve, reject) => {
       file.remove(resolve, reject)
     })
@@ -109,10 +98,6 @@ let realFiles = {
   * @param {string} txt - is the text to be saved
   */
   async save (file, txt) {
-    if (process.env.VUE_APP_FILES === 'localStorage') {
-      return window.localStorage.setItem(file, txt)
-    }
-
     if (typeof txt !== 'string') txt = txt.toString()
     return new Promise((resolve, reject) => {
       file.createWriter(function (fileWriter) {
@@ -131,8 +116,7 @@ let realFiles = {
   * @param {string} filename - the file name
   */
   async createLog (filename) {
-    let file = null
-    if (process.env.VUE_APP_FILES !== 'localStorage') file = await this.openFile(filename, true, true)
+    let file = await this.openFile(filename, true, true)
 
     return {
       buffer: '',
@@ -168,16 +152,6 @@ let realFiles = {
         this.buffer += new Date().toISOString() + ' - ' + line + '\n'
 
         return new Promise((resolve, reject) => {
-          // simulation in browser
-          if (process.env.VUE_APP_FILES === 'localStorage') {
-            // console.log(line)
-            let pretxt = window.localStorage.getItem(filename)
-            if (pretxt) this.buffer = pretxt + this.buffer
-            window.localStorage.setItem(filename, this.buffer)
-            this.buffer = ''
-            resolve()
-          }
-
           // if writing, return immediately
           if (this.writing) resolve()
           else this.writeBuffer(resolve, reject)
