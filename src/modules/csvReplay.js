@@ -115,15 +115,11 @@ export default {
     let signalCheckStarted = false
     let testStarted = false
     let lastSteps = null
+    let nextDelay = 0
 
-    const processNextEvent = () => {
+    const processEvent = () => {
       if (currentEventIndex >= this.events.length) {
-        console.log('Finished replaying all events.')
-        if (this.eventCallback) {
-          this.eventCallback('test end')
-          this.run = false
-        }
-        return
+        return false
       }
       let event = this.events[currentEventIndex]
       currentEventIndex++
@@ -131,7 +127,7 @@ export default {
       if (!firstTs) firstTs = event.ms
 
       // time to wait before processing the next line
-      let delay = 0
+      nextDelay = 0
       if (realtime && currentEventIndex > 1) {
         // time passed since first line in the file
         let dt = event.ms - firstTs
@@ -141,8 +137,8 @@ export default {
         // for example, if the current line is at 10s (dt=10000ms)
         // and 8s have already passed since starting the replay (dt2=8000ms),
         // then we should wait 2s (delay= dt - dt2 = 2000ms) before processing the current line
-        delay = dt - dt2
-        if (delay < 0) delay = 0
+        nextDelay = dt - dt2
+        if (nextDelay < 0) nextDelay = 0
       }
 
       if (event.type === 'position') {
@@ -195,6 +191,7 @@ export default {
 
       } else if (event.type === 'steps') {
         if (this.stepsCallback) {
+          lastSteps = event.steps
           this.stepsCallback({
             startDate: event.startDate,
             endDate: event.endDate,
@@ -218,16 +215,41 @@ export default {
         }
       }
 
-      if (this.run) {
-        if (realtime) {
-          this.timerid = setTimeout(processNextEvent, delay)
-        } else {
-          // process next line immediately
-          processNextEvent()
-        }
-      }
+      return true
     }
 
-    processNextEvent()
+    const finishReplay = () => {
+      console.log('Finished replaying all events.')
+      this.timerid = null
+      if (this.eventCallback) {
+        this.eventCallback('test end')
+      }
+      this.run = false
+    }
+
+    const processNextEventRealtime = () => {
+      if (!this.run) return
+
+      let hasProcessedEvent = processEvent()
+      if (!hasProcessedEvent) {
+        finishReplay()
+        return
+      }
+
+      this.timerid = setTimeout(processNextEventRealtime, nextDelay)
+    }
+
+    if (realtime) {
+      processNextEventRealtime()
+      return
+    }
+
+    while (this.run && processEvent()) {
+      // Process synchronously without recursion to avoid stack growth.
+    }
+
+    if (currentEventIndex >= this.events.length) {
+      finishReplay()
+    }
   }
 }

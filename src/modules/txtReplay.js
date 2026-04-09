@@ -64,11 +64,11 @@ export default {
     let firstTs = null
     let startTs = new Date().getTime()
     let lastSteps = null
+    let nextDelay = 0
 
-    const processNextLine = () => {
+    const processLine = () => {
       if (currentLineIndex >= this.lines.length) {
-        console.log('Finished replaying all lines.')
-        return
+        return false
       }
       let line = this.lines[currentLineIndex]
       currentLineIndex++
@@ -81,7 +81,7 @@ export default {
       if (!firstTs) firstTs = ts
 
       // time to wait before processing the next line
-      let delay = 0
+      nextDelay = 0
       if (realtime && currentLineIndex > 1) {
         // time passed since first line in the file
         let dt = ts.getTime() - firstTs.getTime()
@@ -91,8 +91,8 @@ export default {
         // for example, if the current line is at 10s (dt=10000ms)
         // and 8s have already passed since starting the replay (dt2=8000ms),
         // then we should wait 2s (delay= dt - dt2 = 2000ms) before processing the current line
-        delay = dt - dt2
-        if (delay < 0) delay = 0
+        nextDelay = dt - dt2
+        if (nextDelay < 0) nextDelay = 0
       }
 
       if (type === ' - E - ') {
@@ -142,17 +142,34 @@ export default {
         console.warn('Unknown line type in replay file: ', type)
       }
 
-      if (this.run) {
-        if (realtime) {
-          this.timerid = setTimeout(processNextLine, delay)
-        } else {
-          // process next line immediately
-          processNextLine()
-        }
-      }
+      return true
     }
 
-    processNextLine()
+    const processNextLineRealtime = () => {
+      if (!this.run) return
+
+      let hasProcessedLine = processLine()
+      if (!hasProcessedLine) {
+        console.log('Finished replaying all lines.')
+        this.timerid = null
+        return
+      }
+
+      this.timerid = setTimeout(processNextLineRealtime, nextDelay)
+    }
+
+    if (realtime) {
+      processNextLineRealtime()
+      return
+    }
+
+    while (this.run && processLine()) {
+      // Process synchronously without recursion to avoid stack growth.
+    }
+
+    if (currentLineIndex >= this.lines.length) {
+      console.log('Finished replaying all lines.')
+    }
   }
 
 }
