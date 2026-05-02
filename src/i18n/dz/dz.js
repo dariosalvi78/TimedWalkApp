@@ -3,7 +3,7 @@ import history from './history'
 import settings from './settings'
 import walk from './walk'
 import check from './check'
-
+import about from './about'
 
 export default {
   menu: {
@@ -16,5 +16,6 @@ export default {
   history,
   settings,
   walk,
-  check
+  check,
+  about
 }
