@@ -13,6 +13,8 @@ import de from './i18n/de/de'
 import se from './i18n/se/se'
 import dz from './i18n/dz/dz'
 
+import storage from './modules/storage'
+
 Vue.use(VueOnsen) // VueOnsen set here as plugin to VUE. Done automatically if a call to window.Vue exists in the startup code.
 Vue.use(VueI18n) // this is used for ii18n
 
@@ -24,17 +26,23 @@ const messages = {
   dz: dz
 }
 
-// Create VueI18n instance with options
-const i18n = new VueI18n({
-  locale: navigator.language.split('-')[0],
-  fallbackLocale: 'en',
-  messages // set locale messages
-})
 
-Vue.config.productionTip = false
-
-let start = function () {
+let start = async function () {
   console.log('TimedWalkApp starting')
+
+  // got locale from storage or browser
+  let locale = await storage.getItem('locale')
+  if (!locale) {
+    locale = navigator.language.split('-')[0]
+  }
+  console.log('Locale: ' + locale)
+
+  // Create VueI18n instance with options
+  const i18n = new VueI18n({
+    locale: locale,
+    fallbackLocale: 'en',
+    messages // set locale messages
+  })
 
   new Vue({
     i18n,
@@ -42,7 +50,10 @@ let start = function () {
   }).$mount('#app')
 }
 
+
+
 if (process.env.NODE_ENV === 'production') {
+
   // load cordova
   let cordovaScript = document.createElement('script')
   cordovaScript.setAttribute('src', 'cordova.js')

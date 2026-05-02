@@ -16,6 +16,7 @@ const LocalStorage = {
   },
 
   async getItem (key) {
+    if (window.localStorage.getItem(key) === null) return null
     return JSON.parse(window.localStorage.getItem(key))
   },
 

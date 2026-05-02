@@ -1,6 +1,6 @@
 import home from './home'
 import history from './history'
-import about from './about'
+import settings from './settings'
 import walk from './walk'
 import check from './check'
 
@@ -9,11 +9,11 @@ export default {
     home: 'Startseite',
     walk: 'Laufen',
     history: 'Verlauf',
-    about: 'Über'
+    settings: 'Einstellungen'
   },
   home,
   history,
-  about,
+  settings,
   walk,
   check
 }

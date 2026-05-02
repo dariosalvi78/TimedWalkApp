@@ -1,19 +1,20 @@
 import home from './home'
 import history from './history'
-import about from './about'
+import settings from './settings'
 import walk from './walk'
 import check from './check'
+
 
 export default {
   menu: {
     home: 'ཁྱིམ་',
     walk: 'འགྲོ',
     history: 'ལོ་རྒྱུས།',
-    about: 'སྐོར།'
+    settings: 'སྒྲིག་འགོད།'
   },
   home,
   history,
-  about,
+  settings,
   walk,
   check
 }

@@ -1,19 +1,19 @@
 import home from './home'
 import history from './history'
-import about from './about'
 import walk from './walk'
 import check from './check'
+import settings from './settings'
 
 export default {
   menu: {
     home: 'Inizio',
     walk: 'Test',
     history: 'Cronologia',
-    about: 'Info'
+    settings: 'Impostazioni'
   },
   home,
   history,
-  about,
+  settings,
   walk,
   check
 }

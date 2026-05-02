@@ -13,7 +13,7 @@
 
 <script>
 import homePage from './components/Home'
-import aboutPage from './components/About'
+import settingsPage from './components/Settings'
 import historyPage from './components/History'
 import walkPage from './components/Walk'
 
@@ -42,10 +42,10 @@ export default {
           page: historyPage
         },
         {
-          label: this.$t('menu.about'),
-          icon: 'fa-question',
-          key: 'aboutPage',
-          page: aboutPage
+          label: this.$t('menu.settings'),
+          icon: 'fa-sliders',
+          key: 'settingsPage',
+          page: settingsPage
         }
       ]
     }
