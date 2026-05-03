@@ -2,11 +2,13 @@
   <v-ons-page>
     <div class="content" style="padding: 10px; text-align: center;">
       <h1>
-        {{$t('walk.completed')}}
+        {{ $t('walk.completed') }}
       </h1>
-      <div style="margin-top: 20px;"><b>{{$t('walk.distance')}}: </b> {{ testReport.distance.toFixed(2) }} meters</div>
-      <div style="margin-top: 20px;"><b>{{$t('walk.duration')}}: </b> {{ testReport.duration }} minutes</div>
-      <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{$t('walk.steps')}}: </b> {{ testReport.steps }}</div>
+      <div style="margin-top: 20px;"><b>{{ $t('walk.distance') }}: </b> {{ testReport.distance.toFixed(2) }} meters
+      </div>
+      <div style="margin-top: 20px;"><b>{{ $t('walk.duration') }}: </b> {{ testReport.duration }} minutes</div>
+      <div v-if="testReport.steps" style="margin-top: 20px;"><b>{{ $t('walk.steps') }}: </b> {{ testReport.steps }}
+      </div>
 
       <!-- Negative warning block -->
       <div
@@ -19,24 +21,26 @@
         </div>
 
         <!-- Sampling frequency warning -->
-        <div v-else-if="testReport.quality.samplingWarning" style="margin-top: 10px;" v-html="this.$t('check.samplingWarning')">
+        <div v-else-if="testReport.quality.samplingWarning" style="margin-top: 10px;"
+          v-html="this.$t('check.samplingWarning')">
         </div>
 
 
         <!-- Curvature / path irregularity warning -->
-        <div v-else-if="testReport.quality.curvatureClass >= 2" style="margin-top: 10px;" v-html="this.$t('check.curvatureClassWarning')">
+        <div v-else-if="testReport.quality.curvatureClass >= 2" style="margin-top: 10px;"
+          v-html="this.$t('check.curvatureClassWarning')">
         </div>
       </div>
 
       <div style="margin-top: 40px;">
         <v-ons-button modifier="outline" @click="share">
           <v-ons-icon icon="fa-share-alt"></v-ons-icon>
-          {{$t('walk.shareButton')}}
+          {{ $t('walk.shareButton') }}
         </v-ons-button>
       </div>
       <div style="margin-top: 40px;">
         <v-ons-button @click="reset">
-          {{$t('walk.restart')}}
+          {{ $t('walk.restart') }}
         </v-ons-button>
       </div>
     </div>
@@ -46,12 +50,13 @@
 <script>
 import storage from '../../modules/storage'
 import files from '../../modules/files'
+import api from '../../modules/api'
 
 const TMP_FILENAME = 'timedwalk.txt'
 
 export default {
   name: 'TestCompletedPage',
-  props: [ 'testReport' ],
+  props: ['testReport'],
   async mounted () {
     // auto save
     console.log('Saving test in history')
@@ -89,7 +94,7 @@ export default {
         let filePath = await files.getFilePath(TMP_FILENAME, true)
         await new Promise((resolve, reject) => {
           window.plugins.socialsharing.shareWithOptions({
-            message: this.$t('walk.shareMesssage', {date: this.testReport.date}),
+            message: this.$t('walk.shareMesssage', { date: this.testReport.date }),
             subject: this.$t('walk.shareTopic'),
             files: [filePath]
           }, resolve, reject)
@@ -103,5 +108,4 @@ export default {
 }
 </script>
 
-<style>
-</style>
+<style></style>

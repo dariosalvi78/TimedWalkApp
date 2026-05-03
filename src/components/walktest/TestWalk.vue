@@ -1,15 +1,10 @@
 <template id="testWalk">
   <v-ons-page>
-    <div
-      class="content"
-      style="padding: 10px; text-align: center">
+    <div class="content" style="padding: 10px; text-align: center">
       <walking-man ref="walkingMan" />
       <div class="messageBox">
         <div style="text-align: center">
-          <v-ons-icon
-            :icon="messageIcon"
-            size="30px"
-          ></v-ons-icon>
+          <v-ons-icon :icon="messageIcon" size="30px"></v-ons-icon>
         </div>
         <h3>
           {{ messageText }}
@@ -244,6 +239,7 @@ export default {
       let distance = distanceAlgo.getDistance()
 
       let testReport = {
+        uuid: crypto.randomUUID(),
         duration: this.duration,
         date: new Date(),
         distance: distance,
@@ -253,7 +249,7 @@ export default {
       // compute and add quality checks
       // do the quality checks
       testReport.quality = {}
-      testReport.quality.samplingWarning = ! testQualityChecker.isSamplingFrequencySufficient()
+      testReport.quality.samplingWarning = !testQualityChecker.isSamplingFrequencySufficient()
       testReport.quality.gapsWarning = testQualityChecker.isGapsDetected()
       testReport.quality.curvatureClass = testQualityChecker.classifyCurvature('logistic').label
 
