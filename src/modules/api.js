@@ -1,6 +1,15 @@
+const API_FAIL = false // Set to true to simulate API failure for testing error handling
+
 let mockApi = {
   // Mock API implementation
+  async refreshToken (serverToken) {
+    console.log('Refreshing token: ' + serverToken)
+    return 'mock-access-token'
+  },
   async getInvitationDetails (code) {
+    if (API_FAIL) {
+      return Promise.reject(new Error('Simulated API failure')) // Simulate an API failure for testing error handling
+    }
     console.log('Fetching invitation details for code: ' + code)
     // Return mock data
     return {
@@ -8,15 +17,18 @@ let mockApi = {
       code: code,
       patient: {
         id: 'mock-patient-id',
+        team_specific_id: 'mock-team-specific-id',
         first_names: 'John',
-        last_name: 'Doe'
+        last_name: 'Doe',
+        phone_number: '123-456-7890',
+        dob: '1980-01-01',
+        sex: 'male'
       },
-      teamName: {
-        en: 'Mock Team',
-        de: 'Mock Team',
-        it: 'Mock Team',
-        se: 'Mock Team',
-        dz: 'Mock Team',
+      team: {
+        id: 'mock-team-id',
+        institutions: ['Mock Institution 1', 'Mock Institution 2'],
+        name: 'Mock Team',
+        contact: 'mock-team-contact@example.com'
       },
       welcomeMessage: {
         en: 'Welcome to the Mock Team!',
@@ -34,30 +46,17 @@ let mockApi = {
       }
     }
   },
-  async acceptInvitation (code) {
+  async acceptInvitation (code, serverToken) {
     // Simulate accepting the invitation
-    console.log('Invitation accepted with code: ' + code)
-    return true
+    console.log('Invitation accepted with code: ' + code + ' and server token: ' + serverToken)
+    return 'mock-api-token'
   },
-  async getTeamsSharedWith () {
-    return Promise.resolve([
-      {
-        teamId: 'mock-team-id',
-        teamName: {
-          en: 'Mock Team',
-          de: 'Mock Team',
-          it: 'Mock Team',
-          se: 'Mock Team',
-          dz: 'Mock Team',
-        },
-      }
-    ])
+  async disconnectFromTeam (teamId) {
+    console.log('Disconnecting from team with ID: ' + teamId)
+    return Promise.resolve()
   },
-  async getPastTests () {
-    return Promise.resolve([])
-  },
-  async sendTestResult (result) {
-    console.log('Sending test result to mock API:', result)
+  async sendTestResult (result, serverToken) {
+    console.log('Sending test result to mock API:', result, 'with server token:', serverToken)
     return Promise.resolve({ success: true, sharingWith: ['mock-team-id'] })
   }
 }

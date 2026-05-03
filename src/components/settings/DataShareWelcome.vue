@@ -32,7 +32,7 @@ export default {
   data: function () {
     let locale = this.$root.$i18n.locale || 'en'
     return {
-      teamName: this.invitation.teamName[locale],
+      teamName: this.invitation.team.name,
       welcomeMessage: this.invitation.welcomeMessage[locale]
     }
   },

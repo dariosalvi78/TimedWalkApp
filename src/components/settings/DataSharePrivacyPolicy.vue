@@ -19,13 +19,15 @@
       <span slot="title">{{ $t('settings.confirmTitle') }}</span>
       <p>{{ $t('settings.confirm') }}</p>
       <template slot="footer">
-        <v-ons-alert-dialog-button modifier="outline" @click="cancelAccept">{{ $t('settings.no')
-          }}</v-ons-alert-dialog-button>
+        <v-ons-alert-dialog-button modifier="outline" @click="confirmReject">{{ $t('settings.no')
+        }}</v-ons-alert-dialog-button>
         <v-ons-alert-dialog-button @click="confirmAccept">{{ $t('settings.yes') }}</v-ons-alert-dialog-button>
       </template>
     </v-ons-alert-dialog>
+
   </v-ons-page>
 </template>
+
 
 <script>
 import api from '../../modules/api'
@@ -42,7 +44,7 @@ export default {
   data: function () {
     let locale = this.$root.$i18n.locale || 'en'
     return {
-      teamName: this.invitation.teamName[locale],
+      teamName: this.invitation.team.name,
       privacyPolicyText: this.invitation.privacyPolicy[locale],
       confirmationDialogVisible: false,
     }
@@ -57,15 +59,26 @@ export default {
     async confirmAccept () {
       this.confirmationDialogVisible = false
 
-      await api.acceptInvitation(this.invitation.code)
-      let dataShares = await storage.getItem('dataShares')
-      dataShares = dataShares || []
-      dataShares.push(this.invitation)
-      await storage.setItem('dataShares', dataShares)
+      try {
+        let token = await api.acceptInvitation(this.invitation.code)
+        let dataShares = await storage.getItem('dataShares')
+        dataShares = dataShares || []
+        // first check that the team is not already in the list
+        if (!dataShares.some(ds => ds.teamId === this.invitation.team.id)) {
+          dataShares.push(this.invitation)
+        }
+        await storage.setItem('dataShares', dataShares)
+        await storage.setItem('serverToken', token)
+      } catch (e) {
+        console.error(e)
+        this.$ons.notification.alert(this.$t('errors.error'));
+        this.toastVisible = true
+        return
+      }
       this.$emit('reset-page-stack', { reason: 'acceptedDataShare' }) // Go back to the main settings page, with info that we accepted an invitation
     },
 
-    async cancelAccept () {
+    async confirmReject () {
       this.confirmationDialogVisible = false
       this.$emit('reset-page-stack') // Go back to the main settings page
     }

@@ -4,6 +4,7 @@ import settings from './settings'
 import walk from './walk'
 import check from './check'
 import about from './about'
+import errors from './errors'
 
 export default {
   menu: {
@@ -17,5 +18,6 @@ export default {
   settings,
   walk,
   check,
-  about
+  about,
+  errors
 }

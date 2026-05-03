@@ -17,7 +17,7 @@ export default {
         extends: menu,
         onsNavigatorProps: {
           // this prop is used to trigger a refresh of the data shares list when we accept a new data share invitation
-          lastDataShare: new Date()
+          lastDataShareUpdate: new Date(),
         }
       }]
     }
@@ -28,9 +28,9 @@ export default {
       this.pageStack.splice(1)
 
       if (evt) {
-        if (evt.reason === 'acceptedDataShare') {
-          // trigger a refresh of the data shares list in the main settings menu, by updating the lastDataShare prop
-          this.pageStack[0].onsNavigatorProps.lastDataShare = new Date()
+        if ((evt.reason === 'acceptedDataShare') || (evt.reason === 'removedDataShare')) {
+          // trigger a refresh of the data shares list in the main settings menu, by updating the lastDataShareUpdate prop
+          this.pageStack[0].onsNavigatorProps.lastDataShareUpdate = new Date()
         }
       }
     }

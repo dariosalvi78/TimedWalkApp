@@ -66,6 +66,13 @@ export default {
       quality: this.testReport.quality
     })
     await storage.setItem('history', history)
+
+    // automatic share with server
+    let dataShares = await storage.getItem('dataShares')
+    if (dataShares && dataShares.length > 0) {
+      let serverToken = await storage.getItem('serverToken')
+      await api.sendTestResult(this.testReport, serverToken)
+    }
   },
   methods: {
     async reset () {
