@@ -27,6 +27,10 @@ export default {
     invitation: {
       type: Object,
       required: true
+    },
+    code: {
+      type: String,
+      required: true
     }
   },
   data: function () {
@@ -44,7 +48,8 @@ export default {
       this.$emit('push-page', {
         extends: DataSharePrivacyPolicy,
         onsNavigatorProps: {
-          invitation: this.invitation
+          invitation: this.invitation,
+          code: this.code
         }
       })
     }

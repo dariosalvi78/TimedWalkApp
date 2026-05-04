@@ -39,6 +39,10 @@ export default {
     invitation: {
       type: Object,
       required: true
+    },
+    code: {
+      type: String,
+      required: true
     }
   },
   data: function () {
@@ -60,19 +64,22 @@ export default {
       this.confirmationDialogVisible = false
 
       try {
-        let token = await api.acceptInvitation(this.invitation.code)
+        let serverToken = await storage.getItem('serverToken')
+        let token = await api.acceptInvitation(this.code, serverToken)
         let dataShares = await storage.getItem('dataShares')
         dataShares = dataShares || []
         // first check that the team is not already in the list
-        if (!dataShares.some(ds => ds.teamId === this.invitation.team.id)) {
+        if (!dataShares.some(ds => ds.team.id === this.invitation.team.id)) {
           dataShares.push(this.invitation)
         }
         await storage.setItem('dataShares', dataShares)
         await storage.setItem('serverToken', token)
       } catch (e) {
         console.error(e)
-        this.$ons.notification.alert(this.$t('errors.error'));
-        this.toastVisible = true
+        let errorMessage = e.message ? e.message : e
+        this.$ons.notification.alert(errorMessage, {
+          title: '⚠️ ' + this.$t('error')
+        })
         return
       }
       this.$emit('reset-page-stack', { reason: 'acceptedDataShare' }) // Go back to the main settings page, with info that we accepted an invitation

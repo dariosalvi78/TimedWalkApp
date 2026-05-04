@@ -73,10 +73,10 @@ export default {
       })
       if (confirmed) {
         try {
-          await api.disconnectFromTeam(this.dataShare.teamId)
+          await api.disconnectFromTeam(this.dataShare.team.id)
           let dataShares = await storage.getItem('dataShares')
           if (dataShares) {
-            dataShares = dataShares.filter(ds => ds.teamId !== this.dataShare.teamId)
+            dataShares = dataShares.filter(ds => ds.team.id !== this.dataShare.team.id)
             await storage.setItem('dataShares', dataShares)
           }
           this.$emit('reset-page-stack', { reason: 'removedDataShare' })
@@ -84,7 +84,7 @@ export default {
           console.error('Error disconnecting from team:', e)
           let errorMessage = e.message ? e.message : e
           this.$ons.notification.alert(errorMessage, {
-            title: '⚠️ ' + this.$t('errors.error')
+            title: '⚠️ ' + this.$t('error')
           })
           return
         }

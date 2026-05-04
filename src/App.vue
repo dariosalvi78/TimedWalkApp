@@ -59,8 +59,8 @@ export default {
         let newToken = await api.refreshToken(serverToken)
         await storage.setItem('serverToken', newToken)
       } catch (e) {
-        console.error('Error refreshing token on app start:', e)
-        if (e.code && e.code === 401) { // if the error is an unauthorized error, we can assume the token is no longer valid and remove it
+        console.error('Error refreshing token on app start:', JSON.stringify(e))
+        if (e.statusCode && e.statusCode === 401) { // if the error is an unauthorized error, we can assume the token is no longer valid and remove it
           await storage.removeItem('serverToken')
         }
       }

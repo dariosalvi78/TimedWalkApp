@@ -1,0 +1,23 @@
+{
+  "name": "timed-walk-backend-basic",
+  "version": "0.0.1",
+  "description": "Basic, file based server for Timed Walk App",
+  "license": "MIT",
+  "author": "Dario Salvi",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --env-file=.env.local --watch index.js",
+    "run": "node --env-file=.env.local index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-xss-sanitizer": "^2.0.2",
+    "helmet": "^8.1.0",
+    "jose": "^6.2.3",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0"
+  }
+}

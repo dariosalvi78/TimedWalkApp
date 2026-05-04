@@ -31,7 +31,8 @@
             share.team.name
           }}</v-ons-list-item>
         <div v-if="dataSharingLoggedOut" class="loggeddOffMessage"> <b>{{ $t('settings.teamsListLoggedOutTitle') }}</b>
-          <br> {{ $t('settings.teamsListLoggedOutMessage') }} </div>
+          <br> {{ $t('settings.teamsListLoggedOutMessage') }}
+        </div>
       </v-ons-list>
       <v-ons-button style="margin-top: 0.5em;" @click="addDataShare">{{ $t('settings.shareAdd') }}</v-ons-button>
     </v-ons-card>
@@ -141,14 +142,15 @@ export default {
           this.$emit('push-page', {
             extends: dataShareWelcome,
             onsNavigatorProps: {
-              invitation: invitaiton
+              invitation: invitaiton,
+              code: code
             }
           })
         } catch (e) {
           console.error(e)
           let errorMessage = e.message ? e.message : e
           this.$ons.notification.alert(errorMessage, {
-            title: '⚠️ ' + this.$t('errors.error')
+            title: '⚠️ ' + this.$t('error')
           })
           return
         }

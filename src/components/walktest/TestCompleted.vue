@@ -76,7 +76,20 @@ export default {
     let dataShares = await storage.getItem('dataShares')
     if (dataShares && dataShares.length > 0) {
       let serverToken = await storage.getItem('serverToken')
-      await api.sendTestResult(this.testReport, serverToken)
+      if (serverToken) {
+        try {
+          await api.sendTestResult(this.testReport, serverToken)
+        } catch (e) {
+          console.error('Error sharing test result with server:', e)
+          let errorMessage = e.message ? e.message : e
+          this.$ons.notification.alert(errorMessage, {
+            title: '⚠️ ' + this.$t('error')
+          })
+          return
+        }
+      } else {
+        console.warn('No server token found, cannot share test result with server')
+      }
     }
   },
   methods: {

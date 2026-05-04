@@ -1,5 +1,13 @@
 const API_FAIL = false // Set to true to simulate API failure for testing error handling
 
+class ServerError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.name = "ValidationError";
+    this.statusCode = statusCode;
+  }
+}
+
 let mockApi = {
   // Mock API implementation
   async refreshToken (serverToken) {
@@ -8,13 +16,12 @@ let mockApi = {
   },
   async getInvitationDetails (code) {
     if (API_FAIL) {
-      return Promise.reject(new Error('Simulated API failure')) // Simulate an API failure for testing error handling
+      return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
     }
     console.log('Fetching invitation details for code: ' + code)
     // Return mock data
     return {
-      teamId: 'mock-team-id',
-      code: code,
+      invitationCode: code,
       patient: {
         id: 'mock-patient-id',
         team_specific_id: 'mock-team-specific-id',
@@ -47,15 +54,24 @@ let mockApi = {
     }
   },
   async acceptInvitation (code, serverToken) {
+    if (API_FAIL) {
+      return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
+    }
     // Simulate accepting the invitation
     console.log('Invitation accepted with code: ' + code + ' and server token: ' + serverToken)
     return 'mock-api-token'
   },
-  async disconnectFromTeam (teamId) {
-    console.log('Disconnecting from team with ID: ' + teamId)
+  async disconnectFromTeam (teamId, serverToken) {
+    if (API_FAIL) {
+      return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
+    }
+    console.log('Disconnecting from team with ID: ' + teamId, + 'and server token: ' + serverToken)
     return Promise.resolve()
   },
   async sendTestResult (result, serverToken) {
+    if (API_FAIL) {
+      return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
+    }
     console.log('Sending test result to mock API:', result, 'with server token:', serverToken)
     return Promise.resolve({ success: true, sharingWith: ['mock-team-id'] })
   }
@@ -63,6 +79,87 @@ let mockApi = {
 
 let realApi = {
   // Real API implementation
+  async refreshToken (serverToken) {
+    const response = await fetch(process.env.VUE_APP_API_URL + '/api/refresh-token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${serverToken}`
+      }
+    })
+    if (!response.ok) {
+      throw new ServerError('Failed to refresh token: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Refreshed token:', data.serverToken)
+    return data.serverToken
+  },
+
+  async getInvitationDetails (code) {
+    const response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code)
+    if (!response.ok) {
+      throw new ServerError('Failed to fetch invitation details: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Fetched invitation details:', data)
+    return data
+  },
+
+  async acceptInvitation (code, serverToken) {
+    let response
+    if (serverToken) {
+      response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code + '/accept', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${serverToken}`
+        }
+      })
+    } else {
+      response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code + '/accept', {
+        method: 'POST'
+      })
+    }
+
+    if (!response.ok) {
+      throw new ServerError('Failed to accept invitation: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Fetched invitation details:', data)
+    return data.serverToken
+  },
+
+  async disconnectFromTeam (teamId, serverToken) {
+    const response = await fetch(process.env.VUE_APP_API_URL + '/api/disconnectFromTeam', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serverToken}`
+      },
+      body: JSON.stringify({ teamId })
+    })
+    if (!response.ok) {
+      throw new ServerError('Failed to disconnect from team: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Disconnected from team successfully, server response:', data)
+    return data
+  },
+
+  async sendTestResult (result, serverToken) {
+    const response = await fetch(process.env.VUE_APP_API_URL + '/api/test-result', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serverToken}`
+      },
+      body: JSON.stringify({ result })
+    })
+    if (!response.ok) {
+      throw new ServerError('Failed to send test result: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Test result sent successfully, server response:', data)
+    return data
+  }
 }
 
 

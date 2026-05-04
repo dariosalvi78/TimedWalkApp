@@ -1,0 +1,29 @@
+{
+  "team": {
+    "name": "Timed Walk Team",
+    "id": "timed-walk-team",
+    "institutions": [
+      "Malmö University"
+    ],
+    "contact": "timed.walk@example.com"
+  },
+  "welcomeMessage": {
+    "en": "You are invited to share your data with the Timed Walk Team! We are a research group at Malmö University, Sweden, and we are interested in understanding how physical capacity can be measured at home with an app."
+  },
+  "privacyPolicy": {
+    "en": "By sharing your data with the Timed Walk Team, you agree to allow us to use your data for research purposes. We will not share your data with any third parties, and we will take all necessary measures to protect your privacy."
+  },
+  "patients": [
+    {
+      "invitationCode": "123456",
+      "id": "patient-1",
+      "team_specific_id": "patient-1",
+      "first_names": "John",
+      "last_name": "Doe",
+      "phone_number": "+46701234567",
+      "dob": "1958-01-01",
+      "sex": "male",
+      "connectedToTeam": true
+    }
+  ]
+}

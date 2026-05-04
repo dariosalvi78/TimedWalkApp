@@ -17,5 +17,6 @@ export default {
   settings,
   walk,
   check,
-  about
+  about,
+  error: 'Errore',
 }
