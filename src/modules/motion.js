@@ -1,8 +1,8 @@
 let callback
 
 let mockMotion = {
-  motionTimer : null,
-  orientationTimer : null,
+  motionTimer: null,
+  orientationTimer: null,
   async isAvailable () {
     return Promise.resolve(true)
   },
@@ -121,4 +121,19 @@ let realMotion = {
   }
 }
 
-export default (process.env.VUE_APP_MOTION === 'mock') ? mockMotion : realMotion
+let noneMotion = {
+  async isAvailable () {
+    return Promise.resolve(false)
+  },
+  async getPermission () {
+    return Promise.resolve(false)
+  },
+  startNotifications (options, cbk) {
+    // do nothing
+  },
+  async stopNotifications () {
+    // do noting
+  }
+}
+
+export default (process.env.VUE_APP_MOTION === 'mock') ? mockMotion : (process.env.VUE_APP_MOTION === 'none') ? noneMotion : realMotion

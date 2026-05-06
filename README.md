@@ -29,25 +29,26 @@ NODE_ENV=development
 VUE_APP_DEBUG=true
 
 # possible values: 'real' (default) for real API, 'mock' for simulated API
-VUE_APP_API=mock
+VUE_APP_API=real
 
 # base URL for API calls, used in 'real' mode, ignored in 'mock' mode
 VUE_APP_API_URL=http://localhost:3000
 
-# possible values: 'real' (default), 'mock', 'csv', 'txt'
+# possible values: 'real' (default) for real geolocation api, 'mock', 'csv', 'txt'
 VUE_APP_GPS=mock
 
-# 'real' (default) for real device, 'mock' for simulated
-VUE_APP_MOTION=mock
+# 'real' (default) for real web motion API, 'mock' for simulated, 'none' for missing support
+VUE_APP_MOTION=none
 
-# possible values: 'real' (default), 'mock' for simulated, 'none' for nothing
-VUE_APP_STEPCOUNTER=mock
+# possible values: 'real' (default) uses cordova pedometer plugin, 'mock' for simulated, 'none' for missing support
+VUE_APP_STEPCOUNTER=none
 
-# possible values: 'real' (default) for app, 'local' for testing in browser
-VUE_APP_STORAGE=mock
+# possible values: 'real' (default) uses cordova native storage plugin, 'local' for browser localStorage
+VUE_APP_STORAGE=local
 
-# possible values: 'real' (default) for app, 'localStorage' for browser, 'mock' for nothing
-VUE_APP_FILES=mock
+# possible values: 'real' (default) uses cordova file plugin, 'localStorage' for browser simulation, 'mock' for empty module for testing
+VUE_APP_FILES=localStorage
+
 ```
 
 ## Unit tests
