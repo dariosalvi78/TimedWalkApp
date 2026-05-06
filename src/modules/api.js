@@ -128,6 +128,9 @@ let realApi = {
   },
 
   async disconnectFromTeam (teamId, serverToken) {
+    if (!serverToken) {
+      throw new ServerError('No server token provided for disconnecting from team', 401)
+    }
     const response = await fetch(process.env.VUE_APP_API_URL + '/api/disconnectFromTeam', {
       method: 'POST',
       headers: {
@@ -144,14 +147,25 @@ let realApi = {
     return data
   },
 
-  async sendTestResult (result, serverToken) {
+  /**
+   * Sends the results to the server.
+   * I have tried using a readable stream to send the results, but it's more complicated than I hoped.
+   * Here are some pointers in case I want to come back to this in the future:
+   * - body can be a readable stream, but we need to add the option duplex: "half"
+   * - on server side, we need http2, see https://github.com/vercel/next.js/discussions/85001
+   * I got stuck on wrong response from the server and gave up
+   * @param {string} results
+   * @param {string} serverToken
+   * @returns {Promise} Resolves with server response if successful, rejects with ServerError if failed
+   */
+  async sendTestResult (results, serverToken) {
     const response = await fetch(process.env.VUE_APP_API_URL + '/api/test-result', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain',
         'Authorization': `Bearer ${serverToken}`
       },
-      body: JSON.stringify({ result })
+      body: results,
     })
     if (!response.ok) {
       throw new ServerError('Failed to send test result: ' + response.statusText, response.status)

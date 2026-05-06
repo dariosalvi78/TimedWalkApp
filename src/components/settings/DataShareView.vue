@@ -73,7 +73,8 @@ export default {
       })
       if (confirmed) {
         try {
-          await api.disconnectFromTeam(this.dataShare.team.id)
+          let serverToken = await storage.getItem('serverToken')
+          await api.disconnectFromTeam(this.dataShare.team.id, serverToken)
           let dataShares = await storage.getItem('dataShares')
           if (dataShares) {
             dataShares = dataShares.filter(ds => ds.team.id !== this.dataShare.team.id)

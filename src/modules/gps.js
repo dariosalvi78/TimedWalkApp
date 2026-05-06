@@ -19,7 +19,8 @@ let mockGPS = {
           latitude: startLat + (counter * 2.1055e-6),
           longitude: startLong + (counter * 1.83055e-5),
           altitude: 69.82,
-          accuracy: counter < 5 ? 60 : 10
+          heading: 100 + (Math.random() * 10),
+          accuracy: counter < 5 ? 60 : 10 // simulates low accuracy at startup
         }
       })
     }, 1000)

@@ -18,5 +18,6 @@ export default {
   walk,
   check,
   about,
-  error: 'Error'
+  error: 'Error',
+  errorRetry: 'Do you want to retry?'
 }

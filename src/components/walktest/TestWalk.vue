@@ -249,9 +249,13 @@ export default {
       // compute and add quality checks
       // do the quality checks
       testReport.quality = {}
-      testReport.quality.samplingWarning = !testQualityChecker.isSamplingFrequencySufficient()
-      testReport.quality.gapsWarning = testQualityChecker.isGapsDetected()
-      testReport.quality.curvatureClass = testQualityChecker.classifyCurvature('logistic').label
+      try {
+        testReport.quality.samplingWarning = !testQualityChecker.isSamplingFrequencySufficient()
+        testReport.quality.gapsWarning = testQualityChecker.isGapsDetected()
+        testReport.quality.curvatureClass = testQualityChecker.classifyCurvature('logistic').label
+      } catch (e) {
+        console.error('Error computing quality checks:', e)
+      }
 
       if (window.device) testReport.device = {
         os: window.device.platform + ' ' + window.device.version,

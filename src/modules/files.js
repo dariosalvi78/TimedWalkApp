@@ -67,7 +67,7 @@ let realFiles = {
   },
 
   /**
-  * Reads a file and delivers the content as an object
+  * Reads a file and delivers the content as text
   * @param {Object} file - the file to be opened
   */
   async read (file) {
@@ -264,7 +264,7 @@ let mockFiles = {
   },
 
   async readLog () {
-    return ''
+    return '-- start test ---'
   },
 
   async deleteLog () {

@@ -72,27 +72,34 @@ export default {
     })
     await storage.setItem('history', history)
 
-    // automatic share with server
-    let dataShares = await storage.getItem('dataShares')
-    if (dataShares && dataShares.length > 0) {
-      let serverToken = await storage.getItem('serverToken')
-      if (serverToken) {
-        try {
-          await api.sendTestResult(this.testReport, serverToken)
-        } catch (e) {
-          console.error('Error sharing test result with server:', e)
-          let errorMessage = e.message ? e.message : e
-          this.$ons.notification.alert(errorMessage, {
-            title: '⚠️ ' + this.$t('error')
-          })
-          return
-        }
-      } else {
-        console.warn('No server token found, cannot share test result with server')
-      }
-    }
+    this.shareWithServer()
   },
   methods: {
+    async shareWithServer () {
+      // automatic share with server
+      let dataShares = await storage.getItem('dataShares')
+      if (dataShares && dataShares.length > 0) {
+        let serverToken = await storage.getItem('serverToken')
+        if (serverToken) {
+          try {
+            let results = await files.readLog(TMP_FILENAME)
+            await api.sendTestResult(results, serverToken)
+          } catch (e) {
+            console.error('Error sharing test result with server:', e)
+            let errorMessage = e.message ? e.message : e
+            let confirmed = await this.$ons.notification.confirm(errorMessage + '<br><br>' + this.$t('errorRetry'), {
+              title: '⚠️ ' + this.$t('error'),
+              buttonLabels: [this.$t('settings.no'), this.$t('settings.yes')],
+              cancelable: true
+            })
+            if (confirmed) this.shareWithServer()
+            return
+          }
+        } else {
+          console.warn('No server token found, cannot share test result with server')
+        }
+      }
+    },
     async reset () {
       // we don't need to keep the log any longer now
       try {

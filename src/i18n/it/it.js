@@ -19,4 +19,5 @@ export default {
   check,
   about,
   error: 'Errore',
+  errorRetry: 'Vuoi riprovare?'
 }
