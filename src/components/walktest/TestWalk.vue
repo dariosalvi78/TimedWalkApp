@@ -84,6 +84,8 @@ export default {
     }
     logger.log('E - signal check start')
 
+    // get permission for GPS
+    await gps.requestPermission()
     // get permissions for motion
     await motion.getPermission()
     // get permission for pedometer

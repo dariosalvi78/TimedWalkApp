@@ -6,6 +6,9 @@ let mockGPS = {
   async isAvailable () {
     return Promise.resolve(true)
   },
+  async requestPermission () {
+    return Promise.resolve({ granted: true, scope: 'whenInUse' })
+  },
   startNotifications (cbk) {
     let startLat = 51.751985
     let startLong = -1.257609
@@ -34,6 +37,9 @@ let mockGPS = {
 let csvReplayGPS = {
   async isAvailable () {
     return Promise.resolve(true)
+  },
+  async requestPermission () {
+    return Promise.resolve({ granted: true, scope: 'whenInUse' })
   },
   startNotifications: (cbk) => {
     const fileInput = document.getElementById('replay-file-input')
@@ -65,6 +71,9 @@ let csvReplayGPS = {
 let txtReplayGPS = {
   async isAvailable () {
     return Promise.resolve(true)
+  },
+  async requestPermission () {
+    return Promise.resolve({ granted: true, scope: 'whenInUse' })
   },
   startNotifications: (cbk) => {
     const fileInput = document.getElementById('replay-file-input')
@@ -98,6 +107,9 @@ let txtReplayGPS = {
 let realGPS = {
   async isAvailable () {
     return window.cordova.plugins.geolocationPlus.isLocationServiceEnabled('gps')
+  },
+  async requestPermission () {
+    return window.cordova.plugins.geolocationPlus.requestPermissions()
   },
   startNotifications (cbk, error) {
 
