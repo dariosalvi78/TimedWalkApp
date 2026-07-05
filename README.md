@@ -59,13 +59,17 @@ node --test
 
 add `--watch` for live reload
 
-## Run
+## Run web simulation
 
 Emulated on web at localhost:8080
 
 ```bash
 npm run serve
 ```
+
+If you have set the gps to be csv or txt you can replay saved tests by uploading the file when requested.
+
+## Run on device
 
 Run it on device:
 
