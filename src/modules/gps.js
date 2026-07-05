@@ -32,6 +32,9 @@ let mockGPS = {
 }
 
 let csvReplayGPS = {
+  async isAvailable () {
+    return Promise.resolve(true)
+  },
   startNotifications: (cbk) => {
     const fileInput = document.getElementById('replay-file-input')
     fileInput.onchange = async (event) => {
@@ -60,7 +63,9 @@ let csvReplayGPS = {
 }
 
 let txtReplayGPS = {
-
+  async isAvailable () {
+    return Promise.resolve(true)
+  },
   startNotifications: (cbk) => {
     const fileInput = document.getElementById('replay-file-input')
     fileInput.onchange = async (event) => {
@@ -91,32 +96,38 @@ let txtReplayGPS = {
 
 
 let realGPS = {
-  watchid: null,
+  async isAvailable () {
+    return window.cordova.plugins.geolocationPlus.isLocationServiceEnabled('gps')
+  },
   startNotifications (cbk, error) {
-    this.watchid = navigator.geolocation.watchPosition((position) => {
-      // we need to create a copy of the position object because
-      // Chromium does something strange that is not serialisable as JSON
-      var copyPos = {}
-      copyPos.timestamp = position.timestamp // new Date().getTime() // use current timestamp because some phones mess up the timestamps
-      copyPos.coords = {}
-      copyPos.coords.latitude = position.coords.latitude
-      copyPos.coords.longitude = position.coords.longitude
-      copyPos.coords.altitude = position.coords.altitude
-      if (position.coords.accuracy) copyPos.coords.accuracy = position.coords.accuracy
-      if (position.coords.altitudeAccuracy) copyPos.coords.altitudeAccuracy = position.coords.altitudeAccuracy
-      if (position.coords.heading) copyPos.coords.heading = position.coords.heading
-      if (position.coords.speed) copyPos.coords.speed = position.coords.speed
 
-      cbk(copyPos)
-    }, error, {
-      maximumAge: 5000,
-      timeout: 1000,
-      enableHighAccuracy: true
-    })
+    window.cordova.plugins.geolocationPlus.startPositionUpdates(
+      (position) => {
+        // we need to create a copy of the position object because
+        // Chromium does something strange that is not serialisable as JSON
+        var copyPos = {}
+        if (position.provider) copyPos.provider = position.provider
+        copyPos.timestamp = position.timestamp // new Date().getTime() // use current timestamp because some phones mess up the timestamps
+        copyPos.coords = {}
+        copyPos.coords.latitude = position.coords.latitude
+        copyPos.coords.longitude = position.coords.longitude
+        copyPos.coords.altitude = position.coords.altitude
+        if (position.coords.accuracy) copyPos.coords.accuracy = position.coords.accuracy
+        if (position.coords.altitudeAccuracy) copyPos.coords.altitudeAccuracy = position.coords.altitudeAccuracy
+        if (position.coords.heading) copyPos.coords.heading = position.coords.heading
+        if (position.coords.speed) copyPos.coords.speed = position.coords.speed
+
+        cbk(copyPos)
+      },
+      {
+        distanceFilter: 1,
+        provider: "gps",
+        minTime: 1000,
+        desiredAccuracy: 1,
+      }).catch(error)
   },
   async stopNotifications () {
-    navigator.geolocation.clearWatch(this.watchid)
-    return Promise.resolve()
+    return window.cordova.plugins.geolocationPlus.stopPositionUpdates()
   }
 }
 

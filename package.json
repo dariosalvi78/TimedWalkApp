@@ -31,7 +31,7 @@
     "cordova-ios": "^8.0.0",
     "cordova-plugin-device": "^3.0.0",
     "cordova-plugin-file": "^8.1.3",
-    "cordova-plugin-geolocation": "^5.0.0",
+    "cordova-plugin-geolocation-plus": "^0.0.1",
     "cordova-plugin-insomnia": "^4.3.0",
     "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-pedometer": "git+https://github.com/dariosalvi78/cordova-plugin-pedometer.git",
@@ -65,9 +65,6 @@
   "cordova": {
     "plugins": {
       "cordova-plugin-nativestorage": {},
-      "cordova-plugin-geolocation": {
-        "GPS_REQUIRED": "true"
-      },
       "cordova-plugin-insomnia": {},
       "cordova-plugin-pedometer": {},
       "cordova-plugin-tts": {},
@@ -78,7 +75,8 @@
       "cordova-plugin-x-socialsharing": {
         "PHOTO_LIBRARY_ADD_USAGE_DESCRIPTION": "This app requires photo library access to function properly.",
         "PHOTO_LIBRARY_USAGE_DESCRIPTION": "This app requires photo library access to function properly."
-      }
+      },
+      "cordova-plugin-geolocation-plus": {}
     },
     "platforms": [
       "android",
