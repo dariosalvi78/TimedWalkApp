@@ -128,7 +128,7 @@ let noneMotion = {
   async getPermission () {
     return Promise.resolve(false)
   },
-  startNotifications (options, cbk) {
+  startNotifications () {
     // do nothing
   },
   async stopNotifications () {
