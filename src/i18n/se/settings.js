@@ -24,6 +24,7 @@ export default {
     patientTitle: 'Patient information',
     identifier: 'Identifierare',
     stopSharing: 'Sluta dela med detta team',
+    stopSharingConfirm: 'Är du säker på att du vill sluta dela dina data med detta team? Detta kommer inte att radera några data som redan har delats.',
   },
   shareInvitationCode: 'Ange inbjudningskod',
   privacyPolicy: 'Integritetspolicy',

@@ -66,7 +66,7 @@ export default {
   },
   methods: {
     async removeTeam () {
-      let confirmed = await this.$ons.notification.confirm('Are you sure you want to disconnect from this team? This will stop sharing your walk data with them, but will not delete any data that has already been shared.', {
+      let confirmed = await this.$ons.notification.confirm(this.$t('settings.datashareView.stopSharingConfirm'), {
         title: '⚠️ ' + this.$t('settings.confirmTitle'),
         buttonLabels: [this.$t('settings.no'), this.$t('settings.yes')],
         'cancelable': true

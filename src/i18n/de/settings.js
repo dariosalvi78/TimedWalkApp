@@ -24,6 +24,7 @@ export default {
     patientTitle: 'Patient Informationen',
     identifier: 'Identifikator',
     stopSharing: 'Teilen mit diesem Team stoppen',
+    stopSharingConfirm: 'Sind Sie sicher, dass Sie das Teilen Ihrer Daten mit diesem Team stoppen möchten? Dies wird nicht bereits geteilte Daten löschen.',
   },
   shareInvitationCode: 'Geben Sie den Einladungscode ein',
   privacyPolicy: 'Datenschutz-Bestimmungen',

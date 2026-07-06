@@ -24,6 +24,7 @@ export default {
     patientTitle: 'Patient information',
     identifier: 'Identifier',
     stopSharing: 'Stop sharing with this team',
+    stopSharingConfirm: 'Are you sure you want to stop sharing your data with this team? This will not delete any data that has already been shared.',
   },
   shareInvitationCode: 'Enter the invitation code',
   privacyPolicy: 'Privacy Policy',
