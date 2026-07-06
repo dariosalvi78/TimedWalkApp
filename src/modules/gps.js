@@ -54,6 +54,9 @@ let csvReplayGPS = {
       let text = await csvReplay.readWebTextFile(file)
       await csvReplay.loadCsvFiles(text)
       csvReplay.registerPositionCallback((p) => {
+        if (process.env.VUE_APP_DEBUG) {
+          console.log('New position', p)
+        }
         cbk(p)
       })
       csvReplay.startReplay(true)
@@ -89,6 +92,9 @@ let txtReplayGPS = {
       txtReplay.loadTxtFile(txt)
 
       txtReplay.registerPositionCallback((p) => {
+        if (process.env.VUE_APP_DEBUG) {
+          console.log('New position', p)
+        }
         cbk(p)
       })
       txtReplay.startReplay(true)
@@ -112,6 +118,9 @@ let realGPS = {
     return window.cordova.plugins.geolocationPlus.requestPermissions()
   },
   startNotifications (cbk, error) {
+    if (process.env.VUE_APP_DEBUG) {
+      console.log('Starting position updates')
+    }
 
     window.cordova.plugins.geolocationPlus.startPositionUpdates(
       (position) => {
@@ -129,6 +138,10 @@ let realGPS = {
         if (position.coords.heading) copyPos.coords.heading = position.coords.heading
         if (position.coords.speed) copyPos.coords.speed = position.coords.speed
 
+        if (process.env.VUE_APP_DEBUG) {
+          console.log('New position', copyPos)
+        }
+
         cbk(copyPos)
       },
       {
@@ -136,9 +149,17 @@ let realGPS = {
         provider: "gps",
         minTime: 1000,
         desiredAccuracy: 1,
-      }).catch(error)
+      }).catch((err) => {
+        if (process.env.VUE_APP_DEBUG) {
+          console.error('Error starting position updates', err)
+        }
+        error(err)
+      })
   },
   async stopNotifications () {
+    if (process.env.VUE_APP_DEBUG) {
+      console.log('Stopping position updates')
+    }
     return window.cordova.plugins.geolocationPlus.stopPositionUpdates()
   }
 }

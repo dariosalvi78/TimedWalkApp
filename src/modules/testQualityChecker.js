@@ -203,7 +203,9 @@ export default {
  */
   classifyLogistic () {
     if (this.subSampledPositions.length < 3) throw new Error('No position data available')
-    console.log(`Subsampled ${this.subSampledPositions.length} positions`)
+    if (process.env.VUE_APP_DEBUG) {
+      console.log(`Subsampled ${this.subSampledPositions.length} positions`)
+    }
 
 
     // 2. Features
@@ -281,7 +283,9 @@ export default {
       f.zero_crossing_rate,
       f.heading_skewness,
     ]
-    console.log('Features:', featureVector)
+    if (process.env.VUE_APP_DEBUG) {
+      console.log('Features:', featureVector)
+    }
 
     // 3. Standardization
     const x = this.standardize(featureVector)
