@@ -96,6 +96,12 @@ app.get('/api/health', (req, res) => {
 // accept invitation endpoint
 app.post('/api/invitations/:code/accept', async (req, res) => {
   logger.debug('Accepting invitation with code: ' + req.params.code)
+  // check code prefix
+  if (!req.params.code.startsWith(process.env.SERVER_CODE_PREFIX)) {
+    logger.warn('Invalid invitation code prefix: ' + req.params.code)
+    return res.status(400).json({ error: 'Invalid invitation code' })
+  }
+
   // find the patient associated with the invitation code
   const patient = teamConfig.patients.find(p => p.invitationCode.toLowerCase() === req.params.code.toLowerCase())
   if (!patient) {

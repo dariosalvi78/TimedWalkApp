@@ -116,9 +116,11 @@ let realApi = {
     if (process.env.VUE_APP_DEBUG) console.log('Getting server endpoint for invitation code prefix: ' + prefix)
     if (prefix == '00') {
       // local testing server, user env variable to determine the URL
+      let url = process.env.VUE_APP_API_TEST_URL
+      url = url.replace(/\/$/, "") // remove trailing /
       return {
         prefix: '00',
-        url: process.env.VUE_APP_API_TEST_URL,
+        url,
         id: 'LocalTestServer',
         apiversion: 'v0'
       }
@@ -127,6 +129,8 @@ let realApi = {
     if (!endpoint) {
       throw new Error('No server endpoint found for invitation code prefix: ' + prefix)
     }
+    // remove trailing slash from url if present
+    endpoint.url = endpoint.url.replace(/\/$/, "")
     return endpoint
   },
 
@@ -154,7 +158,7 @@ let realApi = {
    */
   async acceptInvitation (code, endpoint) {
     let response
-    if (endpoint.url && endpoint.serverToken) {
+    if (endpoint && endpoint.url && endpoint.serverToken) {
       response = await fetch(endpoint.url + '/invitations/' + code + '/accept', {
         method: 'POST',
         headers: {

@@ -15,7 +15,7 @@
   },
   "patients": [
     {
-      "invitationCode": "123456",
+      "invitationCode": "00123456",
       "id": "patient-1",
       "team_specific_id": "patient-1",
       "first_names": "John",
@@ -23,7 +23,7 @@
       "phone_number": "+46701234567",
       "dob": "1958-01-01",
       "sex": "male",
-      "connectedToTeam": true
+      "connectedToTeam": false
     }
   ]
 }
