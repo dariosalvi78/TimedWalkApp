@@ -49,10 +49,6 @@ export default {
     dataShare: {
       type: Object,
       required: true
-    },
-    loggedOut: {
-      type: Boolean,
-      required: true
     }
   },
   data: function () {
@@ -61,13 +57,14 @@ export default {
       patient: this.dataShare.patient,
       team: this.dataShare.team,
       welcomeMessage: this.dataShare.welcomeMessage[locale],
-      privacyPolicyText: this.dataShare.privacyPolicy[locale]
+      privacyPolicyText: this.dataShare.privacyPolicy[locale],
+      loggedOut: this.dataShare.loggedOut || false
     }
   },
   methods: {
     async removeTeam () {
       let confirmed = await this.$ons.notification.confirm(this.$t('settings.datashareView.stopSharingConfirm'), {
-        title: '⚠️ ' + this.$t('settings.confirmTitle'),
+        title: '⚠️ ' + this.$t('settings.datashareView.stopSharing'),
         buttonLabels: [this.$t('settings.no'), this.$t('settings.yes')],
         'cancelable': true
       })

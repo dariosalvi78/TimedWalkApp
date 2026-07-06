@@ -81,10 +81,11 @@ export default {
         // first check that the team is not already in the list
         if (!dataShares.some(ds => ds.team.id === this.invitation.team.id)) {
           // add the new data share to the list
-          // the data share object is the same as the invitation object, but with the serverUrl and serverToken added
+          // the data share object is the same as the invitation object, but with the url and serverToken added
           let datashare = Object.assign({}, this.invitation)
           datashare.endpoint = server
           datashare.endpoint.serverToken = token
+          datashare.loggedOut = false
           dataShares.push(datashare)
         }
         await storage.setItem('dataShares', dataShares)

@@ -83,7 +83,7 @@ export default {
       if (dataShares && dataShares.length > 0) {
         // for each data share send the results to the server
         for (let ds of dataShares) {
-          if (ds.endpoint && ds.endpoint.serverUrl && ds.endpoint.serverToken) {
+          if (ds.endpoint && ds.endpoint.url && ds.endpoint.serverToken) {
             try {
               let results = await files.readLog(TMP_FILENAME)
               await api.sendTestResult(results, ds.endpoint)

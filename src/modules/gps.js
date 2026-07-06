@@ -15,8 +15,7 @@ let mockGPS = {
     let counter = 0
     if (this.timerid) clearInterval(this.timerid)
     this.timerid = setInterval(function () {
-      counter++
-      cbk({
+      const newPos = {
         timestamp: new Date().getTime(),
         coords: {
           latitude: startLat + (counter * 2.1055e-6),
@@ -25,7 +24,12 @@ let mockGPS = {
           heading: 100 + (Math.random() * 10),
           accuracy: counter < 5 ? 60 : 10 // simulates low accuracy at startup
         }
-      })
+      }
+      if (process.env.VUE_APP_DEBUG) {
+        console.log('New position', newPos)
+      }
+      counter++
+      cbk(newPos)
     }, 1000)
   },
   async stopNotifications () {

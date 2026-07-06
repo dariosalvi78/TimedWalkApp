@@ -27,12 +27,13 @@
         <v-ons-list-header>{{ dataSharingHeader }}</v-ons-list-header>
 
         <v-ons-list-item v-for="(share, index) in dataShares" :key="index" modifier="chevron" tappable
-          @click="showTeam(share)" :class="{ inactiveDS: dataSharingLoggedOut }">{{
+          @click="showTeam(share)" :class="{ inactiveDS: share.loggedOut }">{{
             share.team.name
-          }}</v-ons-list-item>
-        <div v-if="dataSharingLoggedOut" class="loggeddOffMessage"> <b>{{ $t('settings.teamsListLoggedOutTitle') }}</b>
-          <br> {{ $t('settings.teamsListLoggedOutMessage') }}
-        </div>
+          }}
+          <div v-if="share.loggedOut" class="loggeddOffMessage"> <b>{{ $t('settings.teamsListLoggedOutTitle') }}</b>
+            <br> {{ $t('settings.teamsListLoggedOutMessage') }}
+          </div>
+        </v-ons-list-item>
       </v-ons-list>
       <v-ons-button style="margin-top: 0.5em;" @click="addDataShare">{{ $t('settings.shareAdd') }}</v-ons-button>
     </v-ons-card>
@@ -95,7 +96,6 @@ export default {
       dataShares: [],
       locale: this.$root.$i18n.locale || 'en',
       dataSharingHeader: '',
-      dataSharingLoggedOut: false
     }
   },
   watch: {
@@ -121,13 +121,38 @@ export default {
         this.dataSharingHeader = this.$t('settings.teamsListHeaderNoTeams')
       } else {
         this.dataSharingHeader = this.$t('settings.teamsListHeader')
-        let serverToken = await storage.getItem('serverToken')
-        if (!serverToken) {
-          // logged off
-          console.warn('No server token found, data sharing is logged off')
-          this.dataSharingLoggedOut = true
-        } else {
-          this.dataSharingLoggedOut = false
+
+        // refresh token for each server endpoint we have a datashare with
+        for (let dsi = 0; dsi < dataShares.length; dsi++) {
+          if (process.env.VUE_APP_DEBUG) {
+            console.log('Settings view, refreshing token for endpoint: ' + dataShares[dsi].endpoint.url)
+          }
+          if (!dataShares[dsi].endpoint || !dataShares[dsi].endpoint.serverToken || dataShares[dsi].loggedOut) {
+            console.warn('No server token found for datashare, data sharing is logged off')
+            dataShares[dsi].loggedOut = true
+          } else {
+            dataShares[dsi].loggedOut = false
+            // renew token for this datashare
+            try {
+              let newToken = await api.refreshToken(dataShares[dsi].endpoint)
+              dataShares[dsi].endpoint.serverToken = newToken
+              // save the updated endpoint back to storage
+              await storage.setItem('dataShares', dataShares)
+            } catch (e) {
+              console.error('Error refreshing token on app start:', JSON.stringify(e))
+              if (e.statusCode && e.statusCode === 401) {
+                // if the error is an unauthorized error, we can assume the token is no longer valid and remove it
+                dataShares[dsi].loggedOut = true
+                dataShares[dsi].endpoint.serverToken = null
+
+                // also warn the user
+                console.warn('No server token found, data sharing is logged off')
+                dataShares[dsi].loggedOut = true
+              }
+            }
+          }
+          await storage.setItem('dataShares', dataShares)
+
         }
       }
     },
@@ -160,8 +185,7 @@ export default {
       this.$emit('push-page', {
         extends: dataShareView,
         onsNavigatorProps: {
-          dataShare: share,
-          loggedOut: this.dataSharingLoggedOut
+          dataShare: share
         }
       })
     },
