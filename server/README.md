@@ -8,6 +8,15 @@ Basic server: a basic, file based server, no dashbaord or database and limited s
 npm run run
 ```
 
+## Run as Docker container
+
+most env variables except JWT_SECRET have a default in the dockerfile but it makes sense to configure them and bring the team.json and test-results on an external volume:
+
+```sh
+docker build . -t twaapi
+docker run  -e JWT_SECRET=xxxxxxxxx -p 3000:3000  twaapi
+```
+
 # Develop
 
 ```bash
