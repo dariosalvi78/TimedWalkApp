@@ -1,7 +1,7 @@
 [
   {
     "prefix": "01",
-    "url": "https://timedwalk.com/api/test",
+    "url": "https://test.mobistudy.org/twa/api",
     "id": "TestServer",
     "apiversion": "v0"
   }
