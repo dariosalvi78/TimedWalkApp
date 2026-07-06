@@ -1,0 +1,8 @@
+[
+  {
+    "prefix": "01",
+    "url": "https://timedwalk.com/api/test",
+    "id": "TestServer",
+    "apiversion": "v0"
+  }
+]

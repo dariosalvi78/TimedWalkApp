@@ -20,7 +20,7 @@
       <p>{{ $t('settings.confirm') }}</p>
       <template slot="footer">
         <v-ons-alert-dialog-button modifier="outline" @click="confirmReject">{{ $t('settings.no')
-        }}</v-ons-alert-dialog-button>
+          }}</v-ons-alert-dialog-button>
         <v-ons-alert-dialog-button @click="confirmAccept">{{ $t('settings.yes') }}</v-ons-alert-dialog-button>
       </template>
     </v-ons-alert-dialog>
@@ -64,16 +64,30 @@ export default {
       this.confirmationDialogVisible = false
 
       try {
-        let serverToken = await storage.getItem('serverToken')
-        let token = await api.acceptInvitation(this.code, serverToken)
+        // retrieve the server token for this server, if any
+        let endpoint = null
+        let server = api.getEndpointFromInvitationCode(this.code)
         let dataShares = await storage.getItem('dataShares')
+        if (dataShares && dataShares.length > 0) {
+          dataShares.find(ds => {
+            if (ds.endpoint.id === server.id) {
+              endpoint = ds.endpoint
+            }
+          })
+        }
+
+        let token = await api.acceptInvitation(this.code, endpoint)
         dataShares = dataShares || []
         // first check that the team is not already in the list
         if (!dataShares.some(ds => ds.team.id === this.invitation.team.id)) {
-          dataShares.push(this.invitation)
+          // add the new data share to the list
+          // the data share object is the same as the invitation object, but with the serverUrl and serverToken added
+          let datashare = Object.assign({}, this.invitation)
+          datashare.endpoint = server
+          datashare.endpoint.serverToken = token
+          dataShares.push(datashare)
         }
         await storage.setItem('dataShares', dataShares)
-        await storage.setItem('serverToken', token)
       } catch (e) {
         console.error(e)
         let errorMessage = e.message ? e.message : e

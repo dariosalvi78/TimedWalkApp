@@ -76,28 +76,37 @@ export default {
   },
   methods: {
     async shareWithServer () {
+      if (process.env.VUE_APP_DEBUG) console.log('Sharing with servers')
+
       // automatic share with server
       let dataShares = await storage.getItem('dataShares')
       if (dataShares && dataShares.length > 0) {
-        let serverToken = await storage.getItem('serverToken')
-        if (serverToken) {
-          try {
-            let results = await files.readLog(TMP_FILENAME)
-            await api.sendTestResult(results, serverToken)
-          } catch (e) {
-            console.error('Error sharing test result with server:', e)
-            let errorMessage = e.message ? e.message : e
-            let confirmed = await this.$ons.notification.confirm(errorMessage + '<br><br>' + this.$t('errorRetry'), {
-              title: '⚠️ ' + this.$t('error'),
-              buttonLabels: [this.$t('settings.no'), this.$t('settings.yes')],
-              cancelable: true
-            })
-            if (confirmed) this.shareWithServer()
-            return
+        // for each data share send the results to the server
+        for (let ds of dataShares) {
+          if (ds.endpoint && ds.endpoint.serverUrl && ds.endpoint.serverToken) {
+            try {
+              let results = await files.readLog(TMP_FILENAME)
+              await api.sendTestResult(results, ds.endpoint)
+            } catch (e) {
+              console.error('Error sharing test result with server:', e)
+              // if the error is a 401, we need to tell the user that they need to re-authenticate with the server
+              if (e.statusCode && e.statusCode === 401) {
+                // TODO: the user must be prompted that the data share is no longer valid and they must re-authenticate.
+              }
+
+              let errorMessage = e.message ? e.message : e
+              let confirmed = await this.$ons.notification.confirm(errorMessage + '<br><br>' + this.$t('errorRetry'), {
+                title: '⚠️ ' + this.$t('error'),
+                buttonLabels: [this.$t('settings.no'), this.$t('settings.yes')],
+                cancelable: true
+              })
+              if (confirmed) this.shareWithServer()
+              return
+            }
           }
-        } else {
-          console.warn('No server token found, cannot share test result with server')
         }
+      } else {
+        if (process.env.VUE_APP_DEBUG) console.log('No data shares found, skipping server share')
       }
     },
     async reset () {

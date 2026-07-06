@@ -31,8 +31,8 @@ VUE_APP_DEBUG=true
 # possible values: 'real' (default) for real API, 'mock' for simulated API
 VUE_APP_API=real
 
-# base URL for API calls, used in 'real' mode, ignored in 'mock' mode
-VUE_APP_API_URL=http://localhost:3000
+# base URL for API calls for tests, used in 'real' mode to test against a local server with invitation code 00
+VUE_APP_API_TEST_URL=http://localhost:3000
 
 # possible values: 'real' (default) for real geolocation api, 'mock', 'csv', 'txt'
 VUE_APP_GPS=mock

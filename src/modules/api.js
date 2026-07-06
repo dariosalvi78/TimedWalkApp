@@ -1,19 +1,24 @@
 const API_FAIL = false // Set to true to simulate API failure for testing error handling
 
+const serverEndpoints = require('./apiEndpoints.json')
+
 class ServerError extends Error {
   constructor(message, statusCode) {
     super(message);
-    this.name = "ValidationError";
+    this.name = "ServerError";
     this.statusCode = statusCode;
   }
 }
 
 let mockApi = {
   // Mock API implementation
-  async refreshToken (serverToken) {
-    console.log('Refreshing token: ' + serverToken)
-    return 'mock-access-token'
+  getEndpointFromInvitationCode () {
+    return {
+      url: 'https://mockserver.com/api',
+      name: 'MockServer'
+    } // Return a mock server URL for testing
   },
+
   async getInvitationDetails (code) {
     if (API_FAIL) {
       return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
@@ -53,49 +58,70 @@ let mockApi = {
       }
     }
   },
-  async acceptInvitation (code, serverToken) {
+  async acceptInvitation (code, endpoint) {
     if (API_FAIL) {
       return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
     }
     // Simulate accepting the invitation
-    console.log('Invitation accepted with code: ' + code + ' and server token: ' + serverToken)
+    console.log('Invitation accepted with code: ' + code + ' and server token: ' + endpoint.serverToken)
     return 'mock-api-token'
   },
-  async disconnectFromTeam (teamId, serverToken) {
+  async disconnectFromTeam (teamId, endpoint) {
     if (API_FAIL) {
       return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
     }
-    console.log('Disconnecting from team with ID: ' + teamId, + 'and server token: ' + serverToken)
+    console.log('Disconnecting from team with ID: ' + teamId, + 'and server token: ' + endpoint.serverToken)
     return Promise.resolve()
   },
-  async sendTestResult (result, serverToken) {
+  async sendTestResult (result, endpoint) {
     if (API_FAIL) {
       return Promise.reject(new ServerError('Simulated API failure', 500)) // Simulate an API failure for testing error handling
     }
-    console.log('Sending test result to mock API:', result, 'with server token:', serverToken)
+    console.log('Sending test result to mock API:', result, 'with server token:', endpoint.serverToken)
     return Promise.resolve({ success: true, sharingWith: ['mock-team-id'] })
-  }
+  },
+  async refreshToken (serverUrl, serverToken) {
+    console.log('Refreshing token: ' + serverToken)
+    return 'mock-access-token'
+  },
 }
 
 let realApi = {
   // Real API implementation
-  async refreshToken (serverToken) {
-    const response = await fetch(process.env.VUE_APP_API_URL + '/api/refresh-token', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${serverToken}`
+
+  /**
+   * Gets the server endpoint associated with an invitation code.
+   * @param {string} code - the invitation code
+   * @returns {Object} The server endpoint object
+   */
+  getEndpointFromInvitationCode (code) {
+    // the first 2 digits of the code identify the server endpoint
+    const prefix = code.substring(0, 2)
+    if (process.env.VUE_APP_DEBUG) console.log('Getting server endpoint for invitation code prefix: ' + prefix)
+    if (prefix == '00') {
+      // local testing server, user env variable to determine the URL
+      return {
+        prefix: '00',
+        url: process.env.VUE_APP_API_TEST_URL,
+        id: 'LocalTestServer',
+        apiversion: 'v0'
       }
-    })
-    if (!response.ok) {
-      throw new ServerError('Failed to refresh token: ' + response.statusText, response.status)
     }
-    const data = await response.json()
-    console.log('Refreshed token:', data.serverToken)
-    return data.serverToken
+    const endpoint = serverEndpoints.find(ep => ep.prefix === prefix)
+    if (!endpoint) {
+      throw new Error('No server endpoint found for invitation code prefix: ' + prefix)
+    }
+    return endpoint
   },
 
+  /**
+   * Gets the details of an invitation code from the server.
+   * @param {string} code - the invitation code
+   * @returns {Promise} Resolves with invitation details if successful, rejects with ServerError if failed
+   */
   async getInvitationDetails (code) {
-    const response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code)
+    const endpoint = this.getEndpointFromInvitationCode(code)
+    const response = await fetch(endpoint.url + '/invitations/' + code)
     if (!response.ok) {
       throw new ServerError('Failed to fetch invitation details: ' + response.statusText, response.status)
     }
@@ -104,17 +130,25 @@ let realApi = {
     return data
   },
 
-  async acceptInvitation (code, serverToken) {
+  /**
+   * Accepts an invitation code by sending a request to the server.
+   * @param {string} code - invitation code
+   * @param {Object} endpoint - object containing server url and access token
+   * @returns {Promise} Resolves with server token if successful, rejects with ServerError if failed
+   */
+  async acceptInvitation (code, endpoint) {
     let response
-    if (serverToken) {
-      response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code + '/accept', {
+    if (endpoint.serverUrl && endpoint.serverToken) {
+      response = await fetch(endpoint.serverUrl + '/invitations/' + code + '/accept', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${serverToken}`
+          'Authorization': `Bearer ${endpoint.serverToken}`
         }
       })
     } else {
-      response = await fetch(process.env.VUE_APP_API_URL + '/api/invitations/' + code + '/accept', {
+      // get server URL based on the prefix of the invitation code
+      const endpoint = this.getEndpointFromInvitationCode(code)
+      response = await fetch(endpoint.url + '/invitations/' + code + '/accept', {
         method: 'POST'
       })
     }
@@ -127,15 +161,21 @@ let realApi = {
     return data.serverToken
   },
 
-  async disconnectFromTeam (teamId, serverToken) {
-    if (!serverToken) {
+  /**
+   * Disconnects the user from a team by sending a request to the server.
+   * @param {string} teamId - the team id as a string
+   * @param {Object} endpoint - endpoint details with server url and token
+   * @returns {Promise} Resolves with server response if successful, rejects with ServerError if failed
+   */
+  async disconnectFromTeam (teamId, endpoint) {
+    if (!endpoint.serverToken) {
       throw new ServerError('No server token provided for disconnecting from team', 401)
     }
-    const response = await fetch(process.env.VUE_APP_API_URL + '/api/disconnectFromTeam', {
+    const response = await fetch(endpoint.serverUrl + '/disconnectFromTeam', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serverToken}`
+        'Authorization': `Bearer ${endpoint.serverToken}`
       },
       body: JSON.stringify({ teamId })
     })
@@ -149,8 +189,8 @@ let realApi = {
 
   /**
    * Sends the results to the server.
-   * @param {string} results
-   * @param {string} serverToken
+   * @param {string} results - The results to be sent to the server as a string
+   * @param {string} endpoint - The server endpoint object containing serverUrl and serverToken
    * @returns {Promise} Resolves with server response if successful, rejects with ServerError if failed
    */
   // The current implementation sends the entire results as a single string in the request body.
@@ -161,12 +201,12 @@ let realApi = {
   // - body can be a readable stream, but we need to add the option duplex: "half"
   // - on server side, we need http2, see https://github.com/vercel/next.js/discussions/85001
   // I got stuck on wrong response from the server and gave up
-  async sendTestResult (results, serverToken) {
-    const response = await fetch(process.env.VUE_APP_API_URL + '/api/test-result', {
+  async sendTestResult (results, endpoint) {
+    const response = await fetch(endpoint.serverUrl + '/test-result', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain',
-        'Authorization': `Bearer ${serverToken}`
+        'Authorization': `Bearer ${endpoint.serverToken}`
       },
       body: results,
     })
@@ -176,7 +216,27 @@ let realApi = {
     const data = await response.json()
     console.log('Test result sent successfully, server response:', data)
     return data
-  }
+  },
+
+  /**
+   * Refreshes the server token by sending a request to the server.
+   * @param {Object} endpoint - The server endpoint object containing serverUrl and serverToken
+   * @returns {Promise} Resolves with the new server token if successful, rejects with ServerError if failed
+   */
+  async refreshToken (endpoint) {
+    const response = await fetch(endpoint.serverUrl + '/refresh-token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${endpoint.serverToken}`
+      }
+    })
+    if (!response.ok) {
+      throw new ServerError('Failed to refresh token: ' + response.statusText, response.status)
+    }
+    const data = await response.json()
+    console.log('Refreshed token:', data.serverToken)
+    return data.serverToken
+  },
 }
 
 
