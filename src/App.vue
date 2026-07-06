@@ -11,9 +11,6 @@ import settingsPage from './components/Settings'
 import historyPage from './components/History'
 import walkPage from './components/Walk'
 
-import api from './modules/api'
-import storage from './modules/storage'
-
 export default {
   name: 'MainPage',
   data () {
@@ -52,30 +49,6 @@ export default {
     //   document.documentElement.setAttribute('onsflag-iphonex-portrait', '')
     //   document.documentElement.setAttribute('onsflag-iphonex-landscape', '')
     // }
-
-    let dataShares = await storage.getItem('dataShares')
-    if (dataShares && dataShares.length > 0) {
-      // refresh token for each server endpoint we have a datashare with
-      for (let ds of dataShares) {
-        if (ds.endpoint && ds.endpoint.serverUrl && ds.endpoint.serverToken) {
-          try {
-            let newToken = await api.refreshToken(ds.endpoint)
-            ds.endpoint.serverToken = newToken
-            // save the updated endpoint back to storage
-            await storage.setItem('dataShares', dataShares)
-          } catch (e) {
-            console.error('Error refreshing token on app start:', JSON.stringify(e))
-            if (e.statusCode && e.statusCode === 401) { // if the error is an unauthorized error, we can assume the token is no longer valid and remove it
-              ds.endpoint.serverToken = null
-              // TODO: the user must be prompted that the data share is no longer valid and they must re-authenticate.
-              // For now, we just remove the datashare from storage and the user will see it disappear from the list of datashares in settings.
-              dataShares = dataShares.filter(ds2 => ds2.team.id !== ds.team.id)
-              await storage.setItem('dataShares', dataShares)
-            }
-          }
-        }
-      }
-    }
   }
 }
 </script>
