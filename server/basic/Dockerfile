@@ -14,6 +14,7 @@ COPY team.json ./
 RUN mkdir -p /app/test-results
 
 ENV NODE_ENV=production
+ENV PATH_PREFIX=/api
 ENV PORT_NUMBER=3000
 ENV LOG_LEVEL=info
 ENV LOG_FILE=./server.log

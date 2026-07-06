@@ -6,6 +6,7 @@ import helmet from "helmet"
 import cors from 'cors'
 import jwt from 'jsonwebtoken'
 
+const PATH_PREFIX = process.env.PATH_PREFIX || '/api'
 
 // Log to console by default, and to file when LOG_FILE is set.
 const streams = [{ stream: process.stdout }]
@@ -87,14 +88,14 @@ if (!teamConfig.patients || !teamConfig.patients.length) {
 }
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(`${PATH_PREFIX}/health`, (req, res) => {
   logger.debug('Health check requested')
   res.json({ status: 'OK', message: 'Server is running' })
 })
 
 
 // accept invitation endpoint
-app.post('/api/invitations/:code/accept', async (req, res) => {
+app.post(`${PATH_PREFIX}/invitations/:code/accept`, async (req, res) => {
   logger.debug('Accepting invitation with code: ' + req.params.code)
   // check code prefix
   if (!req.params.code.startsWith(process.env.SERVER_CODE_PREFIX)) {
@@ -126,7 +127,7 @@ app.post('/api/invitations/:code/accept', async (req, res) => {
 })
 
 // Invitation details endpoint
-app.get('/api/invitations/:code', (req, res) => {
+app.get(`${PATH_PREFIX}/invitations/:code`, (req, res) => {
   logger.debug('Fetching invitation details for code: ' + req.params.code)
   // find the patient associated with the invitation code
   const patient = teamConfig.patients.find(p => p.invitationCode.toLowerCase() === req.params.code.toLowerCase())
@@ -142,7 +143,7 @@ app.get('/api/invitations/:code', (req, res) => {
   })
 })
 
-app.post('/api/refresh-token', authenticateToken, async (req, res) => {
+app.post(`${PATH_PREFIX}/refresh-token`, authenticateToken, async (req, res) => {
   logger.debug('Refreshing token for patient ID: ' + req.user.patientId)
   // generate a new token with the same payload but a new expiration time
   const token = generateToken({ role: 'patient', patientId: req.user.patientId })
@@ -151,7 +152,7 @@ app.post('/api/refresh-token', authenticateToken, async (req, res) => {
 })
 
 // Disconnect a patient from a team
-app.post('/api/disconnectFromTeam', authenticateToken, async (req, res) => {
+app.post(`${PATH_PREFIX}/disconnectFromTeam`, authenticateToken, async (req, res) => {
   logger.debug('Disconnecting from team')
 
   // get patient id from token
@@ -170,7 +171,7 @@ app.post('/api/disconnectFromTeam', authenticateToken, async (req, res) => {
   res.json({ success: true })
 })
 
-app.post('/api/test-result', authenticateToken, async (req, res) => {
+app.post(`${PATH_PREFIX}/test-result`, authenticateToken, async (req, res) => {
   logger.debug('Received test result')
 
   // save the results on a local file
