@@ -1,4 +1,12 @@
-0.4
+0.5
+
+- updated quality check
+- new settings area with language selector
+- added integration with basic server
+- added code for basic server
+- more accurate and frequent location updates during test
+
+  0.4
 
 - added quality check of the measurement
 - added Swedish language
