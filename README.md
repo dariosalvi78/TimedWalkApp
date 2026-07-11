@@ -1,89 +1,29 @@
-# Timed Walk App
+# TimedWalk Project
 
-Apache Cordova app that allows people to perform timed walk tests, like the 6-minute walk test.
-The algorithm that computes the distance from the GPS is the same as the one used in [this paper](https://mhealth.jmir.org/2020/1/e13756/).
+This repository is organized with a top-level project structure and independent subprojects.
 
-This app is not certified as a medical device and should be used only for general wellbeing or as a home-based complement to more rigorous clinical assessment.
+## Top-level layout
 
-## Build Setup
+- `README.md`: this project overview
+- `project.json`: descriptor of all subprojects
+- `docs/`: shared documentation
+- `datamodel/`: shared SQL/data model assets
+- `test/`: centralized unit/integration tests
+- `app/`: Cordova/Vue application project
+- `servers/`: backend server projects (`basic` and `complete`)
 
-You need:
+## Node subprojects
 
-- Nodejs (recommended version 20.14.0)
-- Apache Cordova (tested with version 12.0.0)
+Each Node.js subproject keeps its own `package.json`:
 
-Then run:
+- `app/package.json`
+- `servers/basic/package.json`
+- `servers/complete/api/package.json`
 
-```bash
-npm install
-cordova prepare
-```
+## Where to work
 
-Prepare a `.env.local` file if you want to run simulated modules with:
-
-```env
-# as for Vue CLI 'production' in production mode, 'test' in test mode, and defaults to 'development' otherwise
-NODE_ENV=development
-
-# if true, debug logs will be printed in the console
-VUE_APP_DEBUG=true
-
-# possible values: 'real' (default) for real API, 'mock' for simulated API
-VUE_APP_API=real
-
-# base URL for API calls for tests, used in 'real' mode to test against a local server with invitation code 00
-VUE_APP_API_TEST_URL=http://localhost:3000
-
-# possible values: 'real' (default) for real geolocation api, 'mock', 'csv', 'txt'
-VUE_APP_GPS=mock
-
-# 'real' (default) for real web motion API, 'mock' for simulated, 'none' for missing support
-VUE_APP_MOTION=none
-
-# possible values: 'real' (default) uses cordova pedometer plugin, 'mock' for simulated, 'none' for missing support
-VUE_APP_STEPCOUNTER=none
-
-# possible values: 'real' (default) uses cordova native storage plugin, 'local' for browser localStorage
-VUE_APP_STORAGE=local
-
-# possible values: 'real' (default) uses cordova file plugin, 'localStorage' for browser simulation, 'mock' for empty module for testing
-VUE_APP_FILES=localStorage
-
-```
-
-## Unit tests
-
-```bash
-node --test
-```
-
-add `--watch` for live reload
-
-## Run web simulation
-
-Emulated on web at localhost:8080
-
-```bash
-npm run serve
-```
-
-If you have set the gps to be csv or txt you can replay saved tests by uploading the file when requested.
-
-## Run on device
-
-Run it on device:
-
-```bash
-npm run build
-cordova run
-```
-
-## Deploy
-
-```bash
-npm run build
-cordova prepare
-cordova build
-```
-
-Then you need to sign the app and release it. Seek instructions online on how to do it.
+- App development: `app/`
+- Basic server: `servers/basic/`
+- Complete server API: `servers/complete/api/`
+- Shared tests: `test/`
+- Shared docs: `docs/`

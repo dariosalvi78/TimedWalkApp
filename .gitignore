@@ -1,14 +1,18 @@
 .DS_Store
-node_modules
-/www
+**/node_modules
+**/www
 
 # cordova stuff
-plugins
-platforms
+**/plugins
+**/platforms
 
 # local env files
-.env.local
-.env.*.local
+**/.env.local
+**/.env.*.local
+
+# local logs/artifacts
+**/server.log
+**/test-results
 
 # Log files
 npm-debug.log*

@@ -1,0 +1,29 @@
+{
+  "name": "timedwalk",
+  "description": "Top-level project descriptor for TimedWalkApp monorepo-style layout",
+  "subprojects": [
+    {
+      "name": "app",
+      "path": "app",
+      "package": "app/package.json",
+      "type": "cordova-vue"
+    },
+    {
+      "name": "server-basic",
+      "path": "servers/basic",
+      "package": "servers/basic/package.json",
+      "type": "node-express"
+    },
+    {
+      "name": "server-complete-api",
+      "path": "servers/complete/api",
+      "package": "servers/complete/api/package.json",
+      "type": "node-express"
+    }
+  ],
+  "folders": {
+    "docs": "docs",
+    "datamodel": "datamodel",
+    "tests": "test"
+  }
+}
