@@ -275,6 +275,66 @@ async function cleanUpClinician (connection, id = null) {
   return res.rowCount > 0
 }
 
+
+/**
+ * Fetches teams from the database by team_id or name.
+ * team_id and name are exclusive, if both are provided, team_id will be used.
+ * @param {!Object} connection - the database connection
+ * @param {Object} queryParams - query parameters, contains id and name
+ * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams
+ */
+async function getTeams (connection, queryParams) {
+  const query = {
+    text: 'SELECT * FROM teams ',
+    values: [],
+  }
+
+  const { id, name } = queryParams || {}
+
+
+  if (id) {
+    query.text += ' WHERE teams.id = $1 '
+    query.values.push(team_id)
+  } else if (name) {
+    query.text += ' WHERE teams.name = $1 '
+    query.values.push(name)
+  }
+
+  let res = await connection.query(query)
+  return res.rows
+}
+
+/**
+ * Creates a new team in the database.
+ * @param {!Object} connection - the database connection
+ * @param {!Team} team - the team to create
+ * @returns {Promise<Team>} - a promise that resolves to the created team
+ */
+async function createTeam (connection, team) {
+  const query = {
+    text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
+    values: [team.contact_details, team.institutions, team.name],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
+ * Deletes a team from the database.
+ * @param {!Object} connection - the database connection
+ * @param {!string} id - the team to delete
+ * @returns {Promise<boolean>} - true if the team is deleted, false otherwise
+ */
+async function deleteTeam (connection, id) {
+  let query = {
+    text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
+    values: [id],
+  }
+  let res = await connection.query(query)
+
+  return res.rowCount > 0
+}
+
 export {
   getConnection,
   releaseConnection,
@@ -285,5 +345,8 @@ export {
   getClinicians,
   createClinician,
   deleteClinician,
-  cleanUpClinician
+  cleanUpClinician,
+  getTeams,
+  createTeam,
+  deleteTeam
 }
