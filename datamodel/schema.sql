@@ -83,6 +83,8 @@ CREATE TABLE IF NOT EXISTS team_invitation (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  clinician_id BIGINT REFERENCES clinicians(id) ON DELETE CASCADE,
+  patient_id BIGINT REFERENCES patients(id) ON DELETE CASCADE,
   role team_invitation_role_type NOT NULL,
   code TEXT NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]+$'),
   invitation_messages JSON NOT NULL DEFAULT '{}'::JSON,
