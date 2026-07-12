@@ -195,11 +195,11 @@ async function getClinicians (
     query.text += ' WHERE p_id = $1'
     query.values.push(queryParams.p_id)
   } else if (queryParams && queryParams.email) {
-    query.text = `SELECT clinicians.* FROM clinician
-        JOIN "user" ON clinician.user_id = "user".id WHERE "user".email = $1`
+    query.text = `SELECT clinicians.* FROM clinicians
+        JOIN "users" ON clinicians.user_id = "users".id WHERE "users".email = $1`
     query.values = [queryParams.email]
   } else if (queryParams && queryParams.team_id) {
-    query.text = ` SELECT clinicians.* FROM clinician
+    query.text = ` SELECT clinicians.* FROM clinicians
             JOIN clinician_team ON clinician_team.clinician_id = clinician.id
             WHERE clinician_team.team_id = $1`
     query.values = [queryParams.team_id]
@@ -228,41 +228,49 @@ async function createClinician (connection, clinician) {
 }
 
 /**
- * Deletes a clinician from the database and associated invitations and team memberships.
- * The clinician must have a user_id that exists in the "user" table.
+ * Deletes a clinician from the database.
  * @param {Client} connection - the database connection
- * @param {string} user_id - user_id of the clinician to be deleted
- * @param {string} email - email of the clinician to be deleted
+ * @param {string} id - user_id of the clinician to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function deleteClinician (connection, id = null, email = null) {
+async function deleteClinician (connection, id = null) {
   const query = {
     text: '',
-    values: [],
-  }
-  let res = null
-  if (email) {
-    // get the clinician id from the user table
-    query.text =
-      'SELECT id FROM clinician JOIN user ON user.id = clinician.user_id WHERE user.email = $1'
-    query.values.push(email)
-    res = await connection.query(query)
-    if (res.rowCount === 0) {
-      return false
-    }
-    id = res.rows[0].id
+    values: [id],
   }
 
+  query.text = 'DELETE FROM clinicians WHERE id = $1'
+  let res = await connection.query(query)
+
+  return res.rowCount > 0
+}
+
+
+/**
+ * Deletes a clinician from the database and associated invitations and team memberships.
+ * THIS SHOULD NOT BE USED IN A TRANSACTION
+ * @param {Client} connection - the database connection
+ * @param {string} id - id of the clinician to be deleted
+ * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
+ */
+async function cleanUpClinician (connection, id = null) {
+  const query = {
+    text: '',
+    values: [id],
+  }
+
+  await connection.query('BEGIN')
+
   query.text = 'DELETE FROM clinician_team WHERE clinician_id = $1'
-  query.values.push(id)
   await connection.query(query)
 
   query.text = 'DELETE FROM team_invitation WHERE clinician_id = $1'
-  query.values.push(id)
   await connection.query(query)
 
-  query.text += 'DELETE FROM clinician WHERE id = $1'
-  res = await connection.query(query)
+  query.text = 'DELETE FROM clinicians WHERE id = $1'
+  let res = await connection.query(query)
+
+  await connection.query('COMMIT')
 
   return res.rowCount > 0
 }
@@ -277,4 +285,5 @@ export {
   getClinicians,
   createClinician,
   deleteClinician,
+  cleanUpClinician
 }
