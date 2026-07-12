@@ -294,7 +294,7 @@ async function getTeams (connection, queryParams) {
 
   if (id) {
     query.text += ' WHERE teams.id = $1 '
-    query.values.push(team_id)
+    query.values.push(id)
   } else if (name) {
     query.text += ' WHERE teams.name = $1 '
     query.values.push(name)

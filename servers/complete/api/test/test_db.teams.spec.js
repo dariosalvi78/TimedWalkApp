@@ -34,4 +34,44 @@ describe('Testing access to teams,', () => {
     assert.strictEqual(deleted, true)
   })
 
+  describe('when teams are created,', () => {
+    let team1, team2
+    before(async () => {
+      let res = await dbtools.query(
+        dbclient,
+        `
+                  INSERT INTO "teams" (name, contact_details, institutions)
+                  VALUES ('Team A', 'Contact details for Team A', '{"Institution A"}')
+                  RETURNING *`,
+      )
+      team1 = res.rows[0]
+
+      res = await dbtools.query(
+        dbclient,
+        `
+                      INSERT INTO "teams" (name, contact_details, institutions)
+                      VALUES ('Team B', 'Contact details for Team B', '{"Institution B"}')
+                      RETURNING *`,
+      )
+      team2 = res.rows[0]
+    })
+
+    test('all teams can be retrieved', async function () {
+      let teams = await dbaccess.getTeams(dbclient)
+      assert.strictEqual(teams.length, 2, 'Expected exactly 2 teams')
+    })
+
+    test('a team can be retrieved by name', async function () {
+      let teams = await dbaccess.getTeams(dbclient, { name: 'Team A' })
+      assert.strictEqual(teams.length, 1)
+      assert.strictEqual(teams[0].name, 'Team A')
+    })
+
+    test('a team can be retrieved by id', async function () {
+      let teams = await dbaccess.getTeams(dbclient, { id: team2.id })
+      assert.strictEqual(teams.length, 1)
+      assert.strictEqual(teams[0].name, 'Team B')
+    })
+  })
+
 })
