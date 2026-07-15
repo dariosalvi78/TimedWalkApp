@@ -50,7 +50,7 @@
  * @typedef {Object} UserDeviceId
  * @property {!number} id - internal identity column
  * @property {!string} p_id - public UUID identifier for the device installation
- * @property {?number} user_id - linked user id, or null if not linked
+ * @property {!number} user_id - linked user id
  * @property {!string} created_at - creation timestamp
  */
 

@@ -92,7 +92,7 @@ describe('Testing db access to user sessions,', () => {
       await dbaccess.createUserSession(dbclient, userSession)
 
       // Clean up expired sessions
-      let cleanedUpCount = await dbaccess.deleteExpiredSessions(dbclient, new Date('2026-01-01T00:09:00Z'))
+      let cleanedUpCount = await dbaccess.deleteExpiredUserSessions(dbclient, new Date('2026-01-01T00:09:00Z'))
       assert.strictEqual(cleanedUpCount, 1, 'Expected exactly 1 expired user session to be cleaned up')
 
     })

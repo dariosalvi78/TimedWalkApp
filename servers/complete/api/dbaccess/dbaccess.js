@@ -13,7 +13,7 @@
  * @typedef {import("../../../../datamodel/types.js").TeamInvitation} TeamInvitation
  * @typedef {import("../../../../datamodel/types.js").Patient} Patient
  * @typedef {import("../../../../datamodel/types.js").UserSession} UserSession
- * @typedef {import("../../../../datamodel/types.js").DeviceId} DeviceId
+ * @typedef {import("../../../../datamodel/types.js").UserDeviceId} UserDeviceId
  */
 
 import logger from '../services/logger.js'
@@ -290,7 +290,7 @@ export const deleteUserSession = async (connection, session_id) => {
  * @param {Date} now - the current date and time, used to determine which sessions are expired
  * @returns {Promise<number>} - a promise that resolves to the number of expired sessions deleted
  */
-export const deleteExpiredSessions = async (connection, now) => {
+export const deleteExpiredUserSessions = async (connection, now) => {
   if (!now) now = new Date()
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE expires_at < $1',
@@ -298,6 +298,65 @@ export const deleteExpiredSessions = async (connection, now) => {
   }
   let res = await connection.query(query)
   return res.rowCount
+}
+
+/**
+ * Fetches device ids from the database by device id, p_id, or user_id.
+ * @param {Object} connection - the database connection
+ * @param {Object} queryParams - query parameters, contains id, p_id, or user_id
+ * @returns {Promise<Array<UserDeviceId>>} - a promise that resolves to an array of device ids
+ */
+export const getDeviceIds = async (connection, queryParams = null) => {
+  const query = {
+    text: 'SELECT * FROM "user_device_ids"',
+    values: [],
+  }
+
+  if (queryParams && queryParams.user_id) {
+    query.text += ' WHERE user_id = $1'
+    query.values.push(queryParams.user_id)
+  } else if (queryParams && queryParams.p_id) {
+    query.text += ' WHERE p_id = $1'
+    query.values.push(queryParams.p_id)
+  } else if (queryParams && queryParams.id) {
+    query.text += ' WHERE id = $1'
+    query.values.push(queryParams.id)
+  }
+
+  let res = await connection.query(query)
+  return res.rows
+}
+
+/**
+ * Creates a new user device id in the database.
+ * @param {Object} connection - database connection
+ * @param {UserDeviceId} deviceId - the device id to create
+ * @returns {Promise<UserDeviceId>} - a promise that resolves to the created device id
+ */
+export const createDeviceId = async (connection, deviceId) => {
+  const query = {
+    text:
+      'INSERT INTO "user_device_ids" (p_id, user_id, created_at) ' +
+      'VALUES ($1, $2, NOW()) RETURNING *',
+    values: [deviceId.p_id, deviceId.user_id],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
+ * Deletes a user device id from the database.
+ * @param {Object} connection - the database connection
+ * @param {string} p_id - the public UUID identifier for the device installation
+ * @returns {Promise<boolean>} - a promise that resolves to a boolean indicating whether the device id was deleted
+ */
+export const deleteDeviceId = async (connection, p_id) => {
+  const query = {
+    text: 'DELETE FROM "user_device_ids" WHERE p_id = $1',
+    values: [p_id],
+  }
+  let res = await connection.query(query)
+  return res.rowCount > 0
 }
 
 /**
