@@ -6,11 +6,14 @@
 /**
  * Import types from the datamodels.
  * @typedef {import("../../../../datamodel/types.js").User} User
+ * @typedef {import("../../../../datamodel/types.js").LoginCode} LoginCode
  * @typedef {import("../../../../datamodel/types.js").Clinician} Clinician
  * @typedef {import("../../../../datamodel/types.js").Team} Team
  * @typedef {import("../../../../datamodel/types.js").ClinicianTeam} ClinicianTeam
  * @typedef {import("../../../../datamodel/types.js").TeamInvitation} TeamInvitation
  * @typedef {import("../../../../datamodel/types.js").Patient} Patient
+ * @typedef {import("../../../../datamodel/types.js").UserSession} UserSession
+ * @typedef {import("../../../../datamodel/types.js").DeviceId} DeviceId
  */
 
 import logger from '../services/logger.js'
@@ -102,6 +105,63 @@ async function abortConnection (client) {
   client.release()
 }
 
+/**
+ * Fetches login codes from the database.
+ * @param {Object} connection - the database connection
+ * @param {Object} queryParams - query parameters, contains email and code for lookup
+ * @returns {Promise<Array<LoginCode>>} - a promise that resolves to an array of login codes
+ */
+async function getLoginCodes (connection, queryParams = null) {
+  const query = {
+    text: 'SELECT * FROM "login_codes"',
+    values: [],
+  }
+
+  if (queryParams && queryParams.code) {
+    query.text += ' WHERE code = $1'
+    query.values.push(queryParams.code)
+    if (queryParams.email) {
+      query.text += ' AND email = $2'
+      query.values.push(queryParams.email)
+    }
+  }
+
+  let res = await connection.query(query)
+  return res.rows
+}
+
+/**
+ * Creates a login code.
+ * @param {Object} connection - the database connection
+ * @param {LoginCode} loginCode - the logincode to be added
+ */
+async function createLoginCode (connection, loginCode) {
+  const query = {
+    text:
+      'INSERT INTO "login_codes" (email, code, expires_at, created_at) ' +
+      'VALUES ($1, $2, $3, NOW()) RETURNING *',
+    values: [loginCode.email, loginCode.code, loginCode.expires_at],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
+ * Deletes a single login code from the database.
+ * @param {string} code - the login code to be deleted
+ * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
+ * @param {Object} connection - the connection to the database
+ * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
+ */
+async function deleteLoginCode (connection, email, code) {
+  const query = {
+    text: 'DELETE FROM "login_codes" WHERE email = $1 AND code = $2',
+    values: [email, code],
+  }
+  let res = await connection.query(query)
+  return res.rowCount > 0
+}
+
 
 /**
  * Find users by id or email.
@@ -137,9 +197,9 @@ async function getUsers (connection, queryParams = null) {
 async function createUser (connection, user) {
   const query = {
     text:
-      'INSERT INTO "users" (role, email, hashed_password, created_at, last_login_at) ' +
-      'VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *',
-    values: [user.role, user.email, user.hashed_password],
+      'INSERT INTO "users" (role, email, created_at, last_login_at) ' +
+      'VALUES ($1, $2, NOW(), NOW()) RETURNING *',
+    values: [user.role, user.email],
   }
   let res = await connection.query(query)
   return res.rows[0]
@@ -171,6 +231,74 @@ async function deleteUser (connection, p_id = null, email = null) {
   return res.rowCount > 0
 }
 
+/**
+ * Retrieves user sessions from the database.
+ * @param {Object} connection - database connection
+ * @param {Object} queryParams - query parameters, contains session_id
+ * @returns {Promise<Array<UserSession>>} - a promise that resolves to an array of user sessions
+ */
+async function getUserSessions (connection, queryParams = null) {
+  const query = {
+    text: 'SELECT * FROM "user_sessions"',
+    values: [],
+  }
+
+  if (queryParams && queryParams.session_id) {
+    query.text += ' WHERE session_id = $1'
+    query.values.push(queryParams.session_id)
+  }
+
+  let res = await connection.query(query)
+  return res.rows
+}
+
+/**
+ * Creates a new user session in the database.
+ * @param {Object} connection - database connection
+ * @param {UserSession} session - the user session to create
+ * @returns {Promise<UserSession>} - a promise that resolves to the created user session
+ */
+async function createUserSession (connection, session) {
+  const query = {
+    text:
+      'INSERT INTO "user_sessions" (session_id, user_id, csfr_code, expires_at, created_at) ' +
+      'VALUES ($1, $2, $3, $4, NOW()) RETURNING *',
+    values: [session.session_id, session.user_id, session.csfr_code, session.expires_at],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
+ * Deletes a user session from the database.
+ * @param {Object} connection - database connection
+ * @param {string} session_id - unique session id
+ * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
+ */
+async function deleteUserSession (connection, session_id) {
+  const query = {
+    text: 'DELETE FROM "user_sessions" WHERE session_id = $1',
+    values: [session_id],
+  }
+  let res = await connection.query(query)
+  return res.rowCount > 0
+}
+
+/**
+ * Deletes expired user sessions from the database.
+ * @param {Object} connection - db connection
+ * @param {Date} now - the current date and time, used to determine which sessions are expired
+ * @returns {Promise<number>} - a promise that resolves to the number of expired sessions deleted
+ */
+async function deleteExpiredSessions (connection, now) {
+  if (!now) now = new Date()
+  const query = {
+    text: 'DELETE FROM "user_sessions" WHERE expires_at < $1',
+    values: [now],
+  }
+  let res = await connection.query(query)
+  return res.rowCount
+}
 
 /**
  * Gets clinicians by user id, email or team.
@@ -339,9 +467,16 @@ export {
   getConnection,
   releaseConnection,
   abortConnection,
+  createLoginCode,
+  getLoginCodes,
+  deleteLoginCode,
   getUsers,
   createUser,
   deleteUser,
+  getUserSessions,
+  createUserSession,
+  deleteUserSession,
+  deleteExpiredSessions,
   getClinicians,
   createClinician,
   deleteClinician,

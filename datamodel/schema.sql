@@ -26,10 +26,33 @@ CREATE TABLE IF NOT EXISTS users (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   email TEXT NOT NULL UNIQUE,
-  hashed_password TEXT NOT NULL,
   last_login_at TIMESTAMPTZ,
+  failed_login_attempts INTEGER NOT NULL DEFAULT 0  CHECK (failed_login_attempts >= 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   role user_type NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS login_codes (
+  email TEXT NOT NULL,
+  code VARCHAR(6) NOT NULL CHECK (code ~ '^[0-9]+$'),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (email, code)
+);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id TEXT PRIMARY KEY,
+  csfr_code TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS device_ids (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  p_id UUID NOT NULL UNIQUE,
+  user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS teams (
@@ -94,10 +117,12 @@ CREATE TABLE IF NOT EXISTS team_invitation (
 );
 
 -- NOTE:
--- - Every PRIMARY KEY(id) is automatically indexed.
+-- - Every PRIMARY KEY column is automatically indexed.
 -- - Every UNIQUE constraint (including all p_id columns) is automatically indexed.
 -- - We only add complementary reverse-order indexes needed for team-driven lookups.
 CREATE INDEX IF NOT EXISTS idx_clinician_team_team_clinician
   ON clinician_team(team_id, clinician_id);
 CREATE INDEX IF NOT EXISTS idx_patient_team_team_patient
   ON patient_team(team_id, patient_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at
+  ON user_sessions(expires_at);

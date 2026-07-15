@@ -25,12 +25,10 @@ describe('Testing access to users,', () => {
     let user = {
       role: 'patient',
       email: 'dario@mau.se',
-      hashed_password: 'xxxhashedpasswordxx'
     }
     let createdUser = await dbaccess.createUser(dbclient, user)
     assert.strictEqual(createdUser.role, user.role)
     assert.strictEqual(createdUser.email, user.email)
-    assert.strictEqual(createdUser.hashed_password, user.hashed_password)
     assert.ok(createdUser.created_at)
     assert.ok(createdUser.last_login_at)
     assert.ok(createdUser.p_id)
@@ -44,8 +42,8 @@ describe('Testing access to users,', () => {
       let res = await dbtools.query(
         dbclient,
         `
-                INSERT INTO "users" (role, email, hashed_password, created_at, last_login_at)
-                VALUES ('clinician', 'sofia@mau.se', 'xxxhashedpasswordxx', NOW(), NOW())
+                INSERT INTO "users" (role, email, created_at, last_login_at)
+                VALUES ('clinician', 'sofia@mau.se', NOW(), NOW())
                 RETURNING *`,
       )
       user1 = res.rows[0]
@@ -53,8 +51,8 @@ describe('Testing access to users,', () => {
       res = await dbtools.query(
         dbclient,
         `
-                    INSERT INTO "users" (role, email, hashed_password, created_at, last_login_at)
-                    VALUES ('clinician', 'anthony@mau.se', 'xxxhashedpasswordxx', NOW(), NOW())
+                    INSERT INTO "users" (role, email, created_at, last_login_at)
+                    VALUES ('clinician', 'anthony@mau.se', NOW(), NOW())
                     RETURNING *`,
       )
       user2 = res.rows[0]

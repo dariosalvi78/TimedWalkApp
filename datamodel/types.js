@@ -23,10 +23,35 @@
  * @property {!number} id - internal identity column
  * @property {!string} p_id - public UUID identifier
  * @property {!string} email - user email address
- * @property {!string} hashed_password - password hash
+ * @property {!number} failed_login_attempts - failed login attempts number
  * @property {?string} last_login_at - last login timestamp, or null if the user has not logged in
  * @property {!string} created_at - creation timestamp
  * @property {!UserType} role - user role
+ */
+
+/**
+ * @typedef {Object} LoginCode
+ * @property {!string} email - email address associated with the login code
+ * @property {!string} code - one-time 6-digit numeric login code
+ * @property {!string} expires_at - expiration timestamp
+ * @property {!string} created_at - creation timestamp
+ */
+
+/**
+ * @typedef {Object} UserSession
+ * @property {!number} user_id - linked user id
+ * @property {!string} session_id - unique session id (primary key)
+ * @property {!string} csfr_code - CSFR token bound to the session
+ * @property {!string} expires_at - expiration timestamp
+ * @property {!string} created_at - creation timestamp
+ */
+
+/**
+ * @typedef {Object} DeviceId
+ * @property {!number} id - internal identity column
+ * @property {!string} p_id - public UUID identifier for the device installation
+ * @property {?number} user_id - linked user id, or null if not linked
+ * @property {!string} created_at - creation timestamp
  */
 
 /**

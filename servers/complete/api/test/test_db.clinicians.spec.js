@@ -23,8 +23,8 @@ describe('Testing access to clinicians,', () => {
       let res = await dbtools.query(
         dbclient,
         `
-                INSERT INTO "users" (role, email, hashed_password, created_at, last_login_at)
-                VALUES ('clinician', 'sofia@mau.se', 'xxxhashedpasswordxx', NOW(), NOW())
+                INSERT INTO "users" (role, email, created_at, last_login_at)
+                VALUES ('clinician', 'sofia@mau.se', NOW(), NOW())
                 RETURNING *`,
       )
       user1 = res.rows[0]
@@ -32,8 +32,8 @@ describe('Testing access to clinicians,', () => {
       res = await dbtools.query(
         dbclient,
         `
-                    INSERT INTO "users" (role, email, hashed_password, created_at, last_login_at)
-                    VALUES ('clinician', 'anthony@mau.se', 'xxxhashedpasswordxx', NOW(), NOW())
+                    INSERT INTO "users" (role, email, created_at, last_login_at)
+                    VALUES ('clinician', 'anthony@mau.se', NOW(), NOW())
                     RETURNING *`,
       )
       user2 = res.rows[0]
@@ -53,8 +53,7 @@ describe('Testing access to clinicians,', () => {
     test('a new clinician can be created and deleted', async () => {
       let createdUser = await dbaccess.createUser(dbclient, {
         role: 'clinician',
-        email: 'sebastian@mau.se',
-        hashed_password: 'xxxhashedpasswordxx',
+        email: 'sebastian@mau.se'
       })
 
       let newClinician = {
