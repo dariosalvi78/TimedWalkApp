@@ -40,7 +40,7 @@ pool.on('error', (err) => {
  * @param {boolean} withTransaction - if true, a transaction will be started on the connection
  * @returns {Promise<Object>} - a promise that resolves to a client
  */
-async function getConnection (withTransaction = false) {
+export const getConnection = async (withTransaction = false) => {
   const client = await pool.connect()
   if (withTransaction) {
     logger.debug('Beginning transaction')
@@ -77,7 +77,7 @@ async function getConnection (withTransaction = false) {
  * @param {Object} client - the client to release
  * @param {boolean} withTransaction - if true, a transaction will be committed before releasing the client
  */
-async function releaseConnection (client) {
+export const releaseConnection = async (client) => {
   if (!client) {
     logger.error('Tried to release a null client')
     return
@@ -93,7 +93,7 @@ async function releaseConnection (client) {
  * Aborts a transaction on the client.
  * @param {Object} client - the client to abort the transaction on
  */
-async function abortConnection (client) {
+export const abortConnection = async (client) => {
   if (!client) {
     logger.error('Tried to abort a null client')
     return
@@ -111,7 +111,7 @@ async function abortConnection (client) {
  * @param {Object} queryParams - query parameters, contains email and code for lookup
  * @returns {Promise<Array<LoginCode>>} - a promise that resolves to an array of login codes
  */
-async function getLoginCodes (connection, queryParams = null) {
+export const getLoginCodes = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "login_codes"',
     values: [],
@@ -135,7 +135,7 @@ async function getLoginCodes (connection, queryParams = null) {
  * @param {Object} connection - the database connection
  * @param {LoginCode} loginCode - the logincode to be added
  */
-async function createLoginCode (connection, loginCode) {
+export const createLoginCode = async (connection, loginCode) => {
   const query = {
     text:
       'INSERT INTO "login_codes" (email, code, expires_at, created_at) ' +
@@ -153,7 +153,7 @@ async function createLoginCode (connection, loginCode) {
  * @param {Object} connection - the connection to the database
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function deleteLoginCode (connection, email, code) {
+export const deleteLoginCode = async (connection, email, code) => {
   const query = {
     text: 'DELETE FROM "login_codes" WHERE email = $1 AND code = $2',
     values: [email, code],
@@ -170,7 +170,7 @@ async function deleteLoginCode (connection, email, code) {
  * @param {Object} queryParams - query parameters, contains id or email
  * @returns {Promise<Array<User>>} - a promise that resolves to an array of users
  */
-async function getUsers (connection, queryParams = null) {
+export const getUsers = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "users"',
     values: [],
@@ -194,7 +194,7 @@ async function getUsers (connection, queryParams = null) {
  * @param {User} user - the user to create
  * @returns {Promise<User>} - a promise that resolves to the created user
  */
-async function createUser (connection, user) {
+export const createUser = async (connection, user) => {
   const query = {
     text:
       'INSERT INTO "users" (role, email, created_at, last_login_at) ' +
@@ -212,7 +212,7 @@ async function createUser (connection, user) {
  * @param {string} email - email of the user to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function deleteUser (connection, p_id = null, email = null) {
+export const deleteUser = async (connection, p_id = null, email = null) => {
   const query = {
     text: '',
     values: [],
@@ -237,7 +237,7 @@ async function deleteUser (connection, p_id = null, email = null) {
  * @param {Object} queryParams - query parameters, contains session_id
  * @returns {Promise<Array<UserSession>>} - a promise that resolves to an array of user sessions
  */
-async function getUserSessions (connection, queryParams = null) {
+export const getUserSessions = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "user_sessions"',
     values: [],
@@ -258,7 +258,7 @@ async function getUserSessions (connection, queryParams = null) {
  * @param {UserSession} session - the user session to create
  * @returns {Promise<UserSession>} - a promise that resolves to the created user session
  */
-async function createUserSession (connection, session) {
+export const createUserSession = async (connection, session) => {
   const query = {
     text:
       'INSERT INTO "user_sessions" (session_id, user_id, csfr_code, expires_at, created_at) ' +
@@ -275,7 +275,7 @@ async function createUserSession (connection, session) {
  * @param {string} session_id - unique session id
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function deleteUserSession (connection, session_id) {
+export const deleteUserSession = async (connection, session_id) => {
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE session_id = $1',
     values: [session_id],
@@ -290,7 +290,7 @@ async function deleteUserSession (connection, session_id) {
  * @param {Date} now - the current date and time, used to determine which sessions are expired
  * @returns {Promise<number>} - a promise that resolves to the number of expired sessions deleted
  */
-async function deleteExpiredSessions (connection, now) {
+export const deleteExpiredSessions = async (connection, now) => {
   if (!now) now = new Date()
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE expires_at < $1',
@@ -307,10 +307,10 @@ async function deleteExpiredSessions (connection, now) {
  * @param {Object} queryParams - query parameters, contains p_id, user_id, email, or team_id
  * @returns {Promise<Array<Clinician>>} - a promise that resolves to an array of clinicians
  */
-async function getClinicians (
+export const getClinicians = async (
   connection,
   queryParams = null
-) {
+) => {
   const query = {
     text: 'SELECT * FROM clinicians ',
     values: [],
@@ -344,7 +344,7 @@ async function getClinicians (
  * @param {Clinician} clinician - the clinician to create
  * @returns {Promise<Clinician>} - a promise that resolves to the created clinician
  */
-async function createClinician (connection, clinician) {
+export const createClinician = async (connection, clinician) => {
   const query = {
     text:
       'INSERT INTO clinicians (user_id, first_names, second_names, created_at) ' +
@@ -361,7 +361,7 @@ async function createClinician (connection, clinician) {
  * @param {string} id - user_id of the clinician to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function deleteClinician (connection, id = null) {
+export const deleteClinician = async (connection, id = null) => {
   const query = {
     text: '',
     values: [id],
@@ -381,7 +381,7 @@ async function deleteClinician (connection, id = null) {
  * @param {string} id - id of the clinician to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-async function cleanUpClinician (connection, id = null) {
+export const cleanUpClinician = async (connection, id = null) => {
   const query = {
     text: '',
     values: [id],
@@ -411,7 +411,7 @@ async function cleanUpClinician (connection, id = null) {
  * @param {Object} queryParams - query parameters, contains id and name
  * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams
  */
-async function getTeams (connection, queryParams) {
+export const getTeams = async (connection, queryParams) => {
   const query = {
     text: 'SELECT * FROM teams ',
     values: [],
@@ -438,7 +438,7 @@ async function getTeams (connection, queryParams) {
  * @param {!Team} team - the team to create
  * @returns {Promise<Team>} - a promise that resolves to the created team
  */
-async function createTeam (connection, team) {
+export const createTeam = async (connection, team) => {
   const query = {
     text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
     values: [team.contact_details, team.institutions, team.name],
@@ -453,7 +453,7 @@ async function createTeam (connection, team) {
  * @param {!string} id - the team to delete
  * @returns {Promise<boolean>} - true if the team is deleted, false otherwise
  */
-async function deleteTeam (connection, id) {
+export const deleteTeam = async (connection, id) => {
   let query = {
     text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
     values: [id],
@@ -463,25 +463,3 @@ async function deleteTeam (connection, id) {
   return res.rowCount > 0
 }
 
-export {
-  getConnection,
-  releaseConnection,
-  abortConnection,
-  createLoginCode,
-  getLoginCodes,
-  deleteLoginCode,
-  getUsers,
-  createUser,
-  deleteUser,
-  getUserSessions,
-  createUserSession,
-  deleteUserSession,
-  deleteExpiredSessions,
-  getClinicians,
-  createClinician,
-  deleteClinician,
-  cleanUpClinician,
-  getTeams,
-  createTeam,
-  deleteTeam
-}
