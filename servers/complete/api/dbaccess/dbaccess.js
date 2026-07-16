@@ -40,7 +40,7 @@ pool.on('error', (err) => {
  * @param {boolean} withTransaction - if true, a transaction will be started on the connection
  * @returns {Promise<Object>} - a promise that resolves to a client
  */
-export const getConnection = async (withTransaction = false) => {
+const getConnection = async (withTransaction = false) => {
   const client = await pool.connect()
   if (withTransaction) {
     logger.debug('Beginning transaction')
@@ -77,7 +77,7 @@ export const getConnection = async (withTransaction = false) => {
  * @param {Object} client - the client to release
  * @param {boolean} withTransaction - if true, a transaction will be committed before releasing the client
  */
-export const releaseConnection = async (client) => {
+const releaseConnection = async (client) => {
   if (!client) {
     logger.error('Tried to release a null client')
     return
@@ -93,7 +93,7 @@ export const releaseConnection = async (client) => {
  * Aborts a transaction on the client.
  * @param {Object} client - the client to abort the transaction on
  */
-export const abortConnection = async (client) => {
+const abortConnection = async (client) => {
   if (!client) {
     logger.error('Tried to abort a null client')
     return
@@ -111,7 +111,7 @@ export const abortConnection = async (client) => {
  * @param {Object} queryParams - query parameters, contains email and code for lookup
  * @returns {Promise<Array<LoginCode>>} - a promise that resolves to an array of login codes
  */
-export const getLoginCodes = async (connection, queryParams = null) => {
+const getLoginCodes = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "login_codes"',
     values: [],
@@ -135,7 +135,7 @@ export const getLoginCodes = async (connection, queryParams = null) => {
  * @param {Object} connection - the database connection
  * @param {LoginCode} loginCode - the logincode to be added
  */
-export const createLoginCode = async (connection, loginCode) => {
+const createLoginCode = async (connection, loginCode) => {
   const query = {
     text:
       'INSERT INTO "login_codes" (email, code, expires_at, created_at) ' +
@@ -153,7 +153,7 @@ export const createLoginCode = async (connection, loginCode) => {
  * @param {Object} connection - the connection to the database
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-export const deleteLoginCode = async (connection, email, code) => {
+const deleteLoginCode = async (connection, email, code) => {
   const query = {
     text: 'DELETE FROM "login_codes" WHERE email = $1 AND code = $2',
     values: [email, code],
@@ -170,7 +170,7 @@ export const deleteLoginCode = async (connection, email, code) => {
  * @param {Object} queryParams - query parameters, contains id or email
  * @returns {Promise<Array<User>>} - a promise that resolves to an array of users
  */
-export const getUsers = async (connection, queryParams = null) => {
+const getUsers = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "users"',
     values: [],
@@ -194,7 +194,7 @@ export const getUsers = async (connection, queryParams = null) => {
  * @param {User} user - the user to create
  * @returns {Promise<User>} - a promise that resolves to the created user
  */
-export const createUser = async (connection, user) => {
+const createUser = async (connection, user) => {
   const query = {
     text:
       'INSERT INTO "users" (role, email, created_at, last_login_at) ' +
@@ -212,7 +212,7 @@ export const createUser = async (connection, user) => {
  * @param {string} email - email of the user to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-export const deleteUser = async (connection, p_id = null, email = null) => {
+const deleteUser = async (connection, p_id = null, email = null) => {
   const query = {
     text: '',
     values: [],
@@ -234,10 +234,10 @@ export const deleteUser = async (connection, p_id = null, email = null) => {
 /**
  * Retrieves user sessions from the database.
  * @param {Object} connection - database connection
- * @param {Object} queryParams - query parameters, contains session_id
+ * @param {Object} queryParams - query parameters, contains session_id and (optional) csrf_code and max_expiry_time as date
  * @returns {Promise<Array<UserSession>>} - a promise that resolves to an array of user sessions
  */
-export const getUserSessions = async (connection, queryParams = null) => {
+const getUserSessions = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "user_sessions"',
     values: [],
@@ -246,6 +246,48 @@ export const getUserSessions = async (connection, queryParams = null) => {
   if (queryParams && queryParams.session_id) {
     query.text += ' WHERE session_id = $1'
     query.values.push(queryParams.session_id)
+
+    if (queryParams.csrf_code) {
+      query.text += ' AND csrf_code = $2'
+      query.values.push(queryParams.csrf_code)
+    }
+  }
+
+  if (queryParams && queryParams.max_expiry_time) {
+    query.text += query.text.includes('WHERE') ? ' AND expires_at > $3' : ' WHERE expires_at > $3'
+    query.values.push(queryParams.max_expiry_time)
+  }
+
+  let res = await connection.query(query)
+  return res.rows
+}
+
+
+/**
+ * Retrieves user sessions with associated user information from the database.
+ * @param {Object} connection - database connection
+ * @param {Object} queryParams - query parameters, contains session_id and (optional) csrf_code and max_expiry_time as date
+ * @returns {Promise<Array<UserSessionWithUser>>} - a promise that resolves to an array of user sessions with associated user information
+ */
+async function getUserSessionsWithUser (connection, queryParams = null) {
+  const query = {
+    text: 'SELECT * FROM "user_sessions" JOIN "users" ON "user_sessions".user_id = "users".id',
+    values: [],
+  }
+
+  if (queryParams && queryParams.session_id) {
+    query.text += ' WHERE session_id = $1'
+    query.values.push(queryParams.session_id)
+
+    if (queryParams.csrf_code) {
+      query.text += ' AND csrf_code = $2'
+      query.values.push(queryParams.csrf_code)
+    }
+  }
+
+  if (queryParams && queryParams.max_expiry_time) {
+    query.text += query.text.includes('WHERE') ? ' AND expires_at > $3' : ' WHERE expires_at > $3'
+    query.values.push(queryParams.max_expiry_time)
   }
 
   let res = await connection.query(query)
@@ -258,7 +300,7 @@ export const getUserSessions = async (connection, queryParams = null) => {
  * @param {UserSession} session - the user session to create
  * @returns {Promise<UserSession>} - a promise that resolves to the created user session
  */
-export const createUserSession = async (connection, session) => {
+const createUserSession = async (connection, session) => {
   const query = {
     text:
       'INSERT INTO "user_sessions" (session_id, user_id, csfr_code, expires_at, created_at) ' +
@@ -275,7 +317,7 @@ export const createUserSession = async (connection, session) => {
  * @param {string} session_id - unique session id
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-export const deleteUserSession = async (connection, session_id) => {
+const deleteUserSession = async (connection, session_id) => {
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE session_id = $1',
     values: [session_id],
@@ -290,7 +332,7 @@ export const deleteUserSession = async (connection, session_id) => {
  * @param {Date} now - the current date and time, used to determine which sessions are expired
  * @returns {Promise<number>} - a promise that resolves to the number of expired sessions deleted
  */
-export const deleteExpiredUserSessions = async (connection, now) => {
+const deleteExpiredUserSessions = async (connection, now) => {
   if (!now) now = new Date()
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE expires_at < $1',
@@ -306,7 +348,7 @@ export const deleteExpiredUserSessions = async (connection, now) => {
  * @param {Object} queryParams - query parameters, contains id, p_id, or user_id
  * @returns {Promise<Array<UserDeviceId>>} - a promise that resolves to an array of device ids
  */
-export const getDeviceIds = async (connection, queryParams = null) => {
+const getDeviceIds = async (connection, queryParams = null) => {
   const query = {
     text: 'SELECT * FROM "user_device_ids"',
     values: [],
@@ -333,7 +375,7 @@ export const getDeviceIds = async (connection, queryParams = null) => {
  * @param {UserDeviceId} deviceId - the device id to create
  * @returns {Promise<UserDeviceId>} - a promise that resolves to the created device id
  */
-export const createDeviceId = async (connection, deviceId) => {
+const createDeviceId = async (connection, deviceId) => {
   const query = {
     text:
       'INSERT INTO "user_device_ids" (p_id, user_id, created_at) ' +
@@ -350,7 +392,7 @@ export const createDeviceId = async (connection, deviceId) => {
  * @param {string} p_id - the public UUID identifier for the device installation
  * @returns {Promise<boolean>} - a promise that resolves to a boolean indicating whether the device id was deleted
  */
-export const deleteDeviceId = async (connection, p_id) => {
+const deleteDeviceId = async (connection, p_id) => {
   const query = {
     text: 'DELETE FROM "user_device_ids" WHERE p_id = $1',
     values: [p_id],
@@ -366,7 +408,7 @@ export const deleteDeviceId = async (connection, p_id) => {
  * @param {Object} queryParams - query parameters, contains p_id, user_id, email, or team_id
  * @returns {Promise<Array<Clinician>>} - a promise that resolves to an array of clinicians
  */
-export const getClinicians = async (
+const getClinicians = async (
   connection,
   queryParams = null
 ) => {
@@ -403,7 +445,7 @@ export const getClinicians = async (
  * @param {Clinician} clinician - the clinician to create
  * @returns {Promise<Clinician>} - a promise that resolves to the created clinician
  */
-export const createClinician = async (connection, clinician) => {
+const createClinician = async (connection, clinician) => {
   const query = {
     text:
       'INSERT INTO clinicians (user_id, first_names, second_names, created_at) ' +
@@ -420,7 +462,7 @@ export const createClinician = async (connection, clinician) => {
  * @param {string} id - user_id of the clinician to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-export const deleteClinician = async (connection, id = null) => {
+const deleteClinician = async (connection, id = null) => {
   const query = {
     text: '',
     values: [id],
@@ -428,36 +470,6 @@ export const deleteClinician = async (connection, id = null) => {
 
   query.text = 'DELETE FROM clinicians WHERE id = $1'
   let res = await connection.query(query)
-
-  return res.rowCount > 0
-}
-
-
-/**
- * Deletes a clinician from the database and associated invitations and team memberships.
- * THIS SHOULD NOT BE USED IN A TRANSACTION
- * @param {Client} connection - the database connection
- * @param {string} id - id of the clinician to be deleted
- * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
- */
-export const cleanUpClinician = async (connection, id = null) => {
-  const query = {
-    text: '',
-    values: [id],
-  }
-
-  await connection.query('BEGIN')
-
-  query.text = 'DELETE FROM clinician_team WHERE clinician_id = $1'
-  await connection.query(query)
-
-  query.text = 'DELETE FROM team_invitation WHERE clinician_id = $1'
-  await connection.query(query)
-
-  query.text = 'DELETE FROM clinicians WHERE id = $1'
-  let res = await connection.query(query)
-
-  await connection.query('COMMIT')
 
   return res.rowCount > 0
 }
@@ -470,7 +482,7 @@ export const cleanUpClinician = async (connection, id = null) => {
  * @param {Object} queryParams - query parameters, contains id and name
  * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams
  */
-export const getTeams = async (connection, queryParams) => {
+const getTeams = async (connection, queryParams) => {
   const query = {
     text: 'SELECT * FROM teams ',
     values: [],
@@ -497,7 +509,7 @@ export const getTeams = async (connection, queryParams) => {
  * @param {!Team} team - the team to create
  * @returns {Promise<Team>} - a promise that resolves to the created team
  */
-export const createTeam = async (connection, team) => {
+const createTeam = async (connection, team) => {
   const query = {
     text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
     values: [team.contact_details, team.institutions, team.name],
@@ -512,7 +524,7 @@ export const createTeam = async (connection, team) => {
  * @param {!string} id - the team to delete
  * @returns {Promise<boolean>} - true if the team is deleted, false otherwise
  */
-export const deleteTeam = async (connection, id) => {
+const deleteTeam = async (connection, id) => {
   let query = {
     text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
     values: [id],
@@ -520,5 +532,32 @@ export const deleteTeam = async (connection, id) => {
   let res = await connection.query(query)
 
   return res.rowCount > 0
+}
+
+
+export default {
+  getConnection,
+  releaseConnection,
+  abortConnection,
+  createLoginCode,
+  getLoginCodes,
+  deleteLoginCode,
+  getUsers,
+  createUser,
+  deleteUser,
+  getUserSessions,
+  createUserSession,
+  deleteUserSession,
+  getUserSessionsWithUser,
+  deleteExpiredUserSessions,
+  getDeviceIds,
+  createDeviceId,
+  deleteDeviceId,
+  getClinicians,
+  createClinician,
+  deleteClinician,
+  getTeams,
+  createTeam,
+  deleteTeam
 }
 

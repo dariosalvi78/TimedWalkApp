@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test, before, after, beforeEach, afterEach } from 'node:test';
 import * as dbtools from './dbtesttools.js'
-import * as dbaccess from '../dbaccess/dbaccess.js'
+import dbaccess from '../dbaccess/dbaccess.js'
 
 describe('Testing access to logincodes,', () => {
   const testDBName = 'testlogincodes'

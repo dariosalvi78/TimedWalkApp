@@ -29,7 +29,7 @@ There are 2 major flows: patients through app and clinicians through web.
 The patient receives an invitation to join a team. The invitation contains a unique, 6 digits, code, with relatively close expiry date (few days, possibly 1).
 The user enters the code in the app, which verify it exists and, upon acceptance, send back a session token, which is geneated randomly and with enough length (32-byte/256-bit at least). These tokens are long-lived (weeks, even months, depending on expected frequency of use) and are managed by the app JS code and sent back to API calls as security header: `Authorization: Bearer abc123`.
 
-The app also takes care of refreshing the session token before expiration.
+Tokens will be refreshed by the app automatically with a timer.
 
 ### Clinician authentication through web
 
@@ -37,23 +37,21 @@ The clinician receives a code to join a team, creates a user and, upon acceptanc
 
 A login is passwordless: the user enters the email on the web, if an account exists, an email is sent with a short-lived (minutes) access code of 6 digits, that is used to enter the website. If the code/email pair is verified, the server sets the httpOnly cookie, similarly to what is done above.
 
-Two additional security measures are introduced for the web environment:
+Additional security measures are introduced for the web environment:
 
-**_CSRF token:_**
+**CSRF token:**
 
 In addition to the seession token, a random CSRF token is also generated as a random number and sent to the client in the API reply.
 The CSRF token is taken by the JS code, stored in the local storage, and sent back in a header:
-`'X-CSRF-Token': 323242342342`.
+`X-CSRF-Token: 323242342342`.
 
 The CSRF token has the same life as the session token but, being managed by the JS code, not the browser automatically, it cannot be leaked by mistake in a CSRF attach.
 
-The web interface takes care of refreshing tokens before expiration.
-
-**\_High security authentication flow:**
+**High security authentication flow:**
 
 A login in the app is only initiated by a clinician sending the invitation code, therefore it's hardly forgeable. However, a clinician's login can be forged if an attacker takes control of the clinician's email. This can be de-risked by detecting an unusual login request and asking an addition security question, which cannot be easily derived.
 
-The client will store a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored in the local storage of the browser. The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
+The client will store a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser. The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
 
 The security question should be something that the user knows and does not need to remember only for this system. For example:
 
@@ -68,15 +66,32 @@ We can allow setting more than one security question at registration.
 
 To consider: it can be possible to also geo-reference the IP address, for example with https://apiip.net/ and step up security if device id is OK but location is not the usual one.
 
-**_Brute forcing:_**
+**Session refresh and forced logouts:\***
+
+Session refresh is issued by the application with a specific API call that is triggered when the user interacts with the web page (on clicks and taps). The web application should avoid refreshing the tokens using a timer, else if the webpage is left opened it will be kept logged in forever, which may be a problem on public computers.
+
+When in a high security authentication flow, after acceptance of code and security answer, users are additionally asked if the device they are accessing the website is personal and trusted. If the answer is yes, the device id cookie is sent, otherwise it is not sent.
+
+When checking the session id, at each API call beyond authorization, the server will check 2 expiry timestamps:
+
+- one for inactivity, that is shorter lived (minutes) and refreshed by the web application
+- only if the identified client is web (recognised because of session id in cookie), and if there is no device id set (thus it's a untrusted client), a second un-resettable expiration timestamp is also checked. This, in practice, forces a logout after a certain number of hours, no matter how much the user uses the website.
+
+**Brute forcing:**
 
 Failed login attempts are recorded and if there are too many failed attempts, the user will be locked out.
 
 Recovery in this case must be manual and done by an admin.
 
-**_Patients' logins through emails:_**
+**Patients' logins through emails:**
 
 Note: if we allow patients to login into the web similar measures are necessary for them too. If we allow non-team dependent logins, using patients' emails, the same mechanisms must be in place also on the app (except for longer living session tokens, to guarantee usability).
+
+### Tokens refresh
+
+The app takes care of refreshing the session token before expiration.
+
+todo: expiry at + hard expiry for public devices...
 
 ## Security analysis
 
