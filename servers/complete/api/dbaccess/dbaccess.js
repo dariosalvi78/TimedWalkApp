@@ -312,6 +312,41 @@ const createUserSession = async (connection, session) => {
 }
 
 /**
+ * Updates a single user session in the database.
+ * @param {Object} connection - database connection
+ * @param {string} session_id - unique session id
+ * @param {Object} updateParams - key value
+ * @returns {Promise<UserSession>} - a promise that resolves to the updated user session
+ */
+async function updateUserSession (connection, session_id, updateParams) {
+  const allowedParams = ['session_id', 'user_id', 'csfr_code', 'expires_at', 'created_at']
+
+  const query = {
+    text:
+      'UPDATE "user_sessions" SET ',
+    values: []
+  }
+
+  for (let param of Object.keys(updateParams)) {
+    if (allowedParams.includes(param)) {
+      query.text += `${param} = $${query.values.length + 1}, `
+      query.values.push(updateParams[param])
+    }
+  }
+
+  if (query.values.length === 0) {
+    return null
+  }
+
+  query.text = query.text.slice(0, -2) // Remove trailing comma and space
+  query.text += ' WHERE session_id = $' + (query.values.length + 1)
+  query.values.push(session_id)
+  query.text += ' RETURNING *'
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Deletes a user session from the database.
  * @param {Object} connection - database connection
  * @param {string} session_id - unique session id

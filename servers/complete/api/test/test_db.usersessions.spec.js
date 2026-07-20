@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import assert from 'node:assert';
 import { describe, test, before, after, beforeEach, afterEach } from 'node:test';
 import * as dbtools from './dbtesttools.js'
 import dbaccess from '../dbaccess/dbaccess.js'
@@ -79,6 +79,12 @@ describe('Testing db access to user sessions,', () => {
       let userSessions = await dbaccess.getUserSessions(dbclient, { session_id: 'test_session_id_1' })
       assert.strictEqual(userSessions.length, 1, 'Expected exactly 1 user session')
       assert.strictEqual(userSessions[0].session_id, 'test_session_id_1')
+    })
+
+    test('user session for test_session_id_1 can be updated', async function () {
+      let updatesession = await dbaccess.updateUserSession(dbclient, 'test_session_id_1', { expires_at: new Date('2026-01-01T00:09:00Z') }) // change the date to 1st Jan 2026 at 00:09:00 UTC
+      assert.strictEqual(updatesession.session_id, 'test_session_id_1')
+      assert.ok(updatesession.expires_at - new Date('2026-01-01T00:09:00Z') < 1000, 'Expected the expires_at to be updated to 2026-01-01T00:09:00Z')
     })
 
     test('user sessions can be cleaned up after expiration', async function () {
