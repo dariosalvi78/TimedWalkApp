@@ -40,7 +40,7 @@ pool.on('error', (err) => {
  * @param {boolean} withTransaction - if true, a transaction will be started on the connection
  * @returns {Promise<Object>} - a promise that resolves to a client
  */
-const getConnection = async (withTransaction = false) => {
+async function getConnection (withTransaction = false) {
   const client = await pool.connect()
   if (withTransaction) {
     logger.debug('Beginning transaction')
@@ -77,7 +77,7 @@ const getConnection = async (withTransaction = false) => {
  * @param {Object} client - the client to release
  * @param {boolean} withTransaction - if true, a transaction will be committed before releasing the client
  */
-const releaseConnection = async (client) => {
+async function releaseConnection (client) {
   if (!client) {
     logger.error('Tried to release a null client')
     return
@@ -93,7 +93,7 @@ const releaseConnection = async (client) => {
  * Aborts a transaction on the client.
  * @param {Object} client - the client to abort the transaction on
  */
-const abortConnection = async (client) => {
+async function abortConnection (client) {
   if (!client) {
     logger.error('Tried to abort a null client')
     return
@@ -111,7 +111,7 @@ const abortConnection = async (client) => {
  * @param {Object} queryParams - query parameters, contains email and code for lookup
  * @returns {Promise<Array<LoginCode>>} - a promise that resolves to an array of login codes
  */
-const getLoginCodes = async (connection, queryParams = null) => {
+async function getLoginCodes (connection, queryParams = null) {
   const query = {
     text: 'SELECT * FROM "login_codes"',
     values: [],
@@ -135,7 +135,7 @@ const getLoginCodes = async (connection, queryParams = null) => {
  * @param {Object} connection - the database connection
  * @param {LoginCode} loginCode - the logincode to be added
  */
-const createLoginCode = async (connection, loginCode) => {
+async function createLoginCode (connection, loginCode) {
   const query = {
     text:
       'INSERT INTO "login_codes" (email, code, expires_at, created_at) ' +
@@ -153,7 +153,7 @@ const createLoginCode = async (connection, loginCode) => {
  * @param {Object} connection - the connection to the database
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-const deleteLoginCode = async (connection, email, code) => {
+async function deleteLoginCode (connection, email, code) {
   const query = {
     text: 'DELETE FROM "login_codes" WHERE email = $1 AND code = $2',
     values: [email, code],
@@ -170,7 +170,7 @@ const deleteLoginCode = async (connection, email, code) => {
  * @param {Object} queryParams - query parameters, contains id or email
  * @returns {Promise<Array<User>>} - a promise that resolves to an array of users
  */
-const getUsers = async (connection, queryParams = null) => {
+async function getUsers (connection, queryParams = null) {
   const query = {
     text: 'SELECT * FROM "users"',
     values: [],
@@ -194,7 +194,7 @@ const getUsers = async (connection, queryParams = null) => {
  * @param {User} user - the user to create
  * @returns {Promise<User>} - a promise that resolves to the created user
  */
-const createUser = async (connection, user) => {
+async function createUser (connection, user) {
   const query = {
     text:
       'INSERT INTO "users" (role, email, created_at, last_login_at) ' +
@@ -212,7 +212,7 @@ const createUser = async (connection, user) => {
  * @param {string} email - email of the user to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-const deleteUser = async (connection, p_id = null, email = null) => {
+async function deleteUser (connection, p_id = null, email = null) {
   const query = {
     text: '',
     values: [],
@@ -237,7 +237,7 @@ const deleteUser = async (connection, p_id = null, email = null) => {
  * @param {Object} queryParams - query parameters, contains session_id and (optional) csrf_code and max_expiry_time as date
  * @returns {Promise<Array<UserSession>>} - a promise that resolves to an array of user sessions
  */
-const getUserSessions = async (connection, queryParams = null) => {
+async function getUserSessions (connection, queryParams = null) {
   const query = {
     text: 'SELECT * FROM "user_sessions"',
     values: [],
@@ -300,7 +300,7 @@ async function getUserSessionsWithUser (connection, queryParams = null) {
  * @param {UserSession} session - the user session to create
  * @returns {Promise<UserSession>} - a promise that resolves to the created user session
  */
-const createUserSession = async (connection, session) => {
+async function createUserSession (connection, session) {
   const query = {
     text:
       'INSERT INTO "user_sessions" (session_id, user_id, csfr_code, expires_at, created_at) ' +
@@ -367,7 +367,7 @@ const deleteUserSession = async (connection, session_id) => {
  * @param {Date} now - the current date and time, used to determine which sessions are expired
  * @returns {Promise<number>} - a promise that resolves to the number of expired sessions deleted
  */
-const deleteExpiredUserSessions = async (connection, now) => {
+async function deleteExpiredUserSessions (connection, now) {
   if (!now) now = new Date()
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE expires_at < $1',
@@ -383,7 +383,7 @@ const deleteExpiredUserSessions = async (connection, now) => {
  * @param {Object} queryParams - query parameters, contains id, p_id, or user_id
  * @returns {Promise<Array<UserDeviceId>>} - a promise that resolves to an array of device ids
  */
-const getDeviceIds = async (connection, queryParams = null) => {
+async function getDeviceIds (connection, queryParams = null) {
   const query = {
     text: 'SELECT * FROM "user_device_ids"',
     values: [],
@@ -410,7 +410,7 @@ const getDeviceIds = async (connection, queryParams = null) => {
  * @param {UserDeviceId} deviceId - the device id to create
  * @returns {Promise<UserDeviceId>} - a promise that resolves to the created device id
  */
-const createDeviceId = async (connection, deviceId) => {
+async function createDeviceId (connection, deviceId) {
   const query = {
     text:
       'INSERT INTO "user_device_ids" (p_id, user_id, created_at) ' +
@@ -582,6 +582,7 @@ export default {
   deleteUser,
   getUserSessions,
   createUserSession,
+  updateUserSession,
   deleteUserSession,
   getUserSessionsWithUser,
   deleteExpiredUserSessions,
