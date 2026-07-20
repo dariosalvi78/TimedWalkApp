@@ -73,6 +73,9 @@ export const verifyUserSession = async (req, res, next) => {
   // TODO: consider adding a cache layer for session validation to reduce database load
   let userSessions = await dbaccess.getUserSessionsWithUser(dbclient,
     { session_id: sessionToken, csrf_code: csrfToken, max_expiry_time: new Date() })
+
+  dbaccess.releaseConnection(dbclient) // release the connection now that it is not needed anymore
+
   if (!userSessions || userSessions.length != 1) {
     return res.status(401).json({ error: 'Unauthorized' })
   } else {

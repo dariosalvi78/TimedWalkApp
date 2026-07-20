@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict'
-import { describe, test, before, after, mock } from 'node:test'
+import { describe, test, before, after, mock, afterEach } from 'node:test'
 import dbaccess from '../dbaccess/dbaccess.js'
 import { verifyUserSession } from '../controllers/authenticationCtrl.js'
 import { MockResponse } from './MockResponse.js'
 
 
 describe('When testing the authentication controller,', () => {
+
+
+  afterEach(() => {
+    mock.reset()
+  })
 
   test('verifyUserSession should return 401 if no session token is provided', async () => {
     const req = {
@@ -31,6 +36,9 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getUserSessionsWithUser', async () => {
         return null // simulate no session found
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
 
       const req = {
@@ -45,6 +53,8 @@ describe('When testing the authentication controller,', () => {
       await verifyUserSession(req, res, next)
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1);
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
+
       assert.strictEqual(res.code, 401)
     })
 
@@ -65,6 +75,9 @@ describe('When testing the authentication controller,', () => {
           }
         }]
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
       const req = {
         cookies: {},
@@ -78,6 +91,8 @@ describe('When testing the authentication controller,', () => {
       await verifyUserSession(req, res, next)
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1);
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
+
       assert.strictEqual(next.mock.callCount(), 1);
     })
   })
@@ -92,6 +107,9 @@ describe('When testing the authentication controller,', () => {
       })
       mock.method(dbaccess, 'getUserSessionsWithUser', async () => {
         return null // simulate no session found
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
       })
 
 
@@ -118,6 +136,9 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getUserSessionsWithUser', async () => {
         return [] // simulate no session found
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
       const req = {
         cookies: {
@@ -133,6 +154,7 @@ describe('When testing the authentication controller,', () => {
       await verifyUserSession(req, res, next)
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
       assert.strictEqual(res.code, 401)
       assert.strictEqual(next.mock.callCount(), 0)
     })
@@ -155,6 +177,9 @@ describe('When testing the authentication controller,', () => {
           }
         }]
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
       const req = {
         cookies: {
@@ -170,6 +195,7 @@ describe('When testing the authentication controller,', () => {
       await verifyUserSession(req, res, next)
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1);
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
       assert.strictEqual(res.code, 401)
     })
 
@@ -191,6 +217,9 @@ describe('When testing the authentication controller,', () => {
           }
         }]
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
       const req = {
         cookies: {
@@ -206,6 +235,7 @@ describe('When testing the authentication controller,', () => {
       await verifyUserSession(req, res, next)
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1);
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
       assert.strictEqual(next.mock.callCount(), 1);
     })
 
@@ -233,6 +263,9 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'deleteExpiredUserSessions', async () => {
         return 2
       })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
 
       const req = {
         cookies: {
@@ -249,6 +282,7 @@ describe('When testing the authentication controller,', () => {
 
       assert.strictEqual(dbaccess.getUserSessionsWithUser.mock.callCount(), 1);
       assert.strictEqual(dbaccess.deleteExpiredUserSessions.mock.callCount(), 1);
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
     })
   })
 
