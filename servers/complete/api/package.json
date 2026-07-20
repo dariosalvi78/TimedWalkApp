@@ -10,6 +10,7 @@
     "test": "node --test test/*.spec.*"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "pg": "^8.22.0",
     "winston": "^3.19.0",
