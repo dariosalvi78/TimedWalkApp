@@ -1,5 +1,7 @@
 # Security strategies
 
+Partially based on https://neciudan.dev/most-secure-way-to-store-auth-token
+
 ## Users and roles
 
 There are 3 types of users:
@@ -46,6 +48,8 @@ The CSRF token is taken by the JS code, stored in the local storage, and sent ba
 `X-CSRF-Token: 323242342342`.
 
 The CSRF token has the same life as the session token but, being managed by the JS code, not the browser automatically, it cannot be leaked by mistake in a CSRF attach.
+
+This is the (synchronizer pattern)[https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern] recommended by OWASP.
 
 **High security authentication flow:**
 

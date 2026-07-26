@@ -16,6 +16,7 @@ class MockResponse extends stream.Writable {
     this.data = ''
     this.chunks = []
     this.cookies = {}
+    this.headers = {}
   }
 
   status (s) {
@@ -52,6 +53,12 @@ class MockResponse extends stream.Writable {
 
   readChunks () {
     return Buffer.concat(this.chunks).toString('utf8')
+  }
+
+  writeHead (code, headers) {
+    this.code = code
+    this.headers = headers
+    return this
   }
 }
 
