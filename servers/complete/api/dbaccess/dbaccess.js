@@ -162,6 +162,20 @@ async function deleteLoginCode (connection, email, code) {
   return res.rowCount > 0
 }
 
+/**
+ * Deletes expired login codes from the database.
+ * @param {Object} connection - connection to the database
+ * @param {Date} now - date of now, optional, used for testing
+ */
+async function deleteExpiredLoginCodes (connection, now) {
+  const query = {
+    text: 'DELETE FROM "login_codes" WHERE expires_at < $1',
+    values: [now || new Date()],
+  }
+  let res = await connection.query(query)
+  return res.rowCount
+}
+
 
 /**
  * Find users by id or email.

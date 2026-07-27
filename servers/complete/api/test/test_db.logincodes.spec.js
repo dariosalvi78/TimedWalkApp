@@ -53,6 +53,11 @@ describe('Testing access to logincodes,', () => {
       loginCode2 = res.rows[0]
     })
 
+    after(async () => {
+      await dbtools.query(dbclient, `DELETE FROM "login_codes" WHERE email = $1 AND code = $2`, [loginCode1.email, loginCode1.code])
+      await dbtools.query(dbclient, `DELETE FROM "login_codes" WHERE email = $1 AND code = $2`, [loginCode2.email, loginCode2.code])
+    })
+
     test('all login codes can be retrieved', async function () {
       let loginCodes = await dbaccess.getLoginCodes(dbclient, null)
       assert.strictEqual(loginCodes.length, 2, 'Expected exactly 2 login codes')
@@ -63,5 +68,44 @@ describe('Testing access to logincodes,', () => {
       assert.strictEqual(loginCodes.length, 1, 'Expected exactly 1 login code')
       assert.strictEqual(loginCodes[0].email, 'dario@test.com')
     })
+  })
+
+
+  describe('when 2 users are created,', () => {
+    let loginCode1, loginCode2
+    let now = '2023-10-25 14:30:00+00'
+    before(async () => {
+      let res = await dbtools.query(
+        dbclient,
+        `
+                INSERT INTO "login_codes" (email, code, expires_at, created_at)
+                VALUES ('mario@test.com', '123456', '2023-10-25 14:20:00+00', NOW())
+                RETURNING *`,
+      )
+      loginCode1 = res.rows[0]
+
+      res = await dbtools.query(
+        dbclient,
+        `
+                    INSERT INTO "login_codes" (email, code, expires_at, created_at)
+                    VALUES ('anna@test.com', '654321', '2023-10-25 14:35:00+00', NOW())
+                    RETURNING *`,
+      )
+      loginCode2 = res.rows[0]
+    })
+
+    after(async () => {
+      await dbtools.query(dbclient, `DELETE FROM "login_codes" WHERE email = $1 AND code = $2`, [loginCode1.email, loginCode1.code])
+      await dbtools.query(dbclient, `DELETE FROM "login_codes" WHERE email = $1 AND code = $2`, [loginCode2.email, loginCode2.code])
+    })
+
+    test('expired login codes are deleted', async function () {
+      let deletedCodes = await dbaccess.deleteExpiredLoginCodes(dbclient, new Date(now))
+      assert.strictEqual(deletedCodes, 1)
+      let remainingCodes = await dbaccess.getLoginCodes(dbclient, null)
+      assert.strictEqual(remainingCodes.length, 1)
+      assert.strictEqual(remainingCodes[0].email, 'anna@test.com')
+    })
+
   })
 })
