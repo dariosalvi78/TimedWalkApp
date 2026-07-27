@@ -203,6 +203,21 @@ async function getUsers (connection, queryParams = null) {
 }
 
 /**
+ * Increments the failed login attempts for a user by email.
+ * @param {Object} connection - connection object
+ * @param {string} email - email of the user to increment failed login attempts for
+ * @returns {Promise<User>} - a promise that resolves to the updated user
+ */
+async function addFailedLoginAttempt (connection, email) {
+  const query = {
+    text: 'UPDATE "users" SET failed_login_attempts = failed_login_attempts + 1 WHERE email = $1 RETURNING *',
+    values: [email],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Creates a new user in the database.
  * @param {Client} connection - the database connection
  * @param {User} user - the user to create
@@ -591,8 +606,10 @@ export default {
   createLoginCode,
   getLoginCodes,
   deleteLoginCode,
+  deleteExpiredLoginCodes,
   getUsers,
   createUser,
+  addFailedLoginAttempt,
   deleteUser,
   getUserSessions,
   createUserSession,

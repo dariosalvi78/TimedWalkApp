@@ -36,14 +36,15 @@ describe('Testing access to users,', () => {
     let deleted = await dbaccess.deleteUser(dbclient, createdUser.p_id, null)
   })
 
+
   describe('when 2 users are created,', () => {
     let user1, user2
     before(async () => {
       let res = await dbtools.query(
         dbclient,
         `
-                INSERT INTO "users" (role, email, created_at, last_login_at)
-                VALUES ('clinician', 'sofia@mau.se', NOW(), NOW())
+                INSERT INTO "users" (p_id, role, email, created_at, last_login_at, failed_login_attempts)
+                VALUES (gen_random_uuid(), 'clinician', 'sofia@mau.se', NOW(), NOW(), 0)
                 RETURNING *`,
       )
       user1 = res.rows[0]
@@ -51,11 +52,16 @@ describe('Testing access to users,', () => {
       res = await dbtools.query(
         dbclient,
         `
-                    INSERT INTO "users" (role, email, created_at, last_login_at)
-                    VALUES ('clinician', 'anthony@mau.se', NOW(), NOW())
+                    INSERT INTO "users" (p_id, role, email, created_at, last_login_at, failed_login_attempts)
+                    VALUES (gen_random_uuid(), 'clinician', 'anthony@mau.se', NOW(), NOW(), 0)
                     RETURNING *`,
       )
       user2 = res.rows[0]
+    })
+
+    after(async () => {
+      await dbtools.query(dbclient, `DELETE FROM "users" WHERE p_id = $1`, [user1.p_id])
+      await dbtools.query(dbclient, `DELETE FROM "users" WHERE p_id = $1`, [user2.p_id])
     })
 
     test('all users can be retrieved', async function () {
@@ -67,6 +73,12 @@ describe('Testing access to users,', () => {
       let users = await dbaccess.getUsers(dbclient, { email: 'anthony@mau.se' })
       assert.strictEqual(users.length, 1)
       assert.strictEqual(users[0].email, 'anthony@mau.se')
+    })
+
+    test('sofia@mau.se can be increased the failed login attempts', async function () {
+      let user = await dbaccess.addFailedLoginAttempt(dbclient, 'sofia@mau.se')
+      assert.strictEqual(user.email, 'sofia@mau.se')
+      assert.strictEqual(user.failed_login_attempts, 1)
     })
 
   })
