@@ -38,6 +38,16 @@
  */
 
 /**
+ * @typedef {Object} UserSecurityQuestion
+ * @property {!number} id - internal identity column
+ * @property {!string} p_id - public UUID identifier
+ * @property {!number} user_id - linked user id
+ * @property {!string} question - the security question
+ * @property {!string} answer_hash - hashed version of the security answer
+ * @property {!string} created_at - creation timestamp
+ */
+
+/**
  * @typedef {Object} UserSession
  * @property {!number} user_id - linked user id
  * @property {!string} session_id - unique session id (primary key)

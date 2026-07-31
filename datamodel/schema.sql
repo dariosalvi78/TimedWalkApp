@@ -32,6 +32,16 @@ CREATE TABLE IF NOT EXISTS users (
   role user_type NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS user_security_questions (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  answer_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, question)
+);
+
 CREATE TABLE IF NOT EXISTS login_codes (
   email TEXT NOT NULL,
   code VARCHAR(6) NOT NULL CHECK (code ~ '^[0-9]+$'),
