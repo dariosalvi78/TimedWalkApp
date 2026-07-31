@@ -1,12 +1,26 @@
 /**
  * Authentication controller for handling user login and code requests.
- *
+ * See security.md for details on the authentication flow.
+ */
+
+/**
+ * Import types from the datamodels.
+ * @typedef {import("../../../../datamodel/types.js").User} User
+ * @typedef {import("../../../../datamodel/types.js").LoginCode} LoginCode
+ * @typedef {import("../../../../datamodel/types.js").Clinician} Clinician
+ * @typedef {import("../../../../datamodel/types.js").Team} Team
+ * @typedef {import("../../../../datamodel/types.js").ClinicianTeam} ClinicianTeam
+ * @typedef {import("../../../../datamodel/types.js").TeamInvitation} TeamInvitation
+ * @typedef {import("../../../../datamodel/types.js").Patient} Patient
+ * @typedef {import("../../../../datamodel/types.js").UserSession} UserSession
+ * @typedef {import("../../../../datamodel/types.js").UserDeviceId} UserDeviceId
  */
 
 import logger from '../services/logger.js'
 import dbaccess from '../dbaccess/dbaccess.js'
 import { emailSender } from '../services/emailSender.js'
-import { randomBytes } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
+import bcrypt from 'bcrypt'
 
 const LOGIN_CODE_EXPIRY_MINUTES = process.env.LOGIN_CODE_EXPIRY_MINUTES || 5
 
@@ -20,6 +34,10 @@ const SESSION_COOKIE_NAME = '__Host-session'
 const CSRF_HEADER_NAME = 'X-CSRF-Token'
 const SESSION_TOKEN_SIZE_BYTES = process.env.SESSION_TOKEN_SIZE_BYTES || 32
 const CSRF_TOKEN_SIZE_BYTES = process.env.CSFR_TOKEN_SIZE_BYTES || 32
+
+const DEVICE_ID_COOKIE_NAME = '__Host-Http-device-id'
+
+const SECURITY_QUESTION_ANSWER_SALT_ROUNDS = process.env.SECURITY_QUESTION_ANSWER_SALT_ROUNDS || 10
 
 /**
  * Every this amount, expired sessions are cleared
@@ -88,7 +106,7 @@ export const verifyUserSession = async (req, res, next) => {
     let userSession = userSessions[0]
 
     // additional check against hard expiry for public clients
-    if (userSession.is_public_client && userSession.public_client_hard_expiry_at && userSession.public_client_hard_expiry_at < new Date()) {
+    if (userSession.declare_private_client && userSession.public_client_hard_expiry_at && userSession.public_client_hard_expiry_at < new Date()) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
@@ -213,7 +231,7 @@ export const logoutUserSession = async (req, res) => {
  * Requests a login code for the given email. If the email exists in the database, a login code is generated and sent to the user's email.
  * The login code is stored in the database with an expiration time.
  * If the email does not exist, a 200 response is still sent to avoid revealing whether the email exists in the system.
- * @param {Object} req - request obect
+ * @param {Object} req - request obect, must contain the email in the body
  * @param {Object} res - express response object
  * @returns {Promise} - a promise that resolves to the response object
  */
@@ -269,5 +287,161 @@ export const requestLoginCode = async (req, res) => {
     } finally {
       await dbaccess.releaseConnection(dbclient)
     }
+  }
+}
+
+/**
+ * Handles the login process for web clients. It verifies the provided email and code, checks for user existence and role, and manages session creation and security question validation for public clients.
+ * @param {Object} req - The body must contain email and code and must contain also securityQ_pID, securityA, declare_private_client only if the client has no device_id cookie set
+ * @param {Object} res - The response object
+ * @returns {Promise} - A promise that resolves to the response object
+ */
+export const loginWeb = async (req, res) => {
+
+  // login must include email and code
+  const { email, code, securityQ_pID, securityA, declare_private_client } = req.body
+
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Email and code are required' })
+  }
+
+  logger.info(`Login attempt for ${email} with code ${code}`)
+
+  let dbclient = await dbaccess.getConnection(true) // get a transaction connection
+
+  try {
+    // check if the code is valid
+    let loginCodes = await dbaccess.getLoginCodes(dbclient, { email: email, code: code })
+    if (!loginCodes || loginCodes.length === 0) {
+      // no code found
+      logger.warn(`Invalid login code for ${email}`)
+      // add a failed login attempt for the user
+      await dbaccess.addFailedLoginAttempt(dbclient, email)
+      return res.status(401).json({ error: 'Invalid code' })
+    }
+
+    let loginCode = loginCodes[0]
+    // check if code is expired
+    if (loginCode.expires_at < new Date()) {
+      logger.warn(`Expired login code for ${email}`)
+      // add a failed login attempt for the user
+      await dbaccess.addFailedLoginAttempt(dbclient, email)
+      return res.status(401).json({ error: 'Code expired' })
+    }
+
+    // code is valid, now check if the user exists (it should, as the code was generated for an existing user)
+    let users = await dbaccess.getUsers(dbclient, { email: email })
+    if (!users || users.length === 0) {
+      logger.warn(`Login attempt for non-existent user ${email}`)
+      return res.status(401).json({ error: 'User not found' })
+    }
+
+    let user = users[0]
+
+    // if the user is a patient, it must access the system through the mobile app, not the web client
+    if (user.role === 'patient') {
+      // patients are not allowed to log in through the web client
+      logger.warn(`Patient user ${email} attempted to log in through the web client`)
+      // also log failed login attempt as this is very suspicious behavior, and we want to track it
+      await dbaccess.addFailedLoginAttempt(dbclient, email)
+      return res.status(403).json({ error: 'Patients must use the mobile app to log in' })
+    } else if (user.role === 'clinician' || user.role === 'admin') {
+      // for clinician and admin users, we assume they are using the web client
+      // check if there is a device id in the cookies
+      let deviceId = req.cookies[DEVICE_ID_COOKIE_NAME]
+      // if not set, we need to consider this as a public client, so an extra check is required
+      if (!deviceId) {
+        // check security question and answer for public clients
+        if (!securityQ_pID || !securityA || !declare_private_client) {
+          logger.warn(`Public client login attempt for ${email} without security question and answer`)
+          return res.status(400).json({ error: 'Security question and answer are required for public clients', requireHighSecurityAuthFlow: true })
+        } else {
+          // check if the security question and answer are correct
+          let securityQuestions = await dbaccess.getUserSecurityQuestions(dbclient, { p_id: securityQ_pID })
+          if (!securityQuestions || securityQuestions.length === 0) {
+            // no valid public id of the security question found
+            logger.warn(`Invalid security question for ${email}`)
+            // add a failed login attempt for the user
+            await dbaccess.addFailedLoginAttempt(dbclient, email)
+            return res.status(400).json({ error: 'Invalid security question' })
+          }
+          // check answer hash against the stored hash
+          let securityQuestion = securityQuestions[0]
+          // hash the answer with bcrypt and compare with the stored hash
+          let answerHash = await bcrypt.hash(securityA, SECURITY_QUESTION_ANSWER_SALT_ROUNDS)
+          let match = await bcrypt.compare(securityA, securityQuestion.answer_hash)
+          if (!match) {
+            logger.warn(`Invalid security answer for ${email}`)
+            // add a failed login attempt for the user
+            await dbaccess.addFailedLoginAttempt(dbclient, email)
+            return res.status(400).json({ error: 'Invalid security answer' })
+          }
+        }
+      }
+
+      // all seems legit, setup the session for the clinician or admin user
+      // generate new session token
+      let sessionToken = generateRandomString(SESSION_TOKEN_SIZE_BYTES)
+
+      // generate new CSRF token
+      let CSRFToken = generateRandomString(CSRF_TOKEN_SIZE_BYTES)
+
+      let sessionExpiryTime = new Date(Date.now() + (WEB_CLIENT_SESSION_EXPIRY_MINUTES * 60 * 1000))
+      let publicClientHardExpiryTime = null
+      if (!deviceId && !declare_private_client) {
+        // the client is a public client, we set a hard expiry time for the session
+        publicClientHardExpiryTime = new Date(Date.now() + (WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES * 60 * 1000))
+      }
+
+      if (!deviceId && declare_private_client) {
+        // the client is a private client, we generate a device id (uuid v4) and set it as a cookie
+        deviceId = randomUUID()
+        // never-expiring, http-only cookie
+        res.cookie(DEVICE_ID_COOKIE_NAME, deviceId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'Strict',
+          path: '/',
+          expires: new Date(Date.now() + (10 * 365 * 24 * 60 * 60 * 1000)) // 10 years
+        })
+      }
+
+      // create the user session in the database
+      let userSession = await dbaccess.createUserSession(dbclient, {
+        user_id: user.id,
+        session_id: sessionToken,
+        csrf_code: CSRFToken,
+        declare_private_client: !deviceId,
+        expires_at: sessionExpiryTime,
+        public_client_hard_expiry_at: publicClientHardExpiryTime
+      })
+
+      // set the session cookie
+      res
+        .cookie(SESSION_COOKIE_NAME, sessionToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'Strict',
+          path: '/',
+        })
+        .status(200)
+        // send the CSRF token in the body
+        .json({
+          sessionExpiryTime,
+          CSRFToken
+        })
+
+    } else {
+      logger.error(`User ${email} has an unknown role ${user.role}`)
+      return res.status(403).json({ error: 'User role not allowed to log in' })
+    }
+
+  } catch (error) {
+    logger.error('Error during login:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    // remove expired login codes
+    await dbaccess.deleteExpiredLoginCodes(dbclient)
+    await dbaccess.releaseConnection(dbclient)
   }
 }

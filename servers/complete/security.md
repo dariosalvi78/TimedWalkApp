@@ -35,7 +35,9 @@ Tokens will be refreshed by the app automatically with a timer.
 
 ### Clinician authentication through web
 
-The clinician receives a code to join a team, creates a user and, upon acceptance, receives a session token as httpOnly cookie, with high security settings: `Set-Cookie: __Host-session=abc123; HttpOnly; Secure; SameSite=Strict; Path=/`. The token is stored by the browser and sent back to the server in every request automatically. The session token is not long-lived (a few hours), therefore further logins are necessary.
+The clinician receives a code to join a team, creates a user and, upon acceptance, receives a session token as httpOnly cookie, with high security settings: `Set-Cookie: __Host-Http--session=abc123; HttpOnly; Secure; SameSite=Strict; Path=/`. The token is stored by the browser and sent back to the server in every request automatically. The session token is not long-lived (a few hours), therefore further logins are necessary.
+
+The cookie, given that has no `Expires` and `Max-Age`, is a session cookie and is deleted when the tab is closed by the browser.
 
 A login is passwordless: the user enters the email on the web, if an account exists, an email is sent with a short-lived (minutes) access code of 6 digits, that is used to enter the website. If the code/email pair is verified, the server sets the httpOnly cookie, similarly to what is done above.
 
@@ -53,9 +55,9 @@ This is the (synchronizer pattern)[https://cheatsheetseries.owasp.org/cheatsheet
 
 **High security authentication flow:**
 
-A login in the app is only initiated by a clinician sending the invitation code, therefore it's hardly forgeable. However, a clinician's login can be forged if an attacker takes control of the clinician's email. This can be de-risked by detecting an unusual login request and asking an addition security question, which cannot be easily derived.
+A login in the app is only initiated by a clinician sending the invitation code, therefore it's hardly forgeable. However, a clinician's login can be forged if an attacker takes control of the clinician's email. This can be de-risked by detecting an unusual login request and asking an additional security question, which cannot be easily derived.
 
-The client will store a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser (named \_\_Host-device-id). The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
+The client stores a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser (`Set-Cookie: __Host-Http-device-id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Expires: Sun, 01 Jan 2051 00:00:00 GMT`). The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
 
 The security question should be something that the user knows and does not need to remember only for this system. For example:
 

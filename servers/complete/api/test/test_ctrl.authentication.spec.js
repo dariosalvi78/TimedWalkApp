@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict'
 import { describe, test, before, after, mock, afterEach } from 'node:test'
 import dbaccess from '../dbaccess/dbaccess.js'
-import { verifyUserSession, refreshUserSession, logoutUserSession, requestLoginCode } from '../controllers/authenticationCtrl.js'
+import { verifyUserSession, refreshUserSession, logoutUserSession, requestLoginCode, loginWeb } from '../controllers/authenticationCtrl.js'
 import { MockResponse } from './MockResponse.js'
 import { emailSender } from '../services/emailSender.js'
 
 
 describe('When testing the authentication controller,', () => {
-
 
   afterEach(() => {
     mock.reset()
@@ -578,4 +577,140 @@ describe('When testing the authentication controller,', () => {
     })
   })
 
+  describe('When testing web login,', () => {
+
+    test('if email and code are not provided, return 400', async () => {
+      const req = {
+        body: {
+        }
+      }
+      const res = new MockResponse()
+      const next = mock.fn()
+
+      await loginWeb(req, res)
+
+      assert.strictEqual(res.code, 400)
+    })
+
+    test('if email and code are provided but invalid, return 401', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [] // simulate code does not exist
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 401)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if email and code are correct but code is expired, return 401', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() - 10000) // simulate expired code
+        }]
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 401)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if user is patient, return 403', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'patient'
+        }]
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 403)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    // TODO: if user is clinician, it's not a known client and security question is not provided, return 400
+
+  })
+
 })
+
