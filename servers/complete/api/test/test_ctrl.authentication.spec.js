@@ -336,7 +336,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1);
       assert.ok(res.cookies['__Host-session'])
       assert.ok(res.data.CSRFToken)
-      assert.ok(res.data.newExpiryTime)
+      assert.ok(res.data.sessionExpiryTime)
       assert.strictEqual(res.code, 200)
     })
 
@@ -373,7 +373,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(!res.cookies['__Host-session'])
       assert.ok(res.data.sessionToken)
       assert.ok(!res.data.CSRFToken)
-      assert.ok(res.data.newExpiryTime)
+      assert.ok(res.data.sessionExpiryTime)
       assert.strictEqual(res.code, 200)
     })
 

@@ -148,12 +148,12 @@ export const refreshUserSession = async (req, res) => {
   // update the session on the database
   let dbclient = await dbaccess.getConnection()
 
-  let newExpiryTime = new Date(Date.now() + (req.userSession.isWebClient ? WEB_CLIENT_SESSION_EXPIRY_MINUTES : MOBILE_CLIENT_SESSION_EXPIRY_MINUTES) * 60 * 1000)
+  let sessionExpiryTime = new Date(Date.now() + (req.userSession.isWebClient ? WEB_CLIENT_SESSION_EXPIRY_MINUTES : MOBILE_CLIENT_SESSION_EXPIRY_MINUTES) * 60 * 1000)
 
   let updatedSession = await dbaccess.updateUserSession(dbclient, req.userSession.session_id, {
     session_id: sessionToken,
     csrf_code: CSRFToken,
-    expires_at: newExpiryTime
+    expires_at: sessionExpiryTime
   })
 
   await dbaccess.releaseConnection(dbclient) // release the connection now that it is not needed anymore
@@ -170,7 +170,7 @@ export const refreshUserSession = async (req, res) => {
       .status(200)
       // send the CSRF token in the reply
       .json({
-        newExpiryTime,
+        sessionExpiryTime,
         CSRFToken
       })
   } else {
@@ -178,7 +178,7 @@ export const refreshUserSession = async (req, res) => {
     res
       .status(200)
       .json({
-        newExpiryTime,
+        sessionExpiryTime,
         sessionToken
       })
   }
