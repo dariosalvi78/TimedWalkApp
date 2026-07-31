@@ -55,7 +55,7 @@ This is the (synchronizer pattern)[https://cheatsheetseries.owasp.org/cheatsheet
 
 A login in the app is only initiated by a clinician sending the invitation code, therefore it's hardly forgeable. However, a clinician's login can be forged if an attacker takes control of the clinician's email. This can be de-risked by detecting an unusual login request and asking an addition security question, which cannot be easily derived.
 
-The client will store a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser. The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
+The client will store a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser (named \_\_Host-device-id). The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
 
 The security question should be something that the user knows and does not need to remember only for this system. For example:
 

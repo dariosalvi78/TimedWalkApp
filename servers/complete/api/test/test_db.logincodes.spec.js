@@ -71,7 +71,7 @@ describe('Testing access to logincodes,', () => {
   })
 
 
-  describe('when 2 users are created,', () => {
+  describe('when 2 login codes are created,', () => {
     let loginCode1, loginCode2
     let now = '2023-10-25 14:30:00+00'
     before(async () => {

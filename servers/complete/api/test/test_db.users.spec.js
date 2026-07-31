@@ -81,6 +81,11 @@ describe('Testing access to users,', () => {
       assert.strictEqual(user.failed_login_attempts, 1)
     })
 
+    test('inexisting email cannot be increased the failed login attempts', async function () {
+      let user = await dbaccess.addFailedLoginAttempt(dbclient, 'nonexistent@mau.se')
+      assert.ok(!user)
+    })
+
   })
 
 })
