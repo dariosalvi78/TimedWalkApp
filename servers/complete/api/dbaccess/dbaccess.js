@@ -301,6 +301,42 @@ async function getUserSecurityQuestions (connection, queryParams = null) {
 }
 
 /**
+ * Updates a user security question in the database.
+ * @param {Object} connection - database connection
+ * @param {string} id - ID of the security question to be updated
+ * @param {Object} updateParams - parameters to update
+ * @returns {Promise<UserSecurityQuestion>} - a promise that resolves to the updated security question
+ */
+async function updateUserSecurityQuestion (connection, id, updateParams) {
+  const allowedParams = ['question', 'answer_hash']
+
+  const query = {
+    text: 'UPDATE "user_security_questions" SET ',
+    values: [],
+  }
+
+  const updateEntries = []
+  for (const [key, value] of Object.entries(updateParams)) {
+    if (allowedParams.includes(key)) {
+      updateEntries.push(`${key} = $${query.values.length + 1}`)
+      query.values.push(value)
+    }
+  }
+
+  if (updateEntries.length === 0) {
+    throw new Error('No valid parameters to update')
+  }
+
+  query.text += updateEntries.join(', ')
+  query.text += ' WHERE id = $' + (query.values.length + 1)
+  query.text += ' RETURNING *'
+  query.values.push(id)
+
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Deletes a user security question from the database.
  * @param {Object} connection - database connection
  * @param {string} queryParams - query parameters, can include id, p_id or user_id to identify the security question to delete
@@ -721,6 +757,7 @@ export default {
   createUserSecurityQuestion,
   getUserSecurityQuestions,
   deleteUserSecurityQuestion,
+  updateUserSecurityQuestion,
   getUserSessions,
   createUserSession,
   updateUserSession,

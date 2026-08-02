@@ -102,6 +102,11 @@ describe('Testing access to users security questions,', () => {
         let securityQuestions = await dbaccess.getUserSecurityQuestions(dbclient, null)
         assert.strictEqual(securityQuestions.length, 3, 'Expected exactly 3 security questions')
       })
+
+      test('a question can be updated', async () => {
+        let updatedSecurityQuestion = await dbaccess.updateUserSecurityQuestion(dbclient, securityQuestion1.id, { question: 'What is your favorite movie?' })
+        assert.strictEqual(updatedSecurityQuestion.question, 'What is your favorite movie?')
+      })
     })
   })
 })
