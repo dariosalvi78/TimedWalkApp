@@ -486,7 +486,7 @@ async function updateUserSession (connection, session_id, updateParams) {
  * @param {string} session_id - unique session id
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-const deleteUserSession = async (connection, session_id) => {
+async function deleteUserSession (connection, session_id) {
   const query = {
     text: 'DELETE FROM "user_sessions" WHERE session_id = $1',
     values: [session_id],
@@ -561,7 +561,7 @@ async function createDeviceId (connection, deviceId) {
  * @param {string} p_id - the public UUID identifier for the device installation
  * @returns {Promise<boolean>} - a promise that resolves to a boolean indicating whether the device id was deleted
  */
-const deleteDeviceId = async (connection, p_id) => {
+async function deleteDeviceId (connection, p_id) {
   const query = {
     text: 'DELETE FROM "user_device_ids" WHERE p_id = $1',
     values: [p_id],
@@ -615,10 +615,7 @@ async function updateDeviceId (connection, p_id, updateParams) {
  * @param {Object} queryParams - query parameters, contains p_id, user_id, email, or team_id
  * @returns {Promise<Array<Clinician>>} - a promise that resolves to an array of clinicians
  */
-const getClinicians = async (
-  connection,
-  queryParams = null
-) => {
+async function getClinicians (connection, queryParams = null) {
   const query = {
     text: 'SELECT * FROM clinicians ',
     values: [],
@@ -652,7 +649,7 @@ const getClinicians = async (
  * @param {Clinician} clinician - the clinician to create
  * @returns {Promise<Clinician>} - a promise that resolves to the created clinician
  */
-const createClinician = async (connection, clinician) => {
+async function createClinician (connection, clinician) {
   const query = {
     text:
       'INSERT INTO clinicians (user_id, first_names, second_names, created_at) ' +
@@ -669,7 +666,7 @@ const createClinician = async (connection, clinician) => {
  * @param {string} id - user_id of the clinician to be deleted
  * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
  */
-const deleteClinician = async (connection, id = null) => {
+async function deleteClinician (connection, id = null) {
   const query = {
     text: '',
     values: [id],
@@ -689,7 +686,7 @@ const deleteClinician = async (connection, id = null) => {
  * @param {Object} queryParams - query parameters, contains id and name
  * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams
  */
-const getTeams = async (connection, queryParams) => {
+async function getTeams (connection, queryParams) {
   const query = {
     text: 'SELECT * FROM teams ',
     values: [],
@@ -716,7 +713,7 @@ const getTeams = async (connection, queryParams) => {
  * @param {!Team} team - the team to create
  * @returns {Promise<Team>} - a promise that resolves to the created team
  */
-const createTeam = async (connection, team) => {
+async function createTeam (connection, team) {
   const query = {
     text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
     values: [team.contact_details, team.institutions, team.name],
@@ -731,7 +728,7 @@ const createTeam = async (connection, team) => {
  * @param {!string} id - the team to delete
  * @returns {Promise<boolean>} - true if the team is deleted, false otherwise
  */
-const deleteTeam = async (connection, id) => {
+async function deleteTeam (connection, id) {
   let query = {
     text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
     values: [id],
