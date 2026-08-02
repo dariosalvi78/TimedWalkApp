@@ -535,6 +535,44 @@ const deleteDeviceId = async (connection, p_id) => {
 }
 
 /**
+ * Purges all device ids that have not been accessed since the given date.
+ * @param {Obejct} connection - database connection
+ * @param {Date} date - date before which all device ids are purged
+ * @returns {Promise<number>} - a promise that resolves to the number of device ids purged
+ */
+async function deleteDeviceIdsOlderThan (connection, date) {
+  const query = {
+    text: 'DELETE FROM "user_device_ids" WHERE last_accessed_at < $1',
+    values: [date],
+  }
+  let res = await connection.query(query)
+  return res.rowCount
+}
+
+/**
+ * Updates a user device id in the database.
+ * @param {Object} connection - the database connection
+ * @param {string} p_id - the public UUID identifier for the device installation
+ * @param {Object} updateParams - the parameters to update, only last_accessed_at is allowed
+ * @returns {Promise<UserDeviceId>} - a promise that resolves to the updated device id
+ */
+async function updateDeviceId (connection, p_id, updateParams) {
+  if (updateParams === null || typeof updateParams !== 'object') {
+    throw new Error('updateParams must be a non-null object')
+  }
+  if (updateParams.last_accessed_at === undefined) {
+    throw new Error('last_accessed_at is required in updateParams')
+  }
+
+  const query = {
+    text: 'UPDATE "user_device_ids" SET last_accessed_at = $1 WHERE p_id = $2 RETURNING *',
+    values: [updateParams.last_accessed_at, p_id],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Gets clinicians by user id, email or team.
  * If no parameter is provided, all clinicians are returned.
  * @param {Client} connection - the database connection
@@ -692,6 +730,8 @@ export default {
   getDeviceIds,
   createDeviceId,
   deleteDeviceId,
+  updateDeviceId,
+  deleteDeviceIdsOlderThan,
   getClinicians,
   createClinician,
   deleteClinician,

@@ -377,6 +377,9 @@ export const loginWeb = async (req, res) => {
             return res.status(400).json({ error: 'Invalid security answer' })
           }
         }
+      } else {
+        // update last access of the device id
+        await dbaccess.updateDeviceId(dbclient, deviceId, { last_accessed_at: new Date() })
       }
 
       // all seems legit, setup the session for the clinician or admin user

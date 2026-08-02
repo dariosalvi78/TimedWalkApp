@@ -75,6 +75,7 @@
  * @property {!number} id - internal identity column
  * @property {!string} p_id - public UUID identifier for the device installation
  * @property {!number} user_id - linked user id
+ * @property {!string} last_accessed_at - timestamp of the last access
  * @property {!string} created_at - creation timestamp
  */
 
