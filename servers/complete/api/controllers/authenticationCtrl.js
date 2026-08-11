@@ -352,7 +352,7 @@ export const loginWeb = async (req, res) => {
       // if not set, we need to consider this as a public client, so an extra check is required
       if (!deviceId) {
         // check security question and answer for public clients
-        if (!securityQ_pID || !securityA || !declare_private_client) {
+        if (!securityQ_pID || !securityA) {
           logger.warn(`Public client login attempt for ${email} without security question and answer`)
           return res.status(400).json({ error: 'Security question and answer are required for public clients', requireHighSecurityAuthFlow: true })
         } else {
@@ -378,6 +378,17 @@ export const loginWeb = async (req, res) => {
           }
         }
       } else {
+        // check if device id is on the database, if not reject cacll
+        let deviceid_dbs = await dbaccess.getDeviceIds(dbclient, { p_id: deviceId })
+
+        if (!deviceid_dbs || deviceid_dbs.length != 1) {
+          // device id not found, reject
+          logger.warn(`Invalid device id sent for ${email}`)
+          // add a failed login attempt for the user
+          await dbaccess.addFailedLoginAttempt(dbclient, email)
+          return res.status(401).json({ error: 'Invalid device id' })
+        }
+
         // update last access of the device id
         await dbaccess.updateDeviceId(dbclient, deviceId, { last_accessed_at: new Date() })
       }
@@ -407,10 +418,12 @@ export const loginWeb = async (req, res) => {
           path: '/',
           expires: new Date(Date.now() + (10 * 365 * 24 * 60 * 60 * 1000)) // 10 years
         })
+        // save it on the database
+        await dbaccess.createDeviceId(dbclient, deviceId)
       }
 
       // create the user session in the database
-      let userSession = await dbaccess.createUserSession(dbclient, {
+      await dbaccess.createUserSession(dbclient, {
         user_id: user.id,
         session_id: sessionToken,
         csrf_code: CSRFToken,
@@ -445,6 +458,7 @@ export const loginWeb = async (req, res) => {
   } finally {
     // remove expired login codes
     await dbaccess.deleteExpiredLoginCodes(dbclient)
+    // remove also old device ids?
     await dbaccess.releaseConnection(dbclient)
   }
 }

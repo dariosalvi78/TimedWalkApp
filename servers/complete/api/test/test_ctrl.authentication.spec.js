@@ -4,6 +4,7 @@ import dbaccess from '../dbaccess/dbaccess.js'
 import { verifyUserSession, refreshUserSession, logoutUserSession, requestLoginCode, loginWeb } from '../controllers/authenticationCtrl.js'
 import { MockResponse } from './MockResponse.js'
 import { emailSender } from '../services/emailSender.js'
+import bcrypt from 'bcrypt'
 
 
 describe('When testing the authentication controller,', () => {
@@ -708,8 +709,473 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
-    // TODO: if user is clinician, it's not a known client and security question is not provided, return 400
+    test('if user is clinician, it is not a known client and security question is not provided, return 400', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        },
+        cookies: {}
+      }
+      const res = new MockResponse()
 
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 400)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if security question is provided but not found, return 400', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getUserSecurityQuestions', async () => {
+        return []
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456',
+          securityQ_pID: '1234',
+          securityA: 'Citroen',
+          declare_private_client: false
+        },
+        cookies: {
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 400)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if security question is found but answer is wrong, return 400', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getUserSecurityQuestions', async () => {
+        return [{
+          id: '777',
+          p_id: '1234',
+          user_id: 1,
+          question: 'What is the make of your first car?',
+          answer_hash: 'aaabbbxxx'
+        }]
+      })
+      mock.method(bcrypt, 'hash', async () => {
+        return null
+      })
+      mock.method(bcrypt, 'compare', async () => {
+        return false
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456',
+          securityQ_pID: '1234',
+          securityA: 'Citroen',
+          declare_private_client: false
+        },
+        cookies: {
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 400)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
+      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
+      assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if client is not known, not a private client, security answer is OK, return 200 and set hard expiry', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getUserSecurityQuestions', async () => {
+        return [{
+          id: '777',
+          p_id: '1234',
+          user_id: 1,
+          question: 'What is the make of your first car?',
+          answer_hash: 'aaabbbxxx',
+          declare_private_client: false
+        }]
+      })
+      mock.method(bcrypt, 'hash', async () => {
+        return 'aaabbbxxx'
+      })
+      mock.method(bcrypt, 'compare', async () => {
+        return true
+      })
+      let session = {}
+      mock.method(dbaccess, 'createUserSession', async (client, us) => {
+        session = us
+        return us
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456',
+          securityQ_pID: '1234',
+          securityA: 'Citroen',
+          declare_private_client: false
+        },
+        cookies: {
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 200)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
+      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
+      assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
+      assert.ok(res.cookies['__Host-session'], 'session cookie is set')
+      assert.ok(res.data.CSRFToken, 'csrf token is sent')
+      assert.ok(res.data.sessionExpiryTime, 'session expire is sent')
+      assert.ok(!res.cookies['__Host-Http-device-id'], 'device id cookie is not set')
+      assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is not set')
+      assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+
+    test('if client is not known, but a new private client, security answer is OK, return 200 and register device id', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getUserSecurityQuestions', async () => {
+        return [{
+          id: '777',
+          p_id: '1234',
+          user_id: 1,
+          question: 'What is the make of your first car?',
+          answer_hash: 'aaabbbxxx'
+        }]
+      })
+      mock.method(bcrypt, 'hash', async () => {
+        return 'aaabbbxxx'
+      })
+      mock.method(bcrypt, 'compare', async () => {
+        return true
+      })
+      mock.method(dbaccess, 'createDeviceId', async () => {
+        return null
+      })
+      let session = {}
+      mock.method(dbaccess, 'createUserSession', async (client, us) => {
+        session = us
+        return us
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456',
+          securityQ_pID: '1234',
+          securityA: 'Citroen',
+          declare_private_client: true
+        },
+        cookies: {
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 200)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
+      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
+      assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
+      assert.strictEqual(dbaccess.createDeviceId.mock.callCount(), 1, 'device id is registered on the db')
+      assert.ok(res.cookies['__Host-session'], 'session cookie is set')
+      assert.ok(res.data.CSRFToken, 'csrf token is sent')
+      assert.ok(res.data.sessionExpiryTime, 'session expire is sent')
+      assert.ok(res.cookies['__Host-Http-device-id'], 'device id cookie is set')
+      assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is NOT set')
+      assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if client is known and device id is not recognised, return 401', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getDeviceIds', async () => {
+        return []
+      })
+      let session = {}
+      mock.method(dbaccess, 'createUserSession', async (client, us) => {
+        session = us
+        return us
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        },
+        cookies: {
+          '__Host-Http-device-id': '1234-1234-1234-1234'
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 401)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getDeviceIds.mock.callCount(), 1, 'device id is fetched')
+      assert.ok(!res.cookies['__Host-session'], 'session cookie is NOT set')
+      assert.ok(!res.data.CSRFToken, 'csrf token is NOT sent')
+      assert.ok(!res.cookies['__Host-Http-device-id'], 'device id cookie is set')
+      assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 0, 'user session is NOT created')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
+
+    test('if client is known and device id is recognised, return 200 and update device id', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'getLoginCodes', async () => {
+        return [{
+          email: 'dario@mau.se',
+          code: '123456',
+          expires_at: new Date(Date.now() + 10000) // code valid
+        }]
+      })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          user_id: 1,
+          email: 'dario@mau.se',
+          role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getDeviceIds', async () => {
+        return [{
+          id: 99,
+          p_id: '1234-1234-1234-1234',
+          user_id: 1
+        }]
+      })
+      mock.method(dbaccess, 'updateDeviceId', async () => {
+        return []
+      })
+      let session = {}
+      mock.method(dbaccess, 'createUserSession', async (client, us) => {
+        session = us
+        return us
+      })
+      mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return true // simulate all ok
+      })
+      const req = {
+        body: {
+          email: 'dario@mau.se',
+          code: '123456'
+        },
+        cookies: {
+          '__Host-Http-device-id': '1234-1234-1234-1234'
+        }
+      }
+      const res = new MockResponse()
+
+      await loginWeb(req, res)
+      assert.strictEqual(res.code, 200)
+
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
+      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getDeviceIds.mock.callCount(), 1, 'device id is fetched')
+      assert.strictEqual(dbaccess.updateDeviceId.mock.callCount(), 1, 'device id is updated')
+      assert.ok(res.cookies['__Host-session'], 'session cookie is set')
+      assert.ok(res.data.CSRFToken, 'csrf token is sent')
+      assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
+      assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
+      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
+    })
   })
 
 })
