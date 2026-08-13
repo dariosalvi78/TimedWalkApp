@@ -29,9 +29,11 @@ There are 2 major flows: patients through app and clinicians through web.
 ### Patient authentication through app
 
 The patient receives an invitation to join a team. The invitation contains a unique, 6 digits, code, with relatively close expiry date (few days, possibly 1).
-The user enters the code in the app, which verify it exists and, upon acceptance, send back a session token, which is geneated randomly and with enough length (32-byte/256-bit at least). These tokens are long-lived (weeks, even months, depending on expected frequency of use) and are managed by the app JS code and sent back to API calls as security header: `Authorization: Bearer abc123`.
+The user enters the code in the app, which verify it exists and, upon acceptance, send back a session token, which is geneated randomly and with enough length (32-byte/256-bit at least). These tokens are long-lived (weeks, even months, depending on expected frequency of use) and are managed by the app JS code, stored in native storage (not localstorage, which can be wipred out) and sent back to API calls as security header: `Authorization: Bearer abc123`.
 
-Tokens will be refreshed by the app automatically with a timer.
+Tokens will be refreshed by the app automatically with a timer, and with Cordova lifecycle events (`pause`/`resume`) to account for OS-level app freezing.
+
+Re-authentication requries a clinician to manually issue a new team invite every time the user is logged out. In the future we can allow patients to login also with their email address and a one time code to avoid additional work to clinicians.
 
 ### Clinician authentication through web
 
@@ -45,11 +47,12 @@ Additional security measures are introduced for the web environment:
 
 **CSRF token:**
 
-In addition to the seession token, a random CSRF token is also generated as a random number and sent to the client in the API reply.
-The CSRF token is taken by the JS code, stored in the local storage, and sent back in a header:
+In addition to the session token, a random CSRF token is also generated as a random value and sent to the client in the API reply.
+The token is stored in a separate cookie that is readable to the JS application but is not `HttpOnly`: `__Host-csrf=323242342342; Secure; SameSite=Strict; Path=/`.
+The JS app reads this cookie and sends it back in a header such as:
 `X-CSRF-Token: 323242342342`.
 
-The CSRF token has the same life as the session token but, being managed by the JS code, not the browser automatically, it cannot be leaked by mistake in a CSRF attach.
+The CSRF token has the same life as the session token, but it is not automatically included by the browser, so it cannot be leaked by mistake in a CSRF attack. The session cookie remains `HttpOnly`, while the CSRF cookie is kept separate to reduce the impact of XSS without losing CSRF protection.
 
 This is the (synchronizer pattern)[https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern] recommended by OWASP.
 
@@ -57,15 +60,16 @@ This is the (synchronizer pattern)[https://cheatsheetseries.owasp.org/cheatsheet
 
 A login in the app is only initiated by a clinician sending the invitation code, therefore it's hardly forgeable. However, a clinician's login can be forged if an attacker takes control of the clinician's email. This can be de-risked by detecting an unusual login request and asking an additional security question, which cannot be easily derived.
 
-The client stores a never-expiring additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser (`Set-Cookie: __Host-Http-device-id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Expires: Sun, 01 Jan 2051 00:00:00 GMT`). The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
+The client stores a log-lived (months) additional identifier that identifies the device. This identifier is generated as a uuidv4 and is stored as a http-only cookie by the browser (example: `Set-Cookie: __Host-Http-device-id=abc123; HttpOnly; Secure; SameSite=Strict; Path=/; Expires: Sun, 01 Jan 2027 00:00:00 GMT`). This cookie is set if the user explicitly confirms, when logging in the first time that: "This is my personal/private device."
+
+The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
+
+- Absolute Expiration (`absoluteExpiresAt`) should apply to ALL web sessions as a hard cap, but can be set longer for trusted devices (e.g., 12 hours) vs untrusted devices (e.g., 2 hours). When hit, prompt an inline re-authentication modal so active work is not lost.
 
 The security question should be something that the user knows and does not need to remember only for this system. For example:
 
 - the name of your first pet
-- the size of your shoes
-- the postcode of where you live
-- city or town were you born
-- make and model of your first car
+- make of your first car
 - elementary school you attended
 
 We can allow setting more than one security question at registration.

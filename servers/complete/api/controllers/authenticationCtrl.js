@@ -31,6 +31,7 @@ const MOBILE_CLIENT_SESSION_EXPIRY_MINUTES = process.env.MOBILE_CLIENT_SESSION_E
 const MAX_FAILED_LOGIN_ATTEMPTS = process.env.MAX_FAILED_LOGIN_ATTEMPTS || 5
 
 const SESSION_COOKIE_NAME = '__Host-session'
+const CSRF_COOKIE_NAME = '__Host-csrf'
 const CSRF_HEADER_NAME = 'X-CSRF-Token'
 const SESSION_TOKEN_SIZE_BYTES = process.env.SESSION_TOKEN_SIZE_BYTES || 32
 const CSRF_TOKEN_SIZE_BYTES = process.env.CSFR_TOKEN_SIZE_BYTES || 32
@@ -42,7 +43,7 @@ const SECURITY_QUESTION_ANSWER_SALT_ROUNDS = process.env.SECURITY_QUESTION_ANSWE
 /**
  * Every this amount, expired sessions are cleared
  */
-const CLEAN_EXPIRED_SESSIONS_PERIOD_MINS = 10
+const CLEAN_EXPIRED_SESSIONS_PERIOD_MINS = process.env.CLEAN_EXPIRED_SESSIONS_PERIOD_MINS || 10
 let last_expired_sessions_cleanup_ms = Date.now()
 
 
@@ -177,10 +178,16 @@ export const refreshUserSession = async (req, res) => {
   await dbaccess.releaseConnection(dbclient) // release the connection now that it is not needed anymore
 
   if (req.userSession.isWebClient) {
-    // set the cookie
+    // set the cookies
     res
       .cookie(SESSION_COOKIE_NAME, sessionToken, {
         httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        path: '/',
+      })
+      .cookie(CSRF_COOKIE_NAME, CSRFToken, {
+        httpOnly: false,
         secure: true,
         sameSite: 'Strict',
         path: '/',
@@ -221,7 +228,11 @@ export const logoutUserSession = async (req, res) => {
   await dbaccess.releaseConnection(dbclient) // release the connection now that it is not needed anymore
 
   if (deleted) {
-    res.clearCookie(SESSION_COOKIE_NAME, { path: '/' }).status(200).json({ message: 'Logged out successfully' })
+    res
+      .clearCookie(SESSION_COOKIE_NAME, { path: '/' })
+      .clearCookie(CSRF_COOKIE_NAME, { path: '/' })
+      .status(200)
+      .json({ message: 'Logged out successfully' })
   } else {
     res.status(500).json({ error: 'Failed to log out' })
   }
@@ -432,10 +443,16 @@ export const loginWeb = async (req, res) => {
         public_client_hard_expiry_at: publicClientHardExpiryTime
       })
 
-      // set the session cookie
+      // set the session and CSRF cookies
       res
         .cookie(SESSION_COOKIE_NAME, sessionToken, {
           httpOnly: true,
+          secure: true,
+          sameSite: 'Strict',
+          path: '/',
+        })
+        .cookie(CSRF_COOKIE_NAME, CSRFToken, {
+          httpOnly: false,
           secure: true,
           sameSite: 'Strict',
           path: '/',
