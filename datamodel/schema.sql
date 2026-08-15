@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS patient_team (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS team_invitation (
+CREATE TABLE IF NOT EXISTS team_invitations (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS team_invitation (
   patient_id BIGINT REFERENCES patients(id) ON DELETE CASCADE,
   role team_invitation_role_type NOT NULL,
   code TEXT NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]+$'),
+  email TEXT NOT NULL,
   invitation_messages JSON NOT NULL DEFAULT '{}'::JSON,
   expires_at TIMESTAMPTZ NOT NULL,
   failed_attempts INTEGER NOT NULL DEFAULT 0 CHECK (failed_attempts >= 0),

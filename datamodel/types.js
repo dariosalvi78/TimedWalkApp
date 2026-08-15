@@ -120,6 +120,7 @@
  * @property {!number} team_id - linked team id
  * @property {?number} clinician_id - linked clinician id, or null when inviting a patient
  * @property {?number} patient_id - linked patient id, or null when inviting a clinician
+ * @property {!string} email - email address of the invitee
  * @property {!TeamInvitationRoleType} role - invitation role
  * @property {!string} code - invitation code
  * @property {!Object} invitation_messages - JSON payload with invitation messages
