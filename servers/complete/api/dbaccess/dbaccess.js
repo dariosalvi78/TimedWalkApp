@@ -622,19 +622,21 @@ async function getClinicians (connection, queryParams = null) {
   }
 
   if (queryParams && queryParams.user_id) {
-    query.text += ' WHERE user_id = $1'
+    query.text += ' WHERE user_id = $' + (query.values.length + 1)
     query.values.push(queryParams.user_id)
   } else if (queryParams && queryParams.p_id) {
-    query.text += ' WHERE p_id = $1'
+    query.text += ' WHERE p_id = $' + (query.values.length + 1)
     query.values.push(queryParams.p_id)
-  } else if (queryParams && queryParams.email) {
+  }
+  if (queryParams && queryParams.email) {
     query.text = `SELECT clinicians.* FROM clinicians
-        JOIN "users" ON clinicians.user_id = "users".id WHERE "users".email = $1`
+        JOIN "users" ON clinicians.user_id = "users".id WHERE "users".email = $` + (query.values.length + 1)
     query.values = [queryParams.email]
-  } else if (queryParams && queryParams.team_id) {
-    query.text = ` SELECT clinicians.* FROM clinicians
+  }
+  if (queryParams && queryParams.team_id) {
+    query.text = ` SELECT clinicians.*, clinician_team.role FROM clinicians
             JOIN clinician_team ON clinician_team.clinician_id = clinician.id
-            WHERE clinician_team.team_id = $1`
+            WHERE clinician_team.team_id = $` + (query.values.length + 1)
     query.values = [queryParams.team_id]
   }
 
@@ -680,29 +682,49 @@ async function deleteClinician (connection, id = null) {
 
 
 /**
- * Fetches teams from the database by team_id or name.
- * team_id and name are exclusive, if both are provided, team_id will be used.
+ * Fetches teams from the database.
  * @param {!Object} connection - the database connection
- * @param {Object} queryParams - query parameters, contains id, p_id or name
- * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams
+ * @param {Object} queryParams - query parameters, contains id, p_id, name or clinician_id for lookup
+ * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams, if a clinician_id is provided, the role of the clinician in the team is also returned
  */
 async function getTeams (connection, queryParams) {
   const query = {
-    text: 'SELECT * FROM teams ',
+    text: '',
     values: [],
   }
 
-  const { id, p_id, name } = queryParams || {}
+  const { id, p_id, name, clinician_id } = queryParams || {}
 
+  // join with clinician_team table if clinician_id is provided and add the role column to the select statement
+  if (clinician_id) {
+    query.text = 'SELECT teams.*, clinician_team.role FROM teams JOIN clinician_team ON teams.id = clinician_team.team_id WHERE clinician_team.clinician_id = $1'
+    query.values.push(clinician_id)
+  } else {
+    query.text = 'SELECT * FROM teams'
+  }
 
   if (id) {
-    query.text += ' WHERE teams.id = $1 '
+    if (query.values.length > 0) {
+      query.text += ' AND teams.id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE teams.id = $1'
+    }
     query.values.push(id)
-  } else if (name) {
-    query.text += ' WHERE teams.name = $1 '
+  }
+  if (name) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.name = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE teams.name = $1'
+    }
     query.values.push(name)
-  } else if (p_id) {
-    query.text += ' WHERE teams.p_id = $1 '
+  }
+  if (p_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.p_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE teams.p_id = $1'
+    }
     query.values.push(p_id)
   }
 

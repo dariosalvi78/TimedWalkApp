@@ -56,6 +56,10 @@ describe('Testing access to teams,', () => {
       team2 = res.rows[0]
     })
 
+    after(async () => {
+      await dbtools.query(dbclient, `DELETE FROM "teams" WHERE id IN (${team1.id}, ${team2.id})`)
+    })
+
     test('all teams can be retrieved', async function () {
       let teams = await dbaccess.getTeams(dbclient)
       assert.strictEqual(teams.length, 2, 'Expected exactly 2 teams')
@@ -71,6 +75,82 @@ describe('Testing access to teams,', () => {
       let teams = await dbaccess.getTeams(dbclient, { id: team2.id })
       assert.strictEqual(teams.length, 1)
       assert.strictEqual(teams[0].name, 'Team B')
+    })
+
+    describe('when a clinician is associated with a team,', () => {
+      let user1, user2
+      let clinician1, clinician2
+      before(async () => {
+
+        // store users for clinicians
+        let res = await dbtools.query(
+          dbclient,
+          `
+                  INSERT INTO "users" (email, role)
+                  VALUES ('clinician1@example.com', 'clinician')
+                  RETURNING *`,
+        )
+        user1 = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
+                      INSERT INTO "users" (email, role)
+                      VALUES ('clinician2@example.com', 'clinician')
+                      RETURNING *`,
+        )
+        user2 = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
+                  INSERT INTO "clinicians" (user_id, first_names, second_names)
+                  VALUES (${user1.id}, 'Clinician', 'One')
+                  RETURNING *`,
+        )
+        clinician1 = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
+                      INSERT INTO "clinicians" (user_id, first_names, second_names)
+                      VALUES (${user2.id}, 'Clinician', 'Two')
+                      RETURNING *`,
+        )
+        clinician2 = res.rows[0]
+
+        await dbtools.query(
+          dbclient,
+          `
+                  INSERT INTO "clinician_team" (clinician_id, team_id, role)
+                  VALUES (${clinician1.id}, ${team1.id}, 'clinician_owner')`,
+        )
+
+        await dbtools.query(
+          dbclient,
+          `
+                      INSERT INTO "clinician_team" (clinician_id, team_id, role)
+                      VALUES (${clinician2.id}, ${team2.id}, 'clinician_member')`,
+        )
+      })
+
+      after(async () => {
+        await dbtools.query(dbclient, `DELETE FROM "clinician_team" WHERE clinician_id IN (${clinician1.id}, ${clinician2.id})`)
+        await dbtools.query(dbclient, `DELETE FROM "clinicians" WHERE id IN (${clinician1.id}, ${clinician2.id})`)
+      })
+
+      test('a team can be retrieved by clinician id and the role is specified', async function () {
+        let teams = await dbaccess.getTeams(dbclient, { clinician_id: clinician1.id })
+        assert.strictEqual(teams.length, 1)
+        assert.strictEqual(teams[0].id, team1.id)
+        assert.strictEqual(teams[0].role, 'clinician_owner', 'Expected role to be clinician_owner')
+
+        teams = await dbaccess.getTeams(dbclient, { clinician_id: clinician2.id })
+        assert.strictEqual(teams.length, 1)
+        assert.strictEqual(teams[0].id, team2.id)
+        assert.strictEqual(teams[0].role, 'clinician_member', 'Expected role to be clinician_member')
+      })
+
     })
   })
 
