@@ -123,7 +123,7 @@
  * @property {!string} email - email address of the invitee
  * @property {!TeamInvitationRoleType} role - invitation role
  * @property {!string} code - invitation code
- * @property {!Object} invitation_messages - JSON payload with invitation messages
+ * @property {!Object} invitation_message - JSON payload with invitation messages
  * @property {!string} expires_at - expiration timestamp
  * @property {!number} failed_attempts - number of failed attempts
  * @property {!string} created_at - creation timestamp
