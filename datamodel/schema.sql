@@ -22,6 +22,13 @@ BEGIN
   END IF;
 END $$;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'team_clinician_role_type') THEN
+    CREATE TYPE team_clinician_role_type AS ENUM ('clinician_member', 'clinician_owner');
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
@@ -103,6 +110,7 @@ CREATE TABLE IF NOT EXISTS clinician_team (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   clinician_id BIGINT NOT NULL REFERENCES clinicians(id) ON DELETE CASCADE,
   team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  role team_clinician_role_type NOT NULL,
   UNIQUE (clinician_id, team_id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
