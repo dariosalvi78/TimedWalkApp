@@ -108,7 +108,7 @@ describe('Testing access to patients,', () => {
       })
 
       describe('when a team is created and patients are associated with it,', () => {
-        let team
+        let team1, team2
         before(async () => {
           let res = await dbtools.query(
             dbclient,
@@ -117,25 +117,55 @@ describe('Testing access to patients,', () => {
                     VALUES ('Test Team', 'Test Contact Details')
                     RETURNING *`,
           )
-          team = res.rows[0]
+          team1 = res.rows[0]
+
+          res = await dbtools.query(
+            dbclient,
+            `
+                    INSERT INTO "teams" (name, contact_details)
+                    VALUES ('Test Team 2', 'Test Contact Details 2')
+                    RETURNING *`,
+          )
+          team2 = res.rows[0]
+
           await dbtools.query(
             dbclient,
             `
                     INSERT INTO "patient_team" (patient_id, team_id)
                     VALUES ($1, $2)`,
-            [patient1.id, team.id],
+            [patient1.id, team1.id],
+          )
+
+          await dbtools.query(
+            dbclient,
+            `
+                    INSERT INTO "patient_team" (patient_id, team_id)
+                    VALUES ($1, $2)`,
+            [patient2.id, team2.id],
           )
         })
 
         after(async () => {
-          await dbtools.query(dbclient, `DELETE FROM "patient_team" WHERE patient_id = $1 AND team_id = $2`, [patient1.id, team.id])
-          await dbtools.query(dbclient, `DELETE FROM "teams" WHERE id = $1`, [team.id])
+          await dbtools.query(dbclient, `DELETE FROM "patient_team" WHERE patient_id = $1 OR patient_id = $2`, [patient1.id, patient2.id])
+          await dbtools.query(dbclient, `DELETE FROM "teams" WHERE id = $1`, [team1.id])
+          await dbtools.query(dbclient, `DELETE FROM "teams" WHERE id = $1`, [team2.id])
         })
 
         test('patients can be retrieved by team_id', async () => {
-          let patients = await dbaccess.getPatients(dbclient, { team_id: team.id })
+          let patients = await dbaccess.getPatients(dbclient, { team_id: team1.id })
           assert.strictEqual(patients.length, 1)
           assert.strictEqual(patients[0].id, patient1.id)
+        })
+
+        test('patients can be retrieved by id AND team_id', async () => {
+          let patients = await dbaccess.getPatients(dbclient, { id: patient1.id, team_id: team1.id })
+          assert.strictEqual(patients.length, 1)
+          assert.strictEqual(patients[0].id, patient1.id)
+        })
+
+        test('patients not in the team cannot be retrieved', async () => {
+          let patients = await dbaccess.getPatients(dbclient, { id: patient2.id, team_id: team1.id })
+          assert.strictEqual(patients.length, 0)
         })
       })
     })
