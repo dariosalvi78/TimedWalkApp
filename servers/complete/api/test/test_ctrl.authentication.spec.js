@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test, before, after, mock, afterEach } from 'node:test'
 import dbaccess from '../dbaccess/dbaccess.js'
+import dblogincodes from '../dbaccess/dba.logincodes.js'
 import { verifyUserSession, refreshUserSession, logoutUserSession, requestLoginCode, loginWeb } from '../controllers/authenticationCtrl.js'
 import { MockResponse } from './MockResponse.js'
 import { emailSender } from '../services/emailSender.js'
@@ -453,7 +454,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'getUsers', async () => {
@@ -462,7 +463,7 @@ describe('When testing the authentication controller,', () => {
           email: 'test@example.com'
         }]
       })
-      mock.method(dbaccess, 'createLoginCode', async () => {
+      mock.method(dblogincodes, 'createLoginCode', async () => {
         return { email: 'test@example.com', code: '123456', expires_at: new Date(Date.now() + 5 * 60 * 1000) }
       })
       mock.method(emailSender, 'sendEmail', async () => {
@@ -484,8 +485,8 @@ describe('When testing the authentication controller,', () => {
 
       assert.strictEqual(res.code, 200)
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1)
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1)
-      assert.strictEqual(dbaccess.createLoginCode.mock.callCount(), 1)
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1)
+      assert.strictEqual(dblogincodes.createLoginCode.mock.callCount(), 1)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
     })
@@ -495,13 +496,13 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'getUsers', async () => {
         return []
       })
-      mock.method(dbaccess, 'createLoginCode', async () => {
+      mock.method(dblogincodes, 'createLoginCode', async () => {
         return { email: 'test@example.com', code: '123456', expires_at: new Date(Date.now() + 5 * 60 * 1000) }
       })
       mock.method(emailSender, 'sendEmail', async () => {
@@ -523,8 +524,8 @@ describe('When testing the authentication controller,', () => {
 
       assert.strictEqual(res.code, 200)
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1)
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1)
-      assert.strictEqual(dbaccess.createLoginCode.mock.callCount(), 0)
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1)
+      assert.strictEqual(dblogincodes.createLoginCode.mock.callCount(), 0)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 0)
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
     })
@@ -534,7 +535,7 @@ describe('When testing the authentication controller,', () => {
         return null
       })
       let codeCheckCount = 0
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         codeCheckCount++
         if (codeCheckCount === 1) {
           return [{ code: '123456' }] // simulate code already exists
@@ -548,7 +549,7 @@ describe('When testing the authentication controller,', () => {
           email: 'test@example.com'
         }]
       })
-      mock.method(dbaccess, 'createLoginCode', async () => {
+      mock.method(dblogincodes, 'createLoginCode', async () => {
         return { email: 'test@example.com', code: '123456', expires_at: new Date(Date.now() + 5 * 60 * 1000) }
       })
       mock.method(emailSender, 'sendEmail', async () => {
@@ -571,8 +572,8 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 200)
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 2)
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1)
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 2)
-      assert.strictEqual(dbaccess.createLoginCode.mock.callCount(), 1)
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 2)
+      assert.strictEqual(dblogincodes.createLoginCode.mock.callCount(), 1)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 2)
     })
@@ -597,13 +598,13 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [] // simulate code does not exist
       })
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -622,7 +623,7 @@ describe('When testing the authentication controller,', () => {
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -630,7 +631,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -640,7 +641,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -659,7 +660,7 @@ describe('When testing the authentication controller,', () => {
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -667,7 +668,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -684,7 +685,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -702,10 +703,10 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 403)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -713,7 +714,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -730,7 +731,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -749,10 +750,10 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 400)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -760,7 +761,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -780,7 +781,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -803,11 +804,11 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 400)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -815,7 +816,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -847,7 +848,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -870,13 +871,13 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 400)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
       assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
       assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -884,7 +885,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -922,7 +923,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -945,7 +946,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 200)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
       assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
@@ -957,7 +958,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is not set')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -966,7 +967,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -1006,7 +1007,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -1029,7 +1030,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 200)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
       assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
@@ -1042,7 +1043,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is NOT set')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -1050,7 +1051,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -1075,7 +1076,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -1096,7 +1097,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 401)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getDeviceIds.mock.callCount(), 1, 'device id is fetched')
       assert.ok(!res.cookies['__Host-session'], 'session cookie is NOT set')
@@ -1104,7 +1105,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(!res.cookies['__Host-Http-device-id'], 'device id cookie is set')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 0, 'user session is NOT created')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
@@ -1112,7 +1113,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
-      mock.method(dbaccess, 'getLoginCodes', async () => {
+      mock.method(dblogincodes, 'getLoginCodes', async () => {
         return [{
           email: 'dario@mau.se',
           code: '123456',
@@ -1144,7 +1145,7 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
         return null
       })
-      mock.method(dbaccess, 'deleteExpiredLoginCodes', async () => {
+      mock.method(dblogincodes, 'deleteExpiredLoginCodes', async () => {
         return null
       })
       mock.method(dbaccess, 'releaseConnection', async () => {
@@ -1165,7 +1166,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(res.code, 200)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
-      assert.strictEqual(dbaccess.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getDeviceIds.mock.callCount(), 1, 'device id is fetched')
       assert.strictEqual(dbaccess.updateDeviceId.mock.callCount(), 1, 'device id is updated')
@@ -1173,7 +1174,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(res.data.CSRFToken, 'csrf token is sent')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
-      assert.strictEqual(dbaccess.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
+      assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
   })

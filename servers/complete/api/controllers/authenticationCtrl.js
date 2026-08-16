@@ -18,6 +18,7 @@
 
 import logger from '../services/logger.js'
 import dbaccess from '../dbaccess/dbaccess.js'
+import dblogincodes from '../dbaccess/dba.logincodes.js'
 import { emailSender } from '../services/emailSender.js'
 import { randomBytes, randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt'
@@ -264,7 +265,7 @@ export const requestLoginCode = async (req, res) => {
     let dbclient = await dbaccess.getConnection()
     try {
       // Check if the code is already in use
-      let existingCode = await dbaccess.getLoginCodes(dbclient, { code: code })
+      let existingCode = await dblogincodes.getLoginCodes(dbclient, { code: code })
       if (existingCode && existingCode.length > 0) {
         codeAvailable = false
         continue // generate a new code
@@ -278,7 +279,7 @@ export const requestLoginCode = async (req, res) => {
 
         // Store the code in the database with an expiration time (e.g., 5 minutes)
         let expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000)
-        await dbaccess.createLoginCode(dbclient, { email: email, code: code, expires_at: expiresAt })
+        await dblogincodes.createLoginCode(dbclient, { email: email, code: code, expires_at: expiresAt })
 
         // Here you send the code to the user's email
         await emailSender.sendEmail(email, 'Your Login Code', `Your login code is: ${code}. It will expire in ${LOGIN_CODE_EXPIRY_MINUTES} minutes.`)
@@ -322,7 +323,7 @@ export const loginWeb = async (req, res) => {
 
   try {
     // check if the code is valid
-    let loginCodes = await dbaccess.getLoginCodes(dbclient, { email: email, code: code })
+    let loginCodes = await dblogincodes.getLoginCodes(dbclient, { email: email, code: code })
     if (!loginCodes || loginCodes.length === 0) {
       // no code found
       logger.warn(`Invalid login code for ${email}`)
@@ -474,7 +475,7 @@ export const loginWeb = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' })
   } finally {
     // remove expired login codes
-    await dbaccess.deleteExpiredLoginCodes(dbclient)
+    await dblogincodes.deleteExpiredLoginCodes(dbclient)
     // remove also old device ids?
     await dbaccess.releaseConnection(dbclient)
   }

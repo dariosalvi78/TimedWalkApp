@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test, before, after, beforeEach, afterEach } from 'node:test';
 import * as dbtools from './dbtesttools.js'
 import dbaccess from '../dbaccess/dbaccess.js'
+import dblogincodes from '../dbaccess/dba.logincodes.js'
 
 describe('Testing access to logincodes,', () => {
   const testDBName = 'testlogincodes'
@@ -22,12 +23,12 @@ describe('Testing access to logincodes,', () => {
       code: '123456',
       expires_at: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
     }
-    let createdLoginCode = await dbaccess.createLoginCode(dbclient, loginCode)
+    let createdLoginCode = await dblogincodes.createLoginCode(dbclient, loginCode)
     assert.strictEqual(createdLoginCode.email, loginCode.email)
     assert.strictEqual(createdLoginCode.code, loginCode.code)
     assert.ok(createdLoginCode.expires_at)
 
-    let deleted = await dbaccess.deleteLoginCode(dbclient, createdLoginCode.email, createdLoginCode.code)
+    let deleted = await dblogincodes.deleteLoginCode(dbclient, createdLoginCode.email, createdLoginCode.code)
     assert.strictEqual(deleted, true)
   })
 
@@ -59,12 +60,12 @@ describe('Testing access to logincodes,', () => {
     })
 
     test('all login codes can be retrieved', async function () {
-      let loginCodes = await dbaccess.getLoginCodes(dbclient, null)
+      let loginCodes = await dblogincodes.getLoginCodes(dbclient, null)
       assert.strictEqual(loginCodes.length, 2, 'Expected exactly 2 login codes')
     })
 
     test('login code for dario@test.com/123456 can be retrieved', async function () {
-      let loginCodes = await dbaccess.getLoginCodes(dbclient, { email: 'dario@test.com', code: '123456' })
+      let loginCodes = await dblogincodes.getLoginCodes(dbclient, { email: 'dario@test.com', code: '123456' })
       assert.strictEqual(loginCodes.length, 1, 'Expected exactly 1 login code')
       assert.strictEqual(loginCodes[0].email, 'dario@test.com')
     })
@@ -100,9 +101,9 @@ describe('Testing access to logincodes,', () => {
     })
 
     test('expired login codes are deleted', async function () {
-      let deletedCodes = await dbaccess.deleteExpiredLoginCodes(dbclient, new Date(now))
+      let deletedCodes = await dblogincodes.deleteExpiredLoginCodes(dbclient, new Date(now))
       assert.strictEqual(deletedCodes, 1)
-      let remainingCodes = await dbaccess.getLoginCodes(dbclient, null)
+      let remainingCodes = await dblogincodes.getLoginCodes(dbclient, null)
       assert.strictEqual(remainingCodes.length, 1)
       assert.strictEqual(remainingCodes[0].email, 'anna@test.com')
     })

@@ -18,7 +18,6 @@
 
 import logger from '../services/logger.js'
 
-
 import { Pool } from 'pg'
 const pool = new Pool()
 
@@ -105,76 +104,7 @@ async function abortConnection (client) {
   client.release()
 }
 
-/**
- * Fetches login codes from the database.
- * @param {Object} connection - the database connection
- * @param {Object} queryParams - query parameters, contains email and code for lookup
- * @returns {Promise<Array<LoginCode>>} - a promise that resolves to an array of login codes
- */
-async function getLoginCodes (connection, queryParams = null) {
-  const query = {
-    text: 'SELECT * FROM "login_codes"',
-    values: [],
-  }
 
-  if (queryParams && queryParams.code) {
-    query.text += ' WHERE code = $1'
-    query.values.push(queryParams.code)
-    if (queryParams.email) {
-      query.text += ' AND email = $2'
-      query.values.push(queryParams.email)
-    }
-  }
-
-  let res = await connection.query(query)
-  return res.rows
-}
-
-/**
- * Creates a login code.
- * @param {Object} connection - the database connection
- * @param {LoginCode} loginCode - the logincode to be added
- */
-async function createLoginCode (connection, loginCode) {
-  const query = {
-    text:
-      'INSERT INTO "login_codes" (email, code, expires_at, created_at) ' +
-      'VALUES ($1, $2, $3, NOW()) RETURNING *',
-    values: [loginCode.email, loginCode.code, loginCode.expires_at],
-  }
-  let res = await connection.query(query)
-  return res.rows[0]
-}
-
-/**
- * Deletes a single login code from the database.
- * @param {string} code - the login code to be deleted
- * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
- * @param {Object} connection - the connection to the database
- * @returns {Promise<boolean>} - a promise that resolves to true if the delete was successful
- */
-async function deleteLoginCode (connection, email, code) {
-  const query = {
-    text: 'DELETE FROM "login_codes" WHERE email = $1 AND code = $2',
-    values: [email, code],
-  }
-  let res = await connection.query(query)
-  return res.rowCount > 0
-}
-
-/**
- * Deletes expired login codes from the database.
- * @param {Object} connection - connection to the database
- * @param {Date} now - date of now, optional, used for testing
- */
-async function deleteExpiredLoginCodes (connection, now) {
-  const query = {
-    text: 'DELETE FROM "login_codes" WHERE expires_at < $1',
-    values: [now || new Date()],
-  }
-  let res = await connection.query(query)
-  return res.rowCount
-}
 
 
 /**
@@ -617,27 +547,36 @@ async function updateDeviceId (connection, p_id, updateParams) {
  */
 async function getClinicians (connection, queryParams = null) {
   const query = {
-    text: 'SELECT * FROM clinicians ',
+    text: 'SELECT clinicians.* FROM clinicians ',
     values: [],
   }
 
+  if (queryParams && queryParams.team_id) {
+    query.text = ` SELECT clinicians.*, clinician_team.role FROM clinicians
+            JOIN clinician_team ON clinician_team.clinician_id = clinicians.id
+            WHERE clinician_team.team_id = $` + (query.values.length + 1)
+    query.values = [queryParams.team_id]
+  }
+
   if (queryParams && queryParams.user_id) {
-    query.text += ' WHERE user_id = $' + (query.values.length + 1)
+    if (query.values.length > 0) {
+      query.text += ' AND clinicians.user_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE clinicians.user_id = $1'
+    }
     query.values.push(queryParams.user_id)
-  } else if (queryParams && queryParams.p_id) {
-    query.text += ' WHERE p_id = $' + (query.values.length + 1)
+  }
+  if (queryParams && queryParams.p_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND clinicians.p_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE clinicians.p_id = $1'
+    }
     query.values.push(queryParams.p_id)
   }
   if (queryParams && queryParams.email) {
-    query.text = `SELECT clinicians.* FROM clinicians
-        JOIN "users" ON clinicians.user_id = "users".id WHERE "users".email = $` + (query.values.length + 1)
+    query.text += `JOIN "users" ON clinicians.user_id = "users".id WHERE "users".email = $` + (query.values.length + 1)
     query.values = [queryParams.email]
-  }
-  if (queryParams && queryParams.team_id) {
-    query.text = ` SELECT clinicians.*, clinician_team.role FROM clinicians
-            JOIN clinician_team ON clinician_team.clinician_id = clinician.id
-            WHERE clinician_team.team_id = $` + (query.values.length + 1)
-    query.values = [queryParams.team_id]
   }
 
   let res = await connection.query(query)
@@ -881,10 +820,6 @@ export default {
   getConnection,
   releaseConnection,
   abortConnection,
-  createLoginCode,
-  getLoginCodes,
-  deleteLoginCode,
-  deleteExpiredLoginCodes,
   getUsers,
   createUser,
   addFailedLoginAttempt,
