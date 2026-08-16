@@ -23,6 +23,7 @@ import dbasecurityquestions from './dba.securityquestions.js'
 import dbausersessions from './dba.usersessions.js'
 import dbadeviceids from './dba.deviceids.js'
 import dbaclinicians from './dba.clinicians.js'
+import dbapatients from './dba.patients.js'
 import dbateams from './dba.teams.js'
 import dbateaminvitations from './dba.teaminvitations.js'
 
@@ -126,6 +127,16 @@ export default {
   addFailedLoginAttempt: dbausers.addFailedLoginAttempt,
   deleteUser: dbausers.deleteUser,
 
+  // clinicians
+  getClinicians: dbaclinicians.getClinicians,
+  createClinician: dbaclinicians.createClinician,
+  deleteClinician: dbaclinicians.deleteClinician,
+
+  // patients
+  getPatients: dbapatients.getPatients,
+  createPatient: dbapatients.createPatient,
+  deletePatient: dbapatients.deletePatient,
+
   // login codes
   createLoginCode: dblogincodes.createLoginCode,
   getLoginCodes: dblogincodes.getLoginCodes,
@@ -151,11 +162,6 @@ export default {
   deleteDeviceId: dbadeviceids.deleteDeviceId,
   updateDeviceId: dbadeviceids.updateDeviceId,
   deleteDeviceIdsOlderThan: dbadeviceids.deleteDeviceIdsOlderThan,
-
-  // clinicians
-  getClinicians: dbaclinicians.getClinicians,
-  createClinician: dbaclinicians.createClinician,
-  deleteClinician: dbaclinicians.deleteClinician,
 
   // teams
   getTeams: dbateams.getTeams,
