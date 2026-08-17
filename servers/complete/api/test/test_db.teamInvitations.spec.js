@@ -38,7 +38,6 @@ describe('Testing access to team invitations,', () => {
         role: 'patient',
         code: 'ABC123',
         email: 'dario@mau.se',
-        invitation_message: { message: 'You are invited!' },
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         failed_attempts: 0
       }
@@ -52,7 +51,6 @@ describe('Testing access to team invitations,', () => {
       assert.strictEqual(createdInvitation.role, invitation.role)
       assert.strictEqual(createdInvitation.code, invitation.code)
       assert.strictEqual(createdInvitation.email, invitation.email)
-      assert.deepStrictEqual(createdInvitation.invitation_message, invitation.invitation_message)
       assert.strictEqual(createdInvitation.failed_attempts, invitation.failed_attempts)
 
       let deleted = await dbaccess.deleteTeamInvitations(dbclient, { id: createdInvitation.id })
@@ -65,8 +63,8 @@ describe('Testing access to team invitations,', () => {
         let res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, invitation_message, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', '{"message": "You are invited!"}', NOW() + INTERVAL '7 days', 0)
+                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', NOW() + INTERVAL '7 days', 0)
                   RETURNING *`,
         )
         invitation1 = res.rows[0]
@@ -74,8 +72,8 @@ describe('Testing access to team invitations,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, invitation_message, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', '{"message": "You are invited!"}', NOW() + INTERVAL '7 days', 0)
+                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', NOW() + INTERVAL '7 days', 0)
                   RETURNING *`,
         )
         invitation2 = res.rows[0]
@@ -104,8 +102,8 @@ describe('Testing access to team invitations,', () => {
         let res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, invitation_message, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', '{"message": "You are invited!"}', '2024-10-01 14:35:00+00', 0)
+                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', '2024-10-01 14:35:00+00', 0)
                   RETURNING *`,
         )
         invitation1 = res.rows[0]
@@ -113,8 +111,8 @@ describe('Testing access to team invitations,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, invitation_message, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', '{"message": "You are invited!"}', '2024-10-17 14:35:00+00', 0)
+                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', '2024-10-17 14:35:00+00', 0)
                   RETURNING *`,
         )
         invitation2 = res.rows[0]
@@ -167,7 +165,6 @@ describe('Testing access to team invitations,', () => {
           role: 'clinician_member',
           code: 'XYZ789',
           email: 'baba@test.com',
-          invitation_message: { message: 'You are invited as a clinician!' },
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           failed_attempts: 0
         }
@@ -181,7 +178,6 @@ describe('Testing access to team invitations,', () => {
         assert.strictEqual(createdInvitation.role, invitation.role)
         assert.strictEqual(createdInvitation.code, invitation.code)
         assert.strictEqual(createdInvitation.email, invitation.email)
-        assert.deepStrictEqual(createdInvitation.invitation_message, invitation.invitation_message)
         assert.strictEqual(createdInvitation.failed_attempts, invitation.failed_attempts)
 
         let deleted = await dbaccess.deleteTeamInvitations(dbclient, { id: createdInvitation.id })

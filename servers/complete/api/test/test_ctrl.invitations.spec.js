@@ -19,11 +19,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'patient',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'patient'
       }
     }
     const res = new MockResponse()
@@ -44,11 +40,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'patient',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'patient'
       }
     }
     const res = new MockResponse()
@@ -58,7 +50,7 @@ describe('When testing the invitation controller,', () => {
     assert.strictEqual(res.code, 403)
   })
 
-  test('team, email, role and message must be specified in request, else 400', async () => {
+  test('team, email and role must be specified in request, else 400', async () => {
     const req = {
       userSession: {
         session_id: 'session123',
@@ -68,32 +60,7 @@ describe('When testing the invitation controller,', () => {
       },
       body: {
         email: 'test@example.com',
-        team_p_id: 'team123',
-        role: 'clinician_member'
-      }
-    }
-    const res = new MockResponse()
-
-    await sendTeamInvitation(req, res)
-
-    assert.strictEqual(res.code, 400)
-  })
-
-  test('message must contain title, message, else 400', async () => {
-    const req = {
-      userSession: {
-        session_id: 'session123',
-        user_id: 'user123',
-        user_role: 'clinician',
-        isWebClient: false
-      },
-      body: {
-        email: 'test@example.com',
-        team_p_id: 'team123',
-        role: 'clinician_member',
-        invitation_message: {
-          title: 'Invitation to join team'
-        }
+        team_p_id: 'team123'
       }
     }
     const res = new MockResponse()
@@ -114,11 +81,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'clinician',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'clinician'
       }
     }
     const res = new MockResponse()
@@ -150,11 +113,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'clinician_member',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'clinician_member'
       }
     }
     const res = new MockResponse()
@@ -190,11 +149,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'clinician_member',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'clinician_member'
       }
     }
     const res = new MockResponse()
@@ -234,11 +189,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'test@example.com',
         team_p_id: 'team123',
-        role: 'clinician_member',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'clinician_member'
       }
     }
     const res = new MockResponse()
@@ -281,11 +232,7 @@ describe('When testing the invitation controller,', () => {
         email: 'patient@example.com',
         team_p_id: 'team123',
         role: 'patient',
-        patient_p_id: null, // patient_p_id is missing
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        patient_p_id: null // patient_p_id is missing
       }
     }
     const res = new MockResponse()
@@ -331,11 +278,7 @@ describe('When testing the invitation controller,', () => {
         email: 'patient@example.com',
         team_p_id: 'team123',
         role: 'patient',
-        patient_p_id: 'p3232',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        patient_p_id: 'p3232'
       }
     }
     const res = new MockResponse()
@@ -374,9 +317,16 @@ describe('When testing the invitation controller,', () => {
 
     })
     let createdInvite
+    let sentEmailSubject
+    let sentEmailBody
     mock.method(dbaccess, 'createTeamInvitation', async (conn, i) => {
       createdInvite = i
       return i
+    })
+    mock.method(emailSender, 'sendEmail', async (to, subject, body) => {
+      sentEmailSubject = subject
+      sentEmailBody = body
+      return true // simulate email sent
     })
     mock.method(dbaccess, 'releaseConnection', async () => {
       return true // simulate all ok
@@ -392,11 +342,7 @@ describe('When testing the invitation controller,', () => {
       body: {
         email: 'clinician@example.com',
         team_p_id: 'team123',
-        role: 'clinician_member',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        role: 'clinician_member'
       }
     }
     const res = new MockResponse()
@@ -411,12 +357,14 @@ describe('When testing the invitation controller,', () => {
     assert.strictEqual(createdInvite.team_id, 33)
     assert.strictEqual(createdInvite.role, 'clinician_member')
     assert.strictEqual(createdInvite.clinician_id, null)
-    assert.strictEqual(createdInvite.invitation_message.title, 'Invitation to join team')
-    assert.strictEqual(createdInvite.invitation_message.message, 'Please join our team!')
     assert.ok(createdInvite.code)
     assert.strictEqual(createdInvite.code.length, 6)
     assert.strictEqual(createdInvite.failed_attempts, 0)
     assert.ok(createdInvite.expires_at)
+    assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
+    assert.strictEqual(sentEmailSubject, 'Timed Walk Team Invitation')
+    assert.ok(sentEmailBody.includes(createdInvite.code))
+    assert.ok(sentEmailBody.includes('Test Team'))
     assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
   })
 
@@ -447,9 +395,16 @@ describe('When testing the invitation controller,', () => {
       }] // simulate patient found
     })
     let createdInvite
+    let sentEmailSubject
+    let sentEmailBody
     mock.method(dbaccess, 'createTeamInvitation', async (conn, i) => {
       createdInvite = i
       return i
+    })
+    mock.method(emailSender, 'sendEmail', async (to, subject, body) => {
+      sentEmailSubject = subject
+      sentEmailBody = body
+      return true // simulate email sent
     })
     mock.method(dbaccess, 'releaseConnection', async () => {
       return true // simulate all ok
@@ -466,11 +421,7 @@ describe('When testing the invitation controller,', () => {
         email: 'patient@example.com',
         team_p_id: 'team123',
         role: 'patient',
-        patient_p_id: 'p3232',
-        invitation_message: {
-          title: 'Invitation to join team',
-          message: 'Please join our team!'
-        }
+        patient_p_id: 'p3232'
       }
     }
     const res = new MockResponse()
@@ -486,12 +437,14 @@ describe('When testing the invitation controller,', () => {
     assert.strictEqual(createdInvite.team_id, 33)
     assert.strictEqual(createdInvite.role, 'patient')
     assert.strictEqual(createdInvite.clinician_id, null)
-    assert.strictEqual(createdInvite.invitation_message.title, 'Invitation to join team')
-    assert.strictEqual(createdInvite.invitation_message.message, 'Please join our team!')
     assert.ok(createdInvite.code)
     assert.strictEqual(createdInvite.code.length, 6)
     assert.strictEqual(createdInvite.failed_attempts, 0)
     assert.ok(createdInvite.expires_at)
+    assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
+    assert.strictEqual(sentEmailSubject, 'Timed Walk Team Invitation')
+    assert.ok(sentEmailBody.includes(createdInvite.code))
+    assert.ok(sentEmailBody.includes('Test Team'))
     assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
   })
 

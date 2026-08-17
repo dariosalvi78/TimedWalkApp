@@ -132,7 +132,6 @@ CREATE TABLE IF NOT EXISTS team_invitations (
   role team_invitation_role_type NOT NULL,
   code TEXT NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]+$'),
   email TEXT NOT NULL,
-  invitation_message JSON NOT NULL DEFAULT '{}'::JSON,
   expires_at TIMESTAMPTZ NOT NULL,
   failed_attempts INTEGER NOT NULL DEFAULT 0 CHECK (failed_attempts >= 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

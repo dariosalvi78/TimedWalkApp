@@ -10,12 +10,12 @@
  * @returns {Promise<TeamInvitation>} - a promise that resolves to the created team invitation
  */
 async function createTeamInvitation (connection, invitation) {
-    const query = {
-        text: 'INSERT INTO team_invitations (clinician_id, team_id, email, role, code, invitation_message, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-        values: [invitation.clinician_id, invitation.team_id, invitation.email, invitation.role, invitation.code, invitation.invitation_message, invitation.expires_at, invitation.failed_attempts]
-    }
-    let res = await connection.query(query)
-    return res.rows[0]
+  const query = {
+    text: 'INSERT INTO team_invitations (clinician_id, team_id, email, role, code, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+    values: [invitation.clinician_id, invitation.team_id, invitation.email, invitation.role, invitation.code, invitation.expires_at, invitation.failed_attempts]
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
 }
 
 /**
@@ -25,55 +25,55 @@ async function createTeamInvitation (connection, invitation) {
  * @returns {Promise<Array<TeamInvitation>>} - a promise that resolves to the retrieved team invitations
  */
 async function getTeamInvitations (connection, queryParams) {
-    const query = {
-        text: 'SELECT * FROM team_invitations ',
-        values: [],
-    }
+  const query = {
+    text: 'SELECT * FROM team_invitations ',
+    values: [],
+  }
 
-    if (queryParams && queryParams.code) {
-        if (query.values.length > 0) {
-            query.text += ' AND code = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE code = $1'
-        }
-        query.values.push(queryParams.code)
+  if (queryParams && queryParams.code) {
+    if (query.values.length > 0) {
+      query.text += ' AND code = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE code = $1'
     }
-    if (queryParams && queryParams.clinician_id) {
-        if (query.values.length > 0) {
-            query.text += ' AND clinician_id = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE clinician_id = $1'
-        }
-        query.values.push(queryParams.clinician_id)
+    query.values.push(queryParams.code)
+  }
+  if (queryParams && queryParams.clinician_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND clinician_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE clinician_id = $1'
     }
-    if (queryParams && queryParams.patient_id) {
-        if (query.values.length > 0) {
-            query.text += ' AND patient_id = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE patient_id = $1'
-        }
-        query.values.push(queryParams.patient_id)
+    query.values.push(queryParams.clinician_id)
+  }
+  if (queryParams && queryParams.patient_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND patient_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE patient_id = $1'
     }
-    if (queryParams && queryParams.team_id) {
-        if (query.values.length > 0) {
-            query.text += ' AND team_id = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE team_id = $1'
-        }
-        query.values.push(queryParams.team_id)
+    query.values.push(queryParams.patient_id)
+  }
+  if (queryParams && queryParams.team_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND team_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE team_id = $1'
     }
+    query.values.push(queryParams.team_id)
+  }
 
-    if (queryParams && queryParams.email) {
-        if (query.values.length > 0) {
-            query.text += ' AND email = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE email = $1'
-        }
-        query.values.push(queryParams.email)
+  if (queryParams && queryParams.email) {
+    if (query.values.length > 0) {
+      query.text += ' AND email = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE email = $1'
     }
+    query.values.push(queryParams.email)
+  }
 
-    let res = await connection.query(query)
-    return res.rows
+  let res = await connection.query(query)
+  return res.rows
 }
 
 /**
@@ -82,23 +82,23 @@ async function getTeamInvitations (connection, queryParams) {
  * @param {Object} queryParams - selects the invitations to delete, by id or team_id
  */
 async function deleteTeamInvitations (connection, queryParams) {
-    const query = {
-        text: 'DELETE FROM team_invitations ',
-        values: [],
-    }
+  const query = {
+    text: 'DELETE FROM team_invitations ',
+    values: [],
+  }
 
-    if (queryParams && queryParams.id) {
-        query.text += ' WHERE id = $1'
-        query.values.push(queryParams.id)
-    } else if (queryParams && queryParams.team_id) {
-        query.text += ' WHERE team_id = $1'
-        query.values.push(queryParams.team_id)
-    } else {
-        throw new Error('No valid query parameters provided for deleting team invitations')
-    }
+  if (queryParams && queryParams.id) {
+    query.text += ' WHERE id = $1'
+    query.values.push(queryParams.id)
+  } else if (queryParams && queryParams.team_id) {
+    query.text += ' WHERE team_id = $1'
+    query.values.push(queryParams.team_id)
+  } else {
+    throw new Error('No valid query parameters provided for deleting team invitations')
+  }
 
-    let res = await connection.query(query)
-    return res.rowCount > 0
+  let res = await connection.query(query)
+  return res.rowCount > 0
 }
 
 /**
@@ -108,17 +108,17 @@ async function deleteTeamInvitations (connection, queryParams) {
  * @returns {Promise<number>} - a promise that resolves to the number of expired team invitations deleted
  */
 async function deleteExpiredTeamInvitations (connection, now) {
-    const query = {
-        text: 'DELETE FROM team_invitations WHERE expires_at < $1',
-        values: [now || new Date()],
-    }
-    let res = await connection.query(query)
-    return res.rowCount
+  const query = {
+    text: 'DELETE FROM team_invitations WHERE expires_at < $1',
+    values: [now || new Date()],
+  }
+  let res = await connection.query(query)
+  return res.rowCount
 }
 
 export default {
-    createTeamInvitation,
-    getTeamInvitations,
-    deleteTeamInvitations,
-    deleteExpiredTeamInvitations,
+  createTeamInvitation,
+  getTeamInvitations,
+  deleteTeamInvitations,
+  deleteExpiredTeamInvitations,
 }

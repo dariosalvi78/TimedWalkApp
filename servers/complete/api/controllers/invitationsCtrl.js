@@ -16,6 +16,7 @@ import { randomInt } from 'node:crypto'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
+const INVITATION_EMAIL_TITLE = 'Timed Walk Team Invitation'
 
 /**
  * Generates a random alphanumeric code.
@@ -54,16 +55,10 @@ export const sendTeamInvitation = async (req, res) => {
   }
 
   // request includes the team public id and the email of the clinician to invite
-  const { team_p_id, email, role, invitation_message, patient_p_id } = req.body
+  const { team_p_id, email, role, patient_p_id } = req.body
 
-  if (!team_p_id || !email || !role || !invitation_message) {
+  if (!team_p_id || !email || !role) {
     res.status(400).json({ error: 'Missing required fields' })
-    return
-  }
-
-  const { title, message } = invitation_message
-  if (!title || !message) {
-    res.status(400).json({ error: 'Invalid invitation message' })
     return
   }
 
@@ -118,7 +113,6 @@ export const sendTeamInvitation = async (req, res) => {
     invitation.team_id = teamInfo.id
     invitation.role = role
     invitation.code = invitationCode
-    invitation.invitation_message = invitation_message
     invitation.expires_at = new Date(Date.now() + INVITATION_EXPIRATION_HOURS * 60 * 60 * 1000)
     invitation.failed_attempts = 0
 
@@ -148,8 +142,14 @@ export const sendTeamInvitation = async (req, res) => {
     // save invitation to the database
     const createdInvitation = await dbaccess.createTeamInvitation(dbclient, invitation)
 
+    const emailMessage = [
+      `You have been invited to join the Timed Walk team "${teamInfo.name}" as ${role}.`,
+      `Invitation code: ${invitationCode}`,
+      `This invitation expires at ${invitation.expires_at.toISOString()}.`
+    ].join('\n')
+
     // send the invitation email
-    await emailSender.sendEmail(email, title, message)
+    await emailSender.sendEmail(email, INVITATION_EMAIL_TITLE, emailMessage)
 
     res.status(200).json({ message: 'Invitation sent successfully', invitation: createdInvitation })
 
