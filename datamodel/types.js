@@ -23,6 +23,7 @@
  * @property {!number} id - internal identity column
  * @property {!string} p_id - public UUID identifier
  * @property {!string} email - user email address
+ * @property {!string} language - preferred language as a 2-letter ISO 639 code
  * @property {!number} failed_login_attempts - failed login attempts number
  * @property {?string} last_login_at - last login timestamp, or null if the user has not logged in
  * @property {!string} created_at - creation timestamp

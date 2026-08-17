@@ -52,9 +52,9 @@ async function addFailedLoginAttempt (connection, email) {
 async function createUser (connection, user) {
   const query = {
     text:
-      'INSERT INTO "users" (role, email, created_at, last_login_at) ' +
-      'VALUES ($1, $2, NOW(), NOW()) RETURNING *',
-    values: [user.role, user.email],
+      'INSERT INTO "users" (role, email, language, created_at, last_login_at) ' +
+      'VALUES ($1, $2, COALESCE($3, \'en\'), NOW(), NOW()) RETURNING *',
+    values: [user.role, user.email, user.language || null],
   }
   let res = await connection.query(query)
   return res.rows[0]

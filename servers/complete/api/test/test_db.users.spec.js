@@ -29,11 +29,27 @@ describe('Testing access to users,', () => {
     let createdUser = await dbaccess.createUser(dbclient, user)
     assert.strictEqual(createdUser.role, user.role)
     assert.strictEqual(createdUser.email, user.email)
+    assert.strictEqual(createdUser.language, 'en')
     assert.ok(createdUser.created_at)
     assert.ok(createdUser.last_login_at)
     assert.ok(createdUser.p_id)
 
     let deleted = await dbaccess.deleteUser(dbclient, createdUser.p_id, null)
+  })
+
+  test('a new user can be created with a specific language', async () => {
+    let user = {
+      role: 'patient',
+      email: 'langtest@mau.se',
+      language: 'sv',
+    }
+    let createdUser = await dbaccess.createUser(dbclient, user)
+    assert.strictEqual(createdUser.role, user.role)
+    assert.strictEqual(createdUser.email, user.email)
+    assert.strictEqual(createdUser.language, user.language)
+
+    let deleted = await dbaccess.deleteUser(dbclient, createdUser.p_id, null)
+    assert.strictEqual(deleted, true)
   })
 
 
@@ -43,8 +59,8 @@ describe('Testing access to users,', () => {
       let res = await dbtools.query(
         dbclient,
         `
-                INSERT INTO "users" (p_id, role, email, created_at, last_login_at, failed_login_attempts)
-                VALUES (gen_random_uuid(), 'clinician', 'sofia@mau.se', NOW(), NOW(), 0)
+                INSERT INTO "users" (p_id, role, email, language, created_at, last_login_at, failed_login_attempts)
+                VALUES (gen_random_uuid(), 'clinician', 'sofia@mau.se', 'sv', NOW(), NOW(), 0)
                 RETURNING *`,
       )
       user1 = res.rows[0]
@@ -52,8 +68,8 @@ describe('Testing access to users,', () => {
       res = await dbtools.query(
         dbclient,
         `
-                    INSERT INTO "users" (p_id, role, email, created_at, last_login_at, failed_login_attempts)
-                    VALUES (gen_random_uuid(), 'clinician', 'anthony@mau.se', NOW(), NOW(), 0)
+                    INSERT INTO "users" (p_id, role, email, language, created_at, last_login_at, failed_login_attempts)
+                    VALUES (gen_random_uuid(), 'clinician', 'anthony@mau.se', 'en', NOW(), NOW(), 0)
                     RETURNING *`,
       )
       user2 = res.rows[0]
@@ -73,6 +89,7 @@ describe('Testing access to users,', () => {
       let users = await dbaccess.getUsers(dbclient, { email: 'anthony@mau.se' })
       assert.strictEqual(users.length, 1)
       assert.strictEqual(users[0].email, 'anthony@mau.se')
+      assert.strictEqual(users[0].language, 'en')
     })
 
     test('sofia@mau.se can be increased the failed login attempts', async function () {

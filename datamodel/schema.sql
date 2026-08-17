@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   email TEXT NOT NULL UNIQUE,
+  language TEXT NOT NULL DEFAULT 'en' CHECK (language ~ '^[A-Za-z]{2}$'),
   last_login_at TIMESTAMPTZ,
   failed_login_attempts INTEGER NOT NULL DEFAULT 0  CHECK (failed_login_attempts >= 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
