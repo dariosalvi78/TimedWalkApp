@@ -116,7 +116,7 @@ export const verifyUserSession = async (req, res, next) => {
     req.userSession = {
       session_id: userSession.session_id,
       user_id: userSession.user_id,
-      userType: userSession.user.role,
+      user_role: userSession.user.role,
       isWebClient
     }
     next()

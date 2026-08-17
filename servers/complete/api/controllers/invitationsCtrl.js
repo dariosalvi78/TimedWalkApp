@@ -12,7 +12,7 @@
 import logger from '../services/logger.js'
 import dbaccess from '../dbaccess/dbaccess.js'
 import { emailSender } from '../services/emailSender.js'
-import { randomBytes, randomUUID } from 'node:crypto'
+import { randomInt } from 'node:crypto'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
@@ -28,7 +28,7 @@ function generateInvitationCode (length = 6) {
 
   for (let i = 0; i < length; i++) {
     // crypto.randomInt is cryptographically secure and avoids bias
-    const randomIndex = crypto.randomInt(0, chars.length);
+    const randomIndex = randomInt(0, chars.length);
     result += chars[randomIndex];
   }
 
@@ -48,7 +48,7 @@ export const sendTeamInvitation = async (req, res) => {
   }
 
   // only admins and clinicians can send invitations
-  if (req.userSession.user.role !== 'admin' && req.userSession.user.role !== 'clinician') {
+  if (req.userSession.user_role !== 'admin' && req.userSession.user_role !== 'clinician') {
     res.status(403).json({ error: 'Forbidden' })
     return
   }
@@ -87,10 +87,10 @@ export const sendTeamInvitation = async (req, res) => {
     const teamInfo = team[0]
 
     // user session contains:
-    // session_id, user_id, userType, isWebClient
+    // session_id, user_id, user_role, isWebClient
 
     // check if the user is an admin or a clinician associated with the team
-    if (req.userSession.userType === 'clinician') {
+    if (req.userSession.user_role === 'clinician') {
       const cliniciansInTeam = await dbaccess.getClinicians(dbclient, { team_id: teamInfo.id, user_id: req.userSession.user_id })
       if (!cliniciansInTeam || cliniciansInTeam.length === 0) {
         res.status(403).json({ error: 'Clinician does not belong to team' })
@@ -112,7 +112,8 @@ export const sendTeamInvitation = async (req, res) => {
 
     // create the invitation in the database
     /** @type {TeamInvitation} */
-    let invitation
+    let invitation = {}
+    invitation.email = email
     invitation.clinician_id = null
     invitation.team_id = teamInfo.id
     invitation.role = role
@@ -141,12 +142,6 @@ export const sendTeamInvitation = async (req, res) => {
         return
       }
       const patient = existingPatients[0]
-      // check if the patient is associated with the team
-      const patientsInTeam = await dbaccess.getPatients(dbclient, { team_id: teamInfo.id, id: patient.id })
-      if (!patientsInTeam || patientsInTeam.length === 0) {
-        res.status(403).json({ error: 'Patient does not belong to team' })
-        return
-      }
       invitation.patient_id = patient.id
     }
 
