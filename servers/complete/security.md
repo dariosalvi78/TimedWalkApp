@@ -14,7 +14,7 @@ There are 3 types of users:
 
 Admin: is always created at startup by the system itself (using env variables, which should be hidden after the first initialization)
 
-Clinician: is created by the user when accepting an invitation to a team. Admins or clinicians with team owner role can create an invitation, which is sent by email. The email contains a unique, short lived code. The recipient of the invitation has to insert the code on the system, and if it is verified, create the account with user details.
+Clinician: is created by the user when accepting an invitation to a team. Admins or clinicians with team owner role can create an invitation, which is sent by email. The email contains a unique, short lived code (24h or similar). The recipient of the invitation has to insert the code on the system, and if it is verified, create the account with user details.
 
 -- when inviting a clinician, if the email is already registered in a user account, the invite will be automatically linked to the existing account.
 

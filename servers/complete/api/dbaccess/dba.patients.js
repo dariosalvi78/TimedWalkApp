@@ -6,13 +6,16 @@
 /**
  * Retrieves patients from the database.
  * @param {Object} connection - database connection
- * @param {Object} queryParams - parameters for filtering: id, p_id, team_id
+ * @param {Object} queryParams - parameters for filtering: id, p_id, team_id, first_names, second_names, date_of_birth, if withEmail is true, include email in the result
  * @returns {Promise<Array<Patient>>} - a promise that resolves to an array of patients
  */
 async function getPatients (connection, queryParams = null) {
   const query = {
     text: 'SELECT patients.* FROM "patients"',
     values: [],
+  }
+  if (queryParams && queryParams.withEmail) {
+    query.text = 'SELECT patients.*, users.email FROM "patients" JOIN "users" ON "users".id = "patients".user_id'
   }
 
   if (queryParams && queryParams.team_id) {
@@ -36,6 +39,33 @@ async function getPatients (connection, queryParams = null) {
       query.text += ' WHERE patients.p_id = $1'
     }
     query.values.push(queryParams.p_id)
+  }
+
+  if (queryParams && queryParams.first_names) {
+    if (query.values.length > 0) {
+      query.text += ' AND LOWER(patients.first_names) = LOWER($' + (query.values.length + 1) + ')'
+    } else {
+      query.text += ' WHERE LOWER(patients.first_names) = LOWER($1)'
+    }
+    query.values.push(queryParams.first_names)
+  }
+
+  if (queryParams && queryParams.second_names) {
+    if (query.values.length > 0) {
+      query.text += ' AND LOWER(patients.second_names) = LOWER($' + (query.values.length + 1) + ')'
+    } else {
+      query.text += ' WHERE LOWER(patients.second_names) = LOWER($1)'
+    }
+    query.values.push(queryParams.second_names)
+  }
+
+  if (queryParams && queryParams.date_of_birth) {
+    if (query.values.length > 0) {
+      query.text += ' AND patients.date_of_birth = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE patients.date_of_birth = $1'
+    }
+    query.values.push(queryParams.date_of_birth)
   }
 
 

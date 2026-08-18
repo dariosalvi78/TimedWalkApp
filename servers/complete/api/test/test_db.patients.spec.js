@@ -103,6 +103,23 @@ describe('Testing access to patients,', () => {
         assert.strictEqual(patients[0].p_id, patient1.p_id)
       })
 
+      test('a patient can be retrieved by p_id with email', async () => {
+        let patients = await dbaccess.getPatients(dbclient, { p_id: patient1.p_id, withEmail: true })
+        assert.strictEqual(patients.length, 1)
+        assert.strictEqual(patients[0].p_id, patient1.p_id)
+        assert.ok(patients[0].email)
+      })
+
+      test('a patient can be retrieved by first_names, second_names and date_of_birth', async () => {
+        let patients = await dbaccess.getPatients(dbclient, {
+          first_names: 'Sofia',
+          second_names: 'Mau',
+          date_of_birth: '1990-01-01'
+        })
+        assert.strictEqual(patients.length, 1)
+        assert.strictEqual(patients[0].p_id, patient1.p_id)
+      })
+
       describe('when a team is created and patients are associated with it,', () => {
         let team1, team2
         before(async () => {
