@@ -51,7 +51,6 @@ describe('Testing access to patients,', () => {
         second_names: 'Mau',
         date_of_birth: '1990-01-01',
         sex: 'female',
-        email: 'sofia@mau.se',
         phone_number: '1234567890',
       })
 
@@ -60,7 +59,6 @@ describe('Testing access to patients,', () => {
       assert.strictEqual(createdPatient.second_names, 'Mau')
       assert.ok(createdPatient.date_of_birth instanceof Date)
       assert.strictEqual(createdPatient.sex, 'female')
-      assert.strictEqual(createdPatient.email, 'sofia@mau.se')
       assert.strictEqual(createdPatient.phone_number, '1234567890')
 
       let deleted = await dbaccess.deletePatient(dbclient, createdPatient.id)
@@ -76,7 +74,6 @@ describe('Testing access to patients,', () => {
           second_names: 'Mau',
           date_of_birth: '1990-01-01',
           sex: 'female',
-          email: 'sofia@mau.se',
           phone_number: '1234567890',
         })
 
@@ -86,7 +83,6 @@ describe('Testing access to patients,', () => {
           second_names: 'Mau',
           date_of_birth: '1992-02-02',
           sex: 'male',
-          email: 'anthony@mau.se',
           phone_number: '0987654321',
         })
       })

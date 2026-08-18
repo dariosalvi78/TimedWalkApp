@@ -109,7 +109,6 @@
  * @property {!string} second_names - patient second names
  * @property {!string} date_of_birth - date of birth in ISO date format
  * @property {!SexType} sex - patient sex
- * @property {?string} email - patient email address, or null
  * @property {?string} phone_number - patient phone number, or null
  * @property {!string} created_at - creation timestamp
  */

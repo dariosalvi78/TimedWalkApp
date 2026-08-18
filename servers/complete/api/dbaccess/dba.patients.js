@@ -53,8 +53,8 @@ async function createPatient (connection, patient) {
 
   const query = {
     text: `
-      INSERT INTO "patients" (user_id, first_names, second_names, date_of_birth, sex, email, phone_number)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO "patients" (user_id, first_names, second_names, date_of_birth, sex, phone_number)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`,
     values: [
       patient.user_id,
@@ -62,7 +62,6 @@ async function createPatient (connection, patient) {
       patient.second_names,
       patient.date_of_birth,
       patient.sex,
-      patient.email,
       patient.phone_number,
     ],
   }

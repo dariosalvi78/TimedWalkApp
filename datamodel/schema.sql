@@ -102,7 +102,6 @@ CREATE TABLE IF NOT EXISTS patients (
   second_names TEXT NOT NULL,
   date_of_birth DATE NOT NULL,
   sex sex_type NOT NULL DEFAULT 'unknown',
-  email TEXT,
   phone_number TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
