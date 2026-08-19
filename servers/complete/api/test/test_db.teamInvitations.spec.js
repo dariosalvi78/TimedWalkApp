@@ -93,6 +93,11 @@ describe('Testing access to team invitations,', () => {
         assert.strictEqual(invites.length, 1)
         assert.strictEqual(invites[0].code, 'INVITE1')
       })
+
+      test('invitation attempts can be incremented', async function () {
+        let updatedInvitation = await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, invitation1.id)
+        assert.strictEqual(updatedInvitation.failed_attempts, invitation1.failed_attempts + 1)
+      })
     })
 
     describe('when 2 invitations exist for the team, one expired one not,', () => {

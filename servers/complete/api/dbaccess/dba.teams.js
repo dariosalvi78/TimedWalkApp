@@ -10,48 +10,48 @@
  * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams, if a clinician_id is provided, the role of the clinician in the team is also returned
  */
 async function getTeams (connection, queryParams) {
-    const query = {
-        text: '',
-        values: [],
-    }
+  const query = {
+    text: '',
+    values: [],
+  }
 
-    const { id, p_id, name, clinician_id } = queryParams || {}
+  const { id, p_id, name, clinician_id } = queryParams || {}
 
-    // join with clinician_team table if clinician_id is provided and add the role column to the select statement
-    if (clinician_id) {
-        query.text = 'SELECT teams.*, clinician_team.role FROM teams JOIN clinician_team ON teams.id = clinician_team.team_id WHERE clinician_team.clinician_id = $1'
-        query.values.push(clinician_id)
+  // join with clinician_team table if clinician_id is provided and add the role column to the select statement
+  if (clinician_id) {
+    query.text = 'SELECT teams.*, clinician_team.role FROM teams JOIN clinician_team ON teams.id = clinician_team.team_id WHERE clinician_team.clinician_id = $1'
+    query.values.push(clinician_id)
+  } else {
+    query.text = 'SELECT * FROM teams'
+  }
+
+  if (id) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.id = $' + (query.values.length + 1)
     } else {
-        query.text = 'SELECT * FROM teams'
+      query.text += ' WHERE teams.id = $1'
     }
+    query.values.push(id)
+  }
+  if (name) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.name = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE teams.name = $1'
+    }
+    query.values.push(name)
+  }
+  if (p_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.p_id = $' + (query.values.length + 1)
+    } else {
+      query.text += ' WHERE teams.p_id = $1'
+    }
+    query.values.push(p_id)
+  }
 
-    if (id) {
-        if (query.values.length > 0) {
-            query.text += ' AND teams.id = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE teams.id = $1'
-        }
-        query.values.push(id)
-    }
-    if (name) {
-        if (query.values.length > 0) {
-            query.text += ' AND teams.name = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE teams.name = $1'
-        }
-        query.values.push(name)
-    }
-    if (p_id) {
-        if (query.values.length > 0) {
-            query.text += ' AND teams.p_id = $' + (query.values.length + 1)
-        } else {
-            query.text += ' WHERE teams.p_id = $1'
-        }
-        query.values.push(p_id)
-    }
-
-    let res = await connection.query(query)
-    return res.rows
+  let res = await connection.query(query)
+  return res.rows
 }
 
 /**
@@ -61,12 +61,29 @@ async function getTeams (connection, queryParams) {
  * @returns {Promise<Team>} - a promise that resolves to the created team
  */
 async function createTeam (connection, team) {
-    const query = {
-        text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
-        values: [team.contact_details, team.institutions, team.name],
-    }
-    let res = await connection.query(query)
-    return res.rows[0]
+  const query = {
+    text: 'INSERT INTO teams (contact_details, institutions, name, created_at) ' + 'VALUES ($1, $2, $3, NOW()) RETURNING *',
+    values: [team.contact_details, team.institutions, team.name],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
+ * Adds a clinician to a team.
+ * @param {Object} connection - database connection
+ * @param {string} team_id - id of the team
+ * @param {string} clinician_id - id of the clinician
+ * @param {string} role - role of the clinician in the team
+ * @returns {Promise<Object>} - a promise that resolves to the created association
+ */
+async function addClinicianToTeam (connection, team_id, clinician_id, role) {
+  const query = {
+    text: 'INSERT INTO clinician_team (team_id, clinician_id, role) VALUES ($1, $2, $3) RETURNING *',
+    values: [team_id, clinician_id, role],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
 }
 
 /**
@@ -76,17 +93,18 @@ async function createTeam (connection, team) {
  * @returns {Promise<boolean>} - true if the team is deleted, false otherwise
  */
 async function deleteTeam (connection, id) {
-    let query = {
-        text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
-        values: [id],
-    }
-    let res = await connection.query(query)
+  let query = {
+    text: 'DELETE FROM teams WHERE id = $1 RETURNING *',
+    values: [id],
+  }
+  let res = await connection.query(query)
 
-    return res.rowCount > 0
+  return res.rowCount > 0
 }
 
 export default {
-    getTeams,
-    createTeam,
-    deleteTeam,
+  getTeams,
+  createTeam,
+  addClinicianToTeam,
+  deleteTeam,
 }

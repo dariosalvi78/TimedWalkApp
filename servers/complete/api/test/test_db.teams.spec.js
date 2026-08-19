@@ -78,8 +78,8 @@ describe('Testing access to teams,', () => {
     })
 
     describe('when a clinician is associated with a team,', () => {
-      let user1, user2
-      let clinician1, clinician2
+      let user1, user2, user3
+      let clinician1, clinician2, clinician3
       before(async () => {
 
         // store users for clinicians
@@ -104,6 +104,15 @@ describe('Testing access to teams,', () => {
         res = await dbtools.query(
           dbclient,
           `
+                      INSERT INTO "users" (email, role)
+                      VALUES ('clinician3@example.com', 'clinician')
+                      RETURNING *`,
+        )
+        user3 = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
                   INSERT INTO "clinicians" (user_id, first_names, second_names)
                   VALUES (${user1.id}, 'Clinician', 'One')
                   RETURNING *`,
@@ -118,6 +127,15 @@ describe('Testing access to teams,', () => {
                       RETURNING *`,
         )
         clinician2 = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
+                      INSERT INTO "clinicians" (user_id, first_names, second_names)
+                      VALUES (${user3.id}, 'Clinician', 'Three')
+                      RETURNING *`,
+        )
+        clinician3 = res.rows[0]
 
         await dbtools.query(
           dbclient,
@@ -136,7 +154,8 @@ describe('Testing access to teams,', () => {
 
       after(async () => {
         await dbtools.query(dbclient, `DELETE FROM "clinician_team" WHERE clinician_id IN (${clinician1.id}, ${clinician2.id})`)
-        await dbtools.query(dbclient, `DELETE FROM "clinicians" WHERE id IN (${clinician1.id}, ${clinician2.id})`)
+        await dbtools.query(dbclient, `DELETE FROM "clinicians" WHERE id IN (${clinician1.id}, ${clinician2.id}, ${clinician3.id})`)
+        await dbtools.query(dbclient, `DELETE FROM "users" WHERE id IN (${user1.id}, ${user2.id}, ${user3.id})`)
       })
 
       test('a team can be retrieved by clinician id and the role is specified', async function () {
@@ -151,7 +170,19 @@ describe('Testing access to teams,', () => {
         assert.strictEqual(teams[0].role, 'clinician_member', 'Expected role to be clinician_member')
       })
 
-    })
-  })
+      test('a clinician with no team associations returns an empty array', async function () {
+        let teams = await dbaccess.getTeams(dbclient, { clinician_id: clinician3.id })
+        assert.strictEqual(teams.length, 0)
+      })
 
+      test('a clinician can be added to a team', async function () {
+        await dbaccess.addClinicianToTeam(dbclient, team1.id, clinician3.id, 'clinician_member')
+        let teams = await dbaccess.getTeams(dbclient, { clinician_id: clinician3.id })
+        assert.strictEqual(teams.length, 1)
+        assert.strictEqual(teams[0].id, team1.id)
+        assert.strictEqual(teams[0].role, 'clinician_member', 'Expected role to be clinician_member')
+      })
+    })
+
+  })
 })

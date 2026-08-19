@@ -17,7 +17,7 @@ import { randomInt } from 'node:crypto'
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
 const INVITATION_EMAIL_TITLE = 'Timed Walk Team Invitation'
-
+const INVITATION_MAX_FAILED_ATTEMPTS = process.env.INVITATION_MAX_FAILED_ATTEMPTS ? parseInt(process.env.INVITATION_MAX_FAILED_ATTEMPTS) : 5
 /**
  * Generates a random alphanumeric code.
  * @param {number} length - Length of the string (default: 6)
@@ -161,7 +161,12 @@ export const sendTeamInvitation = async (req, res) => {
   }
 }
 
-
+/**
+ * Creates a new patient record
+ * @param {Object} req - the http request object
+ * @param {Object} res - the http response object
+ * @returns {Promise<void>}
+ */
 export const createPatient = async (req, res) => {
   if (!req.userSession) {
     res.status(401).json({ error: 'Unauthorized' })
@@ -265,19 +270,82 @@ export const createPatient = async (req, res) => {
   }
 }
 
+/**
+ * Creates a new clinician and associates them with a team using an invitation code.
+ * @param {Object} req - the http request object
+ * @param {Object} res - the http response object
+ */
 export const createClinicianWithTeamInvitation = async (req, res) => {
   // check that all fields are present else 400
+  const { invitation_code, email, first_names, second_names, language } = req.body
+  if (!invitation_code || !email || !first_names || !second_names || !language) {
+    res.status(400).json({ error: 'Missing required fields' })
+    return
+  }
 
-  // run cleanup of expired codes
+  let dbclient = await dbaccess.getConnection(true)
 
-  // find code on db, else 404
+  try {
+    // run cleanup of expired codes
+    await dbaccess.deleteExpiredTeamInvitations(dbclient, new Date())
+    // find code on db, else 404
+    let clinicianInvitation = await dbaccess.getTeamInvitations(dbclient, { code: invitation_code, email: email })
+    if (!clinicianInvitation || clinicianInvitation.length === 0) {
+      logger.warn(`Team invitation not found for email ${email}`)
+      // if there is an invitation for the same email, but with a different code, increase the failed attempts counter and return 404
+      let otherInvitations = await dbaccess.getTeamInvitations(dbclient, { email: email })
+      if (otherInvitations && otherInvitations.length > 0) {
+        for (let inv of otherInvitations) {
+          await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, inv.id)
+        }
+      }
+      res.status(404).json({ error: 'Invitation code not found for the provided email' })
+      return
+    }
+    let clinicianInvitationInfo = clinicianInvitation[0]
+    // if failed attempts is greater than maximum, return 403
+    if (clinicianInvitationInfo.failed_attempts >= INVITATION_MAX_FAILED_ATTEMPTS) {
+      logger.warn(`Maximum failed attempts exceeded for email ${email}`)
+      // TODO: send email to admin notifying them of the failed attempts
 
-  // create clinician and associate to team
+      res.status(403).json({ error: 'Maximum failed attempts exceeded for this invitation' })
+      return
+    }
 
-  // send 201
+    /** @type {User} */
+    let newUser = {
+      email: email,
+      failed_login_attempts: 0,
+      role: 'clinician',
+      language: language.toLowerCase()
+    }
+
+    newUser = await dbaccess.createUser(dbclient, newUser)
+
+    /** @type {Clinician} */
+    let newClinician = {
+      user_id: newUser.id,
+      first_names: first_names,
+      second_names: second_names
+    }
+    newClinician = await dbaccess.createClinician(dbclient, newClinician)
+
+    await dbaccess.addClinicianToTeam(dbclient, clinicianInvitationInfo.team_id, newClinician.id, clinicianInvitationInfo.role)
+
+    // delete the invitation
+    await dbaccess.deleteTeamInvitations(dbclient, { id: clinicianInvitationInfo.id })
+
+    res.status(201).json({ message: 'Clinician created and associated with team' })
+  } catch (error) {
+    logger.error('Error creating new clinician:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    await dbaccess.releaseConnection(dbclient)
+  }
 }
 
-export const acceptTeamInvitation = async (req, res) => {
+
+export const acceptTeamInvitationWeb = async (req, res) => {
   // extract code from body, else 400
 
   // run cleanup of expired codes

@@ -77,6 +77,21 @@ async function getTeamInvitations (connection, queryParams) {
 }
 
 /**
+ * Increments the failed attempts for a team invitation by its ID.
+ * @param {Object} connection - connection to the database
+ * @param {String} id - the id of the team invitation to increment failed attempts for
+ * @returns {Promise<TeamInvitation>} - a promise that resolves to the updated team invitation
+ */
+async function increaseTeamInvitationFailedAttempts (connection, id) {
+  const query = {
+    text: 'UPDATE team_invitations SET failed_attempts = failed_attempts + 1 WHERE id = $1 RETURNING *',
+    values: [id],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Deletes team invitations from the database based on the provided query parameters.
  * @param {Object} connection - database connection
  * @param {Object} queryParams - selects the invitations to delete, by id or team_id
@@ -121,4 +136,5 @@ export default {
   getTeamInvitations,
   deleteTeamInvitations,
   deleteExpiredTeamInvitations,
+  increaseTeamInvitationFailedAttempts
 }

@@ -167,11 +167,13 @@ export default {
   getTeams: dbateams.getTeams,
   createTeam: dbateams.createTeam,
   deleteTeam: dbateams.deleteTeam,
+  addClinicianToTeam: dbateams.addClinicianToTeam,
 
   // team invitations
   createTeamInvitation: dbateaminvitations.createTeamInvitation,
   getTeamInvitations: dbateaminvitations.getTeamInvitations,
   deleteTeamInvitations: dbateaminvitations.deleteTeamInvitations,
-  deleteExpiredTeamInvitations: dbateaminvitations.deleteExpiredTeamInvitations
+  deleteExpiredTeamInvitations: dbateaminvitations.deleteExpiredTeamInvitations,
+  increaseTeamInvitationFailedAttempts: dbateaminvitations.increaseTeamInvitationFailedAttempts
 }
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test, before, after, mock, afterEach } from 'node:test'
 import dbaccess from '../dbaccess/dbaccess.js'
-import { sendTeamInvitation, createPatient } from '../controllers/invitationsCtrl.js'
+import { sendTeamInvitation, createPatient, createClinicianWithTeamInvitation } from '../controllers/invitationsCtrl.js'
 import { MockResponse } from './MockResponse.js'
 import { emailSender } from '../services/emailSender.js'
 import bcrypt from 'bcrypt'
@@ -662,6 +662,221 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(dbaccess.createUser.mock.callCount(), 1)
       assert.strictEqual(dbaccess.createPatient.mock.callCount(), 1)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
+    })
+  })
+
+  describe('when testing creating clinician with team invitation,', () => {
+
+    test('all fields must be provided, else 400', async () => {
+      const req = {
+        body: {
+          invitation_code: 'code123',
+          email: 'clinician@example.com',
+          first_names: 'Jane',
+          language: 'en'
+        }
+      }
+      const res = new MockResponse()
+
+      await createClinicianWithTeamInvitation(req, res)
+
+      assert.strictEqual(res.code, 400, 'return 400')
+    })
+
+    test('if invitation is not found get a 404', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredTeamInvitations', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'getTeamInvitations', async () => {
+        return [] // simulate no invitation found
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return [] // simulate no invitation found
+      })
+
+      const req = {
+        body: {
+          invitation_code: 'code123',
+          email: 'clinician@example.com',
+          first_names: 'Jane',
+          second_names: 'Doe',
+          language: 'en'
+        }
+      }
+      const res = new MockResponse()
+
+      await createClinicianWithTeamInvitation(req, res)
+
+      assert.strictEqual(res.code, 404, 'return 404')
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.deleteExpiredTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.getTeamInvitations.mock.callCount(), 2)
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
+    })
+
+    test('if code is wrong for email, get a 404 and increase failed attempts', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredTeamInvitations', async () => {
+        return true // simulate all ok
+      })
+      let attempts = 0
+      mock.method(dbaccess, 'getTeamInvitations', async () => {
+        attempts++
+        if (attempts === 1) {
+          // return no invitations for email and code
+          return []
+        } else {
+          // return an invitation for email only, to simulate that the code is wrong
+          return [{
+            id: 1,
+            team_id: 1,
+            clinician_id: null,
+            patient_id: null,
+            role: 'clinician_member',
+            code: 'wrongcode',
+            email: 'clinician@example.com',
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            failed_attempts: 0
+          }]
+        }
+      })
+      mock.method(dbaccess, 'increaseTeamInvitationFailedAttempts', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return [] // simulate no invitation found
+      })
+
+      const req = {
+        body: {
+          invitation_code: 'code123',
+          email: 'clinician@example.com',
+          first_names: 'Jane',
+          second_names: 'Doe',
+          language: 'en'
+        }
+      }
+      const res = new MockResponse()
+
+      await createClinicianWithTeamInvitation(req, res)
+
+      assert.strictEqual(res.code, 404, 'return 404')
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.deleteExpiredTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.getTeamInvitations.mock.callCount(), 2)
+      assert.strictEqual(dbaccess.increaseTeamInvitationFailedAttempts.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
+    })
+
+    test('if code ok but too many attempts, get a 403', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredTeamInvitations', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'getTeamInvitations', async () => {
+        return [{
+          id: 1,
+          team_id: 1,
+          clinician_id: null,
+          patient_id: null,
+          role: 'clinician_member',
+          code: 'code123',
+          email: 'clinician@example.com',
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          failed_attempts: 100
+        }]
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return [] // simulate no invitation found
+      })
+
+      const req = {
+        body: {
+          invitation_code: 'code123',
+          email: 'clinician@example.com',
+          first_names: 'Jane',
+          second_names: 'Doe',
+          language: 'en'
+        }
+      }
+      const res = new MockResponse()
+
+      await createClinicianWithTeamInvitation(req, res)
+
+      assert.strictEqual(res.code, 403, 'return 403')
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.deleteExpiredTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.getTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
+    })
+
+    test('if code ok, create user, clinician, associate clinician to team and get a 201', async () => {
+      mock.method(dbaccess, 'getConnection', async () => {
+        return null
+      })
+      mock.method(dbaccess, 'deleteExpiredTeamInvitations', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'getTeamInvitations', async () => {
+        return [{
+          id: 1,
+          team_id: 1,
+          clinician_id: null,
+          patient_id: null,
+          role: 'clinician_member',
+          code: 'code123',
+          email: 'clinician@example.com',
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          failed_attempts: 0
+        }]
+      })
+      let createdUser, createdClinician
+      mock.method(dbaccess, 'createUser', async () => {
+        createdUser = true
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'createClinician', async () => {
+        createdClinician = true
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'addClinicianToTeam', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'deleteTeamInvitations', async () => {
+        return true // simulate all ok
+      })
+      mock.method(dbaccess, 'releaseConnection', async () => {
+        return [] // simulate no invitation found
+      })
+
+      const req = {
+        body: {
+          invitation_code: 'code123',
+          email: 'clinician@example.com',
+          first_names: 'Jane',
+          second_names: 'Doe',
+          language: 'en'
+        }
+      }
+      const res = new MockResponse()
+
+      await createClinicianWithTeamInvitation(req, res)
+
+      assert.strictEqual(res.code, 201, 'return 201')
+      assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.deleteExpiredTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.getTeamInvitations.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.createUser.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.createClinician.mock.callCount(), 1)
+      assert.strictEqual(dbaccess.addClinicianToTeam.mock.callCount(), 1)
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
     })
   })
