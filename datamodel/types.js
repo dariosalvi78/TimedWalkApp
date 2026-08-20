@@ -118,8 +118,7 @@
  * @property {!number} id - internal identity column
  * @property {!string} p_id - public UUID identifier
  * @property {!number} team_id - linked team id
- * @property {?number} clinician_id - linked clinician id, or null when inviting a patient
- * @property {?number} patient_id - linked patient id, or null when inviting a clinician
+ * @property {?number} user_id - linked user id, or null if the invitee has no account yet
  * @property {!string} email - email address of the invitee
  * @property {!TeamInvitationRoleType} role - invitation role
  * @property {!string} code - invitation code

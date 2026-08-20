@@ -33,8 +33,7 @@ describe('Testing access to team invitations,', () => {
 
       let invitation = {
         team_id: team.id,
-        clinician_id: null,
-        patient_id: null,
+        user_id: null,
         role: 'patient',
         code: 'ABC123',
         email: 'dario@mau.se',
@@ -46,8 +45,7 @@ describe('Testing access to team invitations,', () => {
       assert.strictEqual(invites.length, 1, 'Expected exactly 1 team invitation')
 
       assert.strictEqual(createdInvitation.team_id, invitation.team_id)
-      assert.strictEqual(createdInvitation.clinician_id, invitation.clinician_id)
-      assert.strictEqual(createdInvitation.patient_id, invitation.patient_id)
+      assert.strictEqual(createdInvitation.user_id, invitation.user_id)
       assert.strictEqual(createdInvitation.role, invitation.role)
       assert.strictEqual(createdInvitation.code, invitation.code)
       assert.strictEqual(createdInvitation.email, invitation.email)
@@ -63,8 +61,8 @@ describe('Testing access to team invitations,', () => {
         let res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', NOW() + INTERVAL '7 days', 0)
+                  INSERT INTO "team_invitations" (team_id, user_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, 'patient', 'INVITE1', 'patient1@test.com', NOW() + INTERVAL '7 days', 0)
                   RETURNING *`,
         )
         invitation1 = res.rows[0]
@@ -72,8 +70,8 @@ describe('Testing access to team invitations,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', NOW() + INTERVAL '7 days', 0)
+                  INSERT INTO "team_invitations" (team_id, user_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, 'patient', 'INVITE2', 'patient2@test.com', NOW() + INTERVAL '7 days', 0)
                   RETURNING *`,
         )
         invitation2 = res.rows[0]
@@ -107,8 +105,8 @@ describe('Testing access to team invitations,', () => {
         let res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE1', 'patient1@test.com', '2024-10-01 14:35:00+00', 0)
+                  INSERT INTO "team_invitations" (team_id, user_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, 'patient', 'INVITE1', 'patient1@test.com', '2024-10-01 14:35:00+00', 0)
                   RETURNING *`,
         )
         invitation1 = res.rows[0]
@@ -116,8 +114,8 @@ describe('Testing access to team invitations,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "team_invitations" (team_id, clinician_id, patient_id, role, code, email, expires_at, failed_attempts)
-                  VALUES (${team.id}, null, null, 'patient', 'INVITE2', 'patient2@test.com', '2024-10-17 14:35:00+00', 0)
+                  INSERT INTO "team_invitations" (team_id, user_id, role, code, email, expires_at, failed_attempts)
+                  VALUES (${team.id}, null, 'patient', 'INVITE2', 'patient2@test.com', '2024-10-17 14:35:00+00', 0)
                   RETURNING *`,
         )
         invitation2 = res.rows[0]
@@ -165,8 +163,7 @@ describe('Testing access to team invitations,', () => {
 
         let invitation = {
           team_id: team.id,
-          clinician_id: clinician.id,
-          patient_id: null,
+          user_id: clinician.user_id,
           role: 'clinician_member',
           code: 'XYZ789',
           email: 'baba@test.com',
@@ -178,8 +175,7 @@ describe('Testing access to team invitations,', () => {
         assert.strictEqual(invites.length, 1, 'Expected exactly 1 team invitation')
 
         assert.strictEqual(createdInvitation.team_id, invitation.team_id)
-        assert.strictEqual(createdInvitation.clinician_id, invitation.clinician_id)
-        assert.strictEqual(createdInvitation.patient_id, invitation.patient_id)
+        assert.strictEqual(createdInvitation.user_id, invitation.user_id)
         assert.strictEqual(createdInvitation.role, invitation.role)
         assert.strictEqual(createdInvitation.code, invitation.code)
         assert.strictEqual(createdInvitation.email, invitation.email)

@@ -11,8 +11,8 @@
  */
 async function createTeamInvitation (connection, invitation) {
   const query = {
-    text: 'INSERT INTO team_invitations (clinician_id, team_id, email, role, code, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-    values: [invitation.clinician_id, invitation.team_id, invitation.email, invitation.role, invitation.code, invitation.expires_at, invitation.failed_attempts]
+    text: 'INSERT INTO team_invitations (user_id, team_id, email, role, code, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+    values: [invitation.user_id, invitation.team_id, invitation.email, invitation.role, invitation.code, invitation.expires_at, invitation.failed_attempts]
   }
   let res = await connection.query(query)
   return res.rows[0]
@@ -21,7 +21,7 @@ async function createTeamInvitation (connection, invitation) {
 /**
  * Retrieves team invitations from the database based on the provided query parameters.
  * @param {Object} connection - connection to the database
- * @param {Object} queryParams - the query parameters, can include code, clinician_id, patient_id, team_id, or email to filter the results
+ * @param {Object} queryParams - the query parameters, can include code, user_id, team_id, or email to filter the results
  * @returns {Promise<Array<TeamInvitation>>} - a promise that resolves to the retrieved team invitations
  */
 async function getTeamInvitations (connection, queryParams) {
@@ -38,21 +38,13 @@ async function getTeamInvitations (connection, queryParams) {
     }
     query.values.push(queryParams.code)
   }
-  if (queryParams && queryParams.clinician_id) {
+  if (queryParams && queryParams.user_id) {
     if (query.values.length > 0) {
-      query.text += ' AND clinician_id = $' + (query.values.length + 1)
+      query.text += ' AND user_id = $' + (query.values.length + 1)
     } else {
-      query.text += ' WHERE clinician_id = $1'
+      query.text += ' WHERE user_id = $1'
     }
-    query.values.push(queryParams.clinician_id)
-  }
-  if (queryParams && queryParams.patient_id) {
-    if (query.values.length > 0) {
-      query.text += ' AND patient_id = $' + (query.values.length + 1)
-    } else {
-      query.text += ' WHERE patient_id = $1'
-    }
-    query.values.push(queryParams.patient_id)
+    query.values.push(queryParams.user_id)
   }
   if (queryParams && queryParams.team_id) {
     if (query.values.length > 0) {
