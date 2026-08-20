@@ -109,18 +109,18 @@ export const sendTeamInvitation = async (req, res) => {
     /** @type {TeamInvitation} */
     let invitation = {}
     invitation.email = email
-    invitation.clinician_id = null
+    invitation.user_id = null
     invitation.team_id = teamInfo.id
     invitation.role = role
     invitation.code = invitationCode
     invitation.expires_at = new Date(Date.now() + INVITATION_EXPIRATION_HOURS * 60 * 60 * 1000)
     invitation.failed_attempts = 0
 
-    // check if the clinician already exists in the system
+    // check if the user already exists in the system
     if (role === 'clinician_owner' || role === 'clinician_member') {
-      const existingClinicians = await dbaccess.getClinicians(dbclient, { email: email })
-      if (existingClinicians && existingClinicians.length > 0) {
-        invitation.clinician_id = existingClinicians[0].id
+      const existingUsers = await dbaccess.getUsers(dbclient, { email: email })
+      if (existingUsers && existingUsers.length > 0) {
+        invitation.user_id = existingUsers[0].id
       }
     }
 
@@ -136,7 +136,7 @@ export const sendTeamInvitation = async (req, res) => {
         return
       }
       const patient = existingPatients[0]
-      invitation.patient_id = patient.id
+      invitation.user_id = patient.user_id ?? null
     }
 
     // save invitation to the database
@@ -272,6 +272,7 @@ export const createPatient = async (req, res) => {
 
 /**
  * Creates a new clinician and associates them with a team using an invitation code.
+ * No need to be logged in for this.
  * @param {Object} req - the http request object
  * @param {Object} res - the http response object
  */
@@ -335,6 +336,9 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
     // delete the invitation
     await dbaccess.deleteTeamInvitations(dbclient, { id: clinicianInvitationInfo.id })
 
+    // send email for confirmation of account creation and team association
+    await emailSender.sendEmail(email, 'Account created and associated with team', `Your account has been created and you have been associated with the team.`)
+
     res.status(201).json({ message: 'Clinician created and associated with team' })
   } catch (error) {
     logger.error('Error creating new clinician:', error)
@@ -344,18 +348,93 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
   }
 }
 
+/**
+ * Accepts a team invitation code and associates patient or clinician with the team.
+ * Needs to be logged in as a patient or clinician.
+ * @param {Object} req
+ * @param {Object} res
+ */
+export const acceptTeamInvitation = async (req, res) => {
+  if (req.userSession.user_role !== 'patient' && req.userSession.user_role !== 'clinician') {
+    res.status(403).json({ error: 'Forbidden' })
+    return
+  }
 
-export const acceptTeamInvitationWeb = async (req, res) => {
   // extract code from body, else 400
+  const { invitation_code } = req.body
+  if (!invitation_code) {
+    res.status(400).json({ error: 'Missing invitation code' })
+    return
+  }
 
-  // run cleanup of expired codes
+  let dbclient = await dbaccess.getConnection(true)
 
-  // find code on db, else 404
+  try {
+    // run cleanup of expired codes
+    await dbaccess.deleteExpiredTeamInvitations(dbclient, new Date())
+    // find code by code and user id, else 404
+    let invitation = await dbaccess.getTeamInvitations(dbclient, { code: invitation_code, user_id: req.userSession.user_id })
 
-  // check if patient, there must be a patient p_id, else 400
-  //    if patient p_id does not point at anything, send 404
+    if (!invitation || invitation.length === 0) {
+      logger.warn(`Team invitation not found for code ${invitation_code}`)
+      res.status(404).json({ error: 'Invitation code not found' })
+      return
+    }
+    let invitationInfo = invitation[0]
 
-  // check if clinician and no clinician id, send a 400 with a a flag requesting clinician's profile to be created
+    // if failed attempts is greater than maximum, return 403
+    if (invitationInfo.failed_attempts >= INVITATION_MAX_FAILED_ATTEMPTS) {
+      logger.warn(`Maximum failed attempts exceeded for invitation code ${invitation_code}`)
+      // TODO: send email to admin notifying them of the failed attempts
+      res.status(403).json({ error: 'Maximum failed attempts exceeded for this invitation' })
+      return
+    }
 
-  // else associate user to team and send a 200
+    // if the invitation has expired, return 403
+    if (new Date(invitationInfo.expires_at) < new Date()) {
+      logger.warn(`Invitation code ${invitation_code} has expired`)
+      await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, invitationInfo.id)
+      res.status(403).json({ error: 'Invitation code has expired' })
+      return
+    }
+
+    // confirm that the invitation is for the correct role (patient or clinician)
+    if (req.userSession.user_role === 'patient' && invitationInfo.role !== 'patient') {
+      res.status(403).json({ error: 'Invitation code is not for a patient' })
+      return
+    }
+    if (req.userSession.user_role === 'clinician' && (invitationInfo.role !== 'clinician_member' && invitationInfo.role !== 'clinician_owner')) {
+      // increase failed attempts for this invitation
+      await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, invitationInfo.id)
+      res.status(403).json({ error: 'Invitation code is not for a clinician' })
+      return
+    }
+
+    // all is OK, associate the user with the team
+    if (req.userSession.user_role === 'patient') {
+      // get the patient record for this user
+      let patients = await dbaccess.getPatients(dbclient, { user_id: req.userSession.user_id })
+      // associate the patient with the team
+      await dbaccess.addPatientToTeam(dbclient, invitationInfo.team_id, patients[0].id)
+    } else if (req.userSession.user_role === 'clinician') {
+      // get the clinician record for this user
+      let clinicians = await dbaccess.getClinicians(dbclient, { user_id: req.userSession.user_id })
+      // associate the clinician with the team
+      await dbaccess.addClinicianToTeam(dbclient, invitationInfo.team_id, clinicians[0].id, invitationInfo.role)
+    }
+
+    // delete the invitation
+    await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
+
+    // send email for confirmation of team association
+    await emailSender.sendEmail(req.userSession.user_email, 'Associated with team', `You have been associated with the team.`)
+
+    res.status(200).json({ message: 'Invitation accepted and user associated with team' })
+
+  } catch (error) {
+    logger.error('Error creating new clinician:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    await dbaccess.releaseConnection(dbclient)
+  }
 }

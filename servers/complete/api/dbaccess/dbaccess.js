@@ -168,6 +168,7 @@ export default {
   createTeam: dbateams.createTeam,
   deleteTeam: dbateams.deleteTeam,
   addClinicianToTeam: dbateams.addClinicianToTeam,
+  addPatientToTeam: dbateams.addPatientToTeam,
 
   // team invitations
   createTeamInvitation: dbateaminvitations.createTeamInvitation,
