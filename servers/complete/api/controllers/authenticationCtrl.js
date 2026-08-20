@@ -22,6 +22,7 @@ import dblogincodes from '../dbaccess/dba.logincodes.js'
 import { emailSender } from '../services/emailSender.js'
 import { randomBytes, randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt'
+import { I18n } from '../services/i18n.js'
 
 const LOGIN_CODE_EXPIRY_MINUTES = process.env.LOGIN_CODE_EXPIRY_MINUTES || 5
 
@@ -274,15 +275,18 @@ export const requestLoginCode = async (req, res) => {
       }
 
       // Check if the user exists
-      let user = await dbaccess.getUsers(dbclient, { email: email })
-      if (user && user.length > 0) {
+      let users = await dbaccess.getUsers(dbclient, { email: email })
+      if (users && users.length > 0) {
 
         // Store the code in the database with an expiration time (e.g., 5 minutes)
         let expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000)
         await dblogincodes.createLoginCode(dbclient, { email: email, code: code, expires_at: expiresAt })
 
         // Here you send the code to the user's email
-        await emailSender.sendEmail(email, 'Your Login Code', `Your login code is: ${code}. It will expire in ${LOGIN_CODE_EXPIRY_MINUTES} minutes.`)
+        let i18n = new I18n(users[0].language)
+        let title = i18n.t('emails.requestLoginCode.title')
+        let body = i18n.t('emails.requestLoginCode.body', { code: code, expires_at: expiresAt.toDateString() })
+        await emailSender.sendEmail(email, title, body)
 
         logger.info(`Login code sent to ${email}: ${code}`)
 

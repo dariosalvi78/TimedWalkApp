@@ -366,7 +366,7 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(createdInvite.failed_attempts, 0)
       assert.ok(createdInvite.expires_at)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
-      assert.strictEqual(sentEmailSubject, 'Timed Walk Team Invitation')
+      assert.strictEqual(sentEmailSubject, 'You have been invited to join a TimedWalk team')
       assert.ok(sentEmailBody.includes(createdInvite.code))
       assert.ok(sentEmailBody.includes('Test Team'))
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
@@ -448,7 +448,7 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(createdInvite.failed_attempts, 0)
       assert.ok(createdInvite.expires_at)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
-      assert.strictEqual(sentEmailSubject, 'Timed Walk Team Invitation')
+      assert.strictEqual(sentEmailSubject, 'You have been invited to join a TimedWalk team')
       assert.ok(sentEmailBody.includes(createdInvite.code))
       assert.ok(sentEmailBody.includes('Test Team'))
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1)
@@ -840,6 +840,14 @@ describe('When testing the invitation controller,', () => {
           email: 'clinician@example.com',
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           failed_attempts: 0
+        }]
+      })
+      mock.method(dbaccess, 'getTeams', async () => {
+        return [{
+          id: 1,
+          p_id: 'team123',
+          name: 'Test Team',
+          contact_details: 'Test Contact Details'
         }]
       })
       let createdUser, createdClinician

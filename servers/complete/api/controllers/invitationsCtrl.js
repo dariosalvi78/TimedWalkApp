@@ -13,10 +13,10 @@ import logger from '../services/logger.js'
 import dbaccess from '../dbaccess/dbaccess.js'
 import { emailSender } from '../services/emailSender.js'
 import { randomInt } from 'node:crypto'
+import { I18n } from '../services/i18n.js'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
-const INVITATION_EMAIL_TITLE = 'Timed Walk Team Invitation'
 const INVITATION_MAX_FAILED_ATTEMPTS = process.env.INVITATION_MAX_FAILED_ATTEMPTS ? parseInt(process.env.INVITATION_MAX_FAILED_ATTEMPTS) : 5
 /**
  * Generates a random alphanumeric code.
@@ -149,14 +149,11 @@ export const sendTeamInvitation = async (req, res) => {
     // save invitation to the database
     const createdInvitation = await dbaccess.createTeamInvitation(dbclient, invitation)
 
-    const emailMessage = [
-      `You have been invited to join the Timed Walk team "${teamInfo.name}" as ${role}.`,
-      `Invitation code: ${invitationCode}`,
-      `This invitation expires at ${invitation.expires_at.toISOString()}.`
-    ].join('\n')
-
     // send the invitation email
-    await emailSender.sendEmail(email, INVITATION_EMAIL_TITLE, emailMessage)
+    let i18n = new I18n(invitation.language)
+    let title = i18n.t('emails.sendTeamInvitation.title')
+    let body = i18n.t('emails.sendTeamInvitation.body', { team_name: teamInfo.name, code: invitationCode, expires_at: invitation.expires_at.toISOString() })
+    await emailSender.sendEmail(email, title, body)
 
     res.status(200).json({ message: 'Invitation sent successfully', invitation: createdInvitation })
 
@@ -241,12 +238,12 @@ export const createPatient = async (req, res) => {
       return
     }
     // if force_create is true, we will create a new patient even if there are existing patients with the same names and date of birth
-
+    let userLanguage = language.toLowerCase()
     let newUser = await dbaccess.createUser(dbclient, {
       email,
       failed_login_attempts: 0,
       role: 'patient',
-      language: language.toLowerCase()
+      language: userLanguage
     })
 
     let newPatient = await dbaccess.createPatient(dbclient, {
@@ -259,8 +256,11 @@ export const createPatient = async (req, res) => {
     })
 
 
-    // send the invitation email
-    await emailSender.sendEmail(email, 'Account created', 'Your account has been created.')
+    // send the confirmation email
+    let i18n = new I18n(userLanguage)
+    let title = i18n.t('emails.accountCreated.title')
+    let body = i18n.t('emails.accountCreated.body')
+    await emailSender.sendEmail(email, title, body)
 
     // remove the internal id from the response, only return the public id
     delete newPatient.id
@@ -319,12 +319,17 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
       return
     }
 
+    // get the team associated with the invitation
+    let teams = await dbaccess.getTeams(dbclient, { id: clinicianInvitationInfo.team_id })
+    let team = teams[0]
+
+    let userLanguage = language.toLowerCase()
     /** @type {User} */
     let newUser = {
       email: email,
       failed_login_attempts: 0,
       role: 'clinician',
-      language: language.toLowerCase()
+      language: userLanguage
     }
 
     newUser = await dbaccess.createUser(dbclient, newUser)
@@ -342,8 +347,11 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
     // delete the invitation
     await dbaccess.deleteTeamInvitations(dbclient, { id: clinicianInvitationInfo.id })
 
-    // send email for confirmation of account creation and team association
-    await emailSender.sendEmail(email, 'Account created and associated with team', `Your account has been created and you have been associated with the team.`)
+    // send the confirmation email
+    let i18n = new I18n(userLanguage)
+    let title = i18n.t('emails.accountCreatedAndAssociatedWithTeam.title')
+    let body = i18n.t('emails.accountCreatedAndAssociatedWithTeam.body', { team_name: team.name })
+    await emailSender.sendEmail(email, title, body)
 
     res.status(201).json({ message: 'Clinician created and associated with team' })
   } catch (error) {
@@ -432,8 +440,13 @@ export const acceptTeamInvitation = async (req, res) => {
     // delete the invitation
     await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
 
-    // send email for confirmation of team association
-    await emailSender.sendEmail(req.userSession.user_email, 'Associated with team', `You have been associated with the team.`)
+    // retrieve the user email
+    let user = await dbaccess.getUsers(dbclient, { id: req.userSession.user_id })
+    // send the confirmation email
+    let i18n = new I18n(userLanguage)
+    let title = i18n.t('emails.aceptedTeamInvitation.title')
+    let body = i18n.t('emails.aceptedTeamInvitation.body', { team_name: team.name })
+    await emailSender.sendEmail(user.email, title, body)
 
     res.status(200).json({ message: 'Invitation accepted and user associated with team' })
 
