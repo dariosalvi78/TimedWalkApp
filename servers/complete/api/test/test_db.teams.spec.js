@@ -77,6 +77,36 @@ describe('Testing access to teams,', () => {
       assert.strictEqual(teams[0].name, 'Team B')
     })
 
+    describe('when a patient is created', () => {
+      let user, patient
+      before(async () => {
+        let res = await dbtools.query(
+          dbclient,
+          `
+                  INSERT INTO "users" (email, role, language)
+                  VALUES ('patient@example.com', 'patient', 'en')
+                  RETURNING *`,
+        )
+        user = res.rows[0]
+
+        res = await dbtools.query(
+          dbclient,
+          `
+                      INSERT INTO "patients" (user_id, first_names, second_names, date_of_birth, sex, phone_number)
+                      VALUES (${user.id}, 'Patient', 'One', '1990-01-01', 'male', '1234567890')
+                      RETURNING *`,
+        )
+        patient = res.rows[0]
+      })
+
+      test('a patient can be added to a team', async function () {
+        await dbaccess.addPatientToTeam(dbclient, team1.id, patient.id)
+        let teams = await dbaccess.getTeams(dbclient, { patient_id: patient.id })
+        assert.strictEqual(teams.length, 1)
+        assert.strictEqual(teams[0].id, team1.id)
+      })
+    })
+
     describe('when a clinician is associated with a team,', () => {
       let user1, user2, user3
       let clinician1, clinician2, clinician3
@@ -86,8 +116,8 @@ describe('Testing access to teams,', () => {
         let res = await dbtools.query(
           dbclient,
           `
-                  INSERT INTO "users" (email, role)
-                  VALUES ('clinician1@example.com', 'clinician')
+                  INSERT INTO "users" (email, role, language)
+                  VALUES ('clinician1@example.com', 'clinician', 'en')
                   RETURNING *`,
         )
         user1 = res.rows[0]
@@ -95,8 +125,8 @@ describe('Testing access to teams,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                      INSERT INTO "users" (email, role)
-                      VALUES ('clinician2@example.com', 'clinician')
+                      INSERT INTO "users" (email, role, language)
+                      VALUES ('clinician2@example.com', 'clinician', 'en')
                       RETURNING *`,
         )
         user2 = res.rows[0]
@@ -104,8 +134,8 @@ describe('Testing access to teams,', () => {
         res = await dbtools.query(
           dbclient,
           `
-                      INSERT INTO "users" (email, role)
-                      VALUES ('clinician3@example.com', 'clinician')
+                      INSERT INTO "users" (email, role, language)
+                      VALUES ('clinician3@example.com', 'clinician', 'en')
                       RETURNING *`,
         )
         user3 = res.rows[0]

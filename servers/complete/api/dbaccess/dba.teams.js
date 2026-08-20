@@ -6,7 +6,7 @@
 /**
  * Fetches teams from the database.
  * @param {!Object} connection - the database connection
- * @param {Object} queryParams - query parameters, contains id, p_id, name or clinician_id for lookup
+ * @param {Object} queryParams - query parameters, contains id, p_id, name, patient_id or clinician_id for lookup
  * @returns {Promise<Array<Team>>} - a promise that resolves to an array of teams, if a clinician_id is provided, the role of the clinician in the team is also returned
  */
 async function getTeams (connection, queryParams) {
@@ -15,7 +15,7 @@ async function getTeams (connection, queryParams) {
     values: [],
   }
 
-  const { id, p_id, name, clinician_id } = queryParams || {}
+  const { id, p_id, name, patient_id, clinician_id } = queryParams || {}
 
   // join with clinician_team table if clinician_id is provided and add the role column to the select statement
   if (clinician_id) {
@@ -48,6 +48,14 @@ async function getTeams (connection, queryParams) {
       query.text += ' WHERE teams.p_id = $1'
     }
     query.values.push(p_id)
+  }
+  if (patient_id) {
+    if (query.values.length > 0) {
+      query.text += ' AND teams.id IN (SELECT team_id FROM patient_team WHERE patient_id = $' + (query.values.length + 1) + ')'
+    } else {
+      query.text += ' WHERE teams.id IN (SELECT team_id FROM patient_team WHERE patient_id = $1)'
+    }
+    query.values.push(patient_id)
   }
 
   let res = await connection.query(query)
@@ -87,6 +95,22 @@ async function addClinicianToTeam (connection, team_id, clinician_id, role) {
 }
 
 /**
+ * Adds a patient to a team.
+ * @param {Object} connection - database connection
+ * @param {string} team_id - id of the team
+ * @param {string} patient_id - id of the patient
+ * @returns {Promise<Object>} - a promise that resolves to the created association
+ */
+async function addPatientToTeam (connection, team_id, patient_id) {
+  const query = {
+    text: 'INSERT INTO patient_team (team_id, patient_id) VALUES ($1, $2) RETURNING *',
+    values: [team_id, patient_id],
+  }
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Deletes a team from the database.
  * @param {!Object} connection - the database connection
  * @param {!string} id - the team to delete
@@ -106,5 +130,6 @@ export default {
   getTeams,
   createTeam,
   addClinicianToTeam,
+  addPatientToTeam,
   deleteTeam,
 }
