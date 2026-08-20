@@ -119,6 +119,7 @@
  * @property {!string} p_id - public UUID identifier
  * @property {!number} team_id - linked team id
  * @property {?number} user_id - linked user id, or null if the invitee has no account yet
+ * @property {!string} language - preferred language as a 2-letter ISO 639 code
  * @property {!string} email - email address of the invitee
  * @property {!TeamInvitationRoleType} role - invitation role
  * @property {!string} code - invitation code

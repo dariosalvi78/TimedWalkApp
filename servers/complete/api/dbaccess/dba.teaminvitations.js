@@ -11,8 +11,8 @@
  */
 async function createTeamInvitation (connection, invitation) {
   const query = {
-    text: 'INSERT INTO team_invitations (user_id, team_id, email, role, code, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-    values: [invitation.user_id, invitation.team_id, invitation.email, invitation.role, invitation.code, invitation.expires_at, invitation.failed_attempts]
+    text: 'INSERT INTO team_invitations (user_id, team_id, email, language, role, code, expires_at, failed_attempts) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+    values: [invitation.user_id, invitation.team_id, invitation.email, invitation.language, invitation.role, invitation.code, invitation.expires_at, invitation.failed_attempts]
   }
   let res = await connection.query(query)
   return res.rows[0]

@@ -54,7 +54,7 @@ export const sendTeamInvitation = async (req, res) => {
   }
 
   // request includes the team public id and the email of the clinician to invite
-  const { team_p_id, email, role, patient_p_id } = req.body
+  const { team_p_id, email, role, patient_p_id, language } = req.body
 
   if (!team_p_id || !email || !role) {
     res.status(400).json({ error: 'Missing required fields' })
@@ -109,6 +109,7 @@ export const sendTeamInvitation = async (req, res) => {
     let invitation = {}
     invitation.email = email
     invitation.user_id = null
+    invitation.language = language
     invitation.team_id = teamInfo.id
     invitation.role = role
     invitation.code = invitationCode
@@ -120,6 +121,13 @@ export const sendTeamInvitation = async (req, res) => {
       const existingUsers = await dbaccess.getUsers(dbclient, { email: email })
       if (existingUsers && existingUsers.length > 0) {
         invitation.user_id = existingUsers[0].id
+      } else {
+        // if the user does not exist, we can still send the invitation, but the user will have to create an account first
+        // the language of the email will need to be set in this case
+        if (!language) {
+          res.status(400).json({ error: 'Missing language for invitation to non-existing user' })
+          return
+        }
       }
     }
 

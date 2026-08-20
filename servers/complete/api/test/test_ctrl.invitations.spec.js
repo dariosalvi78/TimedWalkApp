@@ -115,7 +115,8 @@ describe('When testing the invitation controller,', () => {
         body: {
           email: 'test@example.com',
           team_p_id: 'team123',
-          role: 'clinician_member'
+          role: 'clinician_member',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -151,7 +152,8 @@ describe('When testing the invitation controller,', () => {
         body: {
           email: 'test@example.com',
           team_p_id: 'team123',
-          role: 'clinician_member'
+          role: 'clinician_member',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -191,7 +193,8 @@ describe('When testing the invitation controller,', () => {
         body: {
           email: 'test@example.com',
           team_p_id: 'team123',
-          role: 'clinician_member'
+          role: 'clinician_member',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -234,7 +237,8 @@ describe('When testing the invitation controller,', () => {
           email: 'patient@example.com',
           team_p_id: 'team123',
           role: 'patient',
-          patient_p_id: null // patient_p_id is missing
+          patient_p_id: null, // patient_p_id is missing
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -280,7 +284,8 @@ describe('When testing the invitation controller,', () => {
           email: 'patient@example.com',
           team_p_id: 'team123',
           role: 'patient',
-          patient_p_id: 'p3232'
+          patient_p_id: 'p3232',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -338,7 +343,8 @@ describe('When testing the invitation controller,', () => {
         body: {
           email: 'clinician@example.com',
           team_p_id: 'team123',
-          role: 'clinician_member'
+          role: 'clinician_member',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -353,6 +359,7 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(createdInvite.email, 'clinician@example.com')
       assert.strictEqual(createdInvite.team_id, 33)
       assert.strictEqual(createdInvite.role, 'clinician_member')
+      assert.strictEqual(createdInvite.language, 'en')
       assert.strictEqual(createdInvite.user_id, null)
       assert.ok(createdInvite.code)
       assert.strictEqual(createdInvite.code.length, 6)
@@ -418,7 +425,8 @@ describe('When testing the invitation controller,', () => {
           email: 'patient@example.com',
           team_p_id: 'team123',
           role: 'patient',
-          patient_p_id: 'p3232'
+          patient_p_id: 'p3232',
+          language: 'en'
         }
       }
       const res = new MockResponse()
@@ -433,6 +441,7 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(createdInvite.email, 'patient@example.com')
       assert.strictEqual(createdInvite.team_id, 33)
       assert.strictEqual(createdInvite.role, 'patient')
+      assert.strictEqual(createdInvite.language, 'en')
       assert.strictEqual(createdInvite.user_id, null)
       assert.ok(createdInvite.code)
       assert.strictEqual(createdInvite.code.length, 6)

@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS team_invitations (
   p_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   team_id BIGINT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  language TEXT CHECK (language ~ '^[A-Za-z]{2}$'),
   role team_invitation_role_type NOT NULL,
   code TEXT NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]+$'),
   email TEXT NOT NULL,
