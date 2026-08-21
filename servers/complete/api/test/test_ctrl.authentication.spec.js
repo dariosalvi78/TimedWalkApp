@@ -173,7 +173,7 @@ describe('When testing the authentication controller,', () => {
         return [{
           user_id: 1,
           is_public_client: true,
-          public_client_hard_expiry_at: new Date(Date.now() - 10000), // expired
+          hard_expiry_at: new Date(Date.now() - 10000), // expired
           user: {
             role: 'clinician',
           }
@@ -213,7 +213,7 @@ describe('When testing the authentication controller,', () => {
         return [{
           user_id: 1,
           is_public_client: true,
-          public_client_hard_expiry_at: new Date(Date.now() + 10000), // not expired
+          hard_expiry_at: new Date(Date.now() + 10000), // not expired
           user: {
             role: 'clinician',
           }
@@ -256,7 +256,7 @@ describe('When testing the authentication controller,', () => {
         return [{
           user_id: 1,
           is_public_client: true,
-          public_client_hard_expiry_at: new Date(Date.now() + 10000), // not expired
+          hard_expiry_at: new Date(Date.now() + 10000), // not expired
           user: {
             role: 'clinician',
           }

@@ -55,7 +55,7 @@
  * @property {!string} csfr_code - CSFR token bound to the session
  * @property {!boolean} is_public_client - whether this session belongs to a public client
  * @property {!string} expires_at - expiration timestamp
- * @property {?string} public_client_hard_expiry_at - hard expiration timestamp for public clients, or null
+ * @property {?string} hard_expiry_at - hard expiration timestamp for public clients, or null
  * @property {!string} created_at - creation timestamp
  */
 
@@ -66,7 +66,7 @@
  * @property {!string} csfr_code - CSFR token bound to the session
  * @property {!boolean} is_public_client - whether this session belongs to a public client
  * @property {!string} expires_at - expiration timestamp
- * @property {?string} public_client_hard_expiry_at - hard expiration timestamp for public clients, or null
+ * @property {?string} hard_expiry_at - hard expiration timestamp for public clients, or null
  * @property {!string} created_at - creation timestamp
  * @property {!User} user - associated user information
  */

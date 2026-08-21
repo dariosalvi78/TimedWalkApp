@@ -27,7 +27,8 @@ import { I18n } from '../services/i18n.js'
 const LOGIN_CODE_EXPIRY_MINUTES = process.env.LOGIN_CODE_EXPIRY_MINUTES || 5
 
 const WEB_CLIENT_SESSION_EXPIRY_MINUTES = process.env.WEB_CLIENT_SESSION_EXPIRY_MINUTES || 15
-const WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES = process.env.WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES || 60 * 12
+const WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES = process.env.WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES || 60 * 2
+const WEB_TRUSTED_CLIENT_SESSION_HARD_EXPIRY_MINUTES = process.env.WEB_TRUSTED_CLIENT_SESSION_HARD_EXPIRY_MINUTES || 60 * 24
 const MOBILE_CLIENT_SESSION_EXPIRY_MINUTES = process.env.MOBILE_CLIENT_SESSION_EXPIRY_MINUTES || 60 * 24 * 30 // 1 month
 
 const MAX_FAILED_LOGIN_ATTEMPTS = process.env.MAX_FAILED_LOGIN_ATTEMPTS || 5
@@ -108,8 +109,8 @@ export const verifyUserSession = async (req, res, next) => {
 
     let userSession = userSessions[0]
 
-    // additional check against hard expiry for public clients
-    if (userSession.declare_private_client && userSession.public_client_hard_expiry_at && userSession.public_client_hard_expiry_at < new Date()) {
+    // additional check against hard expiry for web clients
+    if (userSession.declare_private_client && userSession.hard_expiry_at && userSession.hard_expiry_at < new Date()) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
 
@@ -417,10 +418,13 @@ export const loginWeb = async (req, res) => {
       let CSRFToken = generateRandomString(CSRF_TOKEN_SIZE_BYTES)
 
       let sessionExpiryTime = new Date(Date.now() + (WEB_CLIENT_SESSION_EXPIRY_MINUTES * 60 * 1000))
-      let publicClientHardExpiryTime = null
+      let hardExpiryTime = null
       if (!deviceId && !declare_private_client) {
         // the client is a public client, we set a hard expiry time for the session
-        publicClientHardExpiryTime = new Date(Date.now() + (WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES * 60 * 1000))
+        hardExpiryTime = new Date(Date.now() + (WEB_PUBLIC_CLIENT_SESSION_HARD_EXPIRY_MINUTES * 60 * 1000))
+      } else {
+        // the client is a trusted client, we set a hard expiry time for the session
+        hardExpiryTime = new Date(Date.now() + (WEB_TRUSTED_CLIENT_SESSION_HARD_EXPIRY_MINUTES * 60 * 1000))
       }
 
       if (!deviceId && declare_private_client) {
@@ -445,7 +449,7 @@ export const loginWeb = async (req, res) => {
         csrf_code: CSRFToken,
         declare_private_client: !deviceId,
         expires_at: sessionExpiryTime,
-        public_client_hard_expiry_at: publicClientHardExpiryTime
+        hard_expiry_at: hardExpiryTime
       })
 
       // set the session and CSRF cookies

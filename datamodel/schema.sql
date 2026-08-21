@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   csfr_code TEXT NOT NULL,
   is_public_client BOOLEAN NOT NULL DEFAULT true,
   expires_at TIMESTAMPTZ NOT NULL,
-  public_client_hard_expiry_at TIMESTAMPTZ,
+  hard_expiry_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
