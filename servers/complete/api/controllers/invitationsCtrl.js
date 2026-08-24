@@ -18,6 +18,7 @@ import { I18n } from '../services/i18n.js'
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
 const INVITATION_MAX_FAILED_ATTEMPTS = process.env.INVITATION_MAX_FAILED_ATTEMPTS ? parseInt(process.env.INVITATION_MAX_FAILED_ATTEMPTS) : 5
+const INVITATION_CODE_PREFIX = process.env.INVITATION_CODE_PREFIX || '00'
 /**
  * Generates a random alphanumeric code.
  * @param {number} length - Length of the string (default: 6)
@@ -102,7 +103,7 @@ export const sendTeamInvitation = async (req, res) => {
     }
 
     // generate 6 random characters for the invitation code
-    const invitationCode = generateInvitationCode(INVITATION_CODE_LENGTH)
+    const invitationCode = INVITATION_CODE_PREFIX + generateInvitationCode(INVITATION_CODE_LENGTH)
 
     // create the invitation in the database
     /** @type {TeamInvitation} */
