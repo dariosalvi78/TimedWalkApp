@@ -137,19 +137,19 @@ In the future, support for additional factors should be included such as TOTP or
 
 Re. 2. Email-based login and invitation codes are vulnerable to email takeover
 
-why it is true that emails can be compromised, it is also true that regular passwords are even less secure. Besides, emails are always used as recovery mechanisms, making even strong passwords pointless when email access is compromised.
+While it is true that emails can be compromised, it is also true that regular passwords are even less secure. Besides, emails are always used as recovery mechanisms, making even strong passwords pointless when email access is compromised.
 
-We need to distinguish 2 cases: patients and clinicians. A patient can only login once with an explicit invite, therefore email should be compromised at the time of invitation. The probabiilty is very small and the effect is that only that patient's data is compromised.
+We need to distinguish 2 cases: patients and clinicians. A patient can only login once with an explicit invite, therefore email should be compromised at the time of invitation for an attacker to be succesful. The probabiilty of this is very small and the effect is that only that patient's data is compromised.
 
 A compromised clinician's email is more serious as it affects data from multiple patients, but for this case see previous answer.
 
 Re. 3. Long-lived app bearer tokens
 
-Long-lived tokens are a compromise between usability and security. We do not expect patients to use the app very frequently which is why the long life. As logins are only possible, for this first instance, through clinician's invitation, we do not want clinicians to have to issue invitations often.
+Long-lived tokens are a compromise between usability and security. We do not expect patients to use the app very frequently which is why the long life. As logins are only possible, for now, through clinician's invitation, we do not want clinicians to have to issue invitations often.
 
-In a future version where patients can login with their emails, we can shorten the token the life.
+In a future version where patients can login with their emails, we can shorten the token life.
 
-Short-lived access tokens are pointless in this case as the app is not supposed to make several calls and the architecture of the system does not require JWT tokens.
+Short lived session tokens with longer lived auth tokens are pointless in this case as the app is not supposed to make several calls and the architecture of the system does not require JWT tokens.
 
 Re. 4. “Trusted device” is user self-attestation, not a real security control
 
@@ -163,7 +163,7 @@ However, it may be safer to set the CSFR token in a cookie that is readable by t
 
 Re. 6. No explicit mention of encryption, audit logging, and access enforcement
 
-Agreed, the notes will be exanded to include those.
+Agreed, the notes will be expanded to include those.
 
 Re. 7. “Never-expiring” device identifier is a tracking risk
 

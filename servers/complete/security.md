@@ -64,7 +64,7 @@ The client stores a log-lived (months) additional identifier that identifies the
 
 The server will check if the device identifier is known for the user and if it is not, it will require an additional verification step asking for an information from the user.
 
-- Absolute Expiration (`absoluteExpiresAt`) should apply to ALL web sessions as a hard cap, but can be set longer for trusted devices (e.g., 12 hours) vs untrusted devices (e.g., 2 hours). When hit, prompt an inline re-authentication modal so active work is not lost.
+- Absolute Expiration (`hard_expiry_at`) should apply to ALL web sessions as a hard cap, but can be set longer for trusted devices (e.g., 24 hours) vs untrusted devices (e.g., 2 hours). When hit, prompt an inline re-authentication modal so active work is not lost.
 
 The security question should be something that the user knows and does not need to remember only for this system. For example:
 
@@ -99,9 +99,14 @@ Note: if we allow patients to login into the web similar measures are necessary 
 
 ### Tokens refresh
 
-The app takes care of refreshing the session token before expiration.
+The frontend takes care of refreshing the session token before expiration. In the smartphone app, this can be done at startup only, given the longevity of the token.
+In the web interface, refresh must be more frequent, ideally when the user is interacting with the system, by setting a listener on clicks and taps. Timers should be avoided because tabs can be left unattended and will continuously keep the interface logged in.
 
-todo: expiry at + hard expiry for public devices...
+Before hard expiration (web only), the interface should warn the user and prompt a regular login (thus ask for the email code) with an overlay popup, to avoid losing any ongoing work.
+
+## IDs
+
+There are 2 types of IDs, internal IDs and public IDs. Internal IDs are used internally in the database and are not exposed through API calls. They are sequential integers, easy to read and efficient, but not secure. They can be accessed by developers and admins for debugging purposes. Public IDs are used in API calls and shown to users of the system when required. They are random UUIDv4, thus secure.
 
 ## Security analysis
 
@@ -115,3 +120,42 @@ Fu\*k up scenarios:
 
 - malicious JS code leaking through a dependency or a compromised server.
 - Attacker controls user email and knows the answer to the security question.
+
+## Tenancy
+
+The current architecture supports different servers. Each invitation code is prefixed with 2 characters that identify the server. Typically, servers are associated to a single institution, such as a hospital, a healthcare organization or a company. The institution will also have the legal responsibility to manage the data.
+
+A server could host data for more than one institution. This is the case, for example, of a company offering a tele-health service to different customers.
+
+The prefix-URL association is hard coded in the patients' app. The web frontend for clinicians has a different URL per server. This also means that the entity that controls the app on the app stores also controls the list of allowed servers.
+
+## Access control
+
+Access control is done at API level and the strategy is simple:
+
+- Patients can only access their own data and nothing else.
+- A "team" corresponds to a group a of people who can have access to certain patients. Typically a hospital unit, a research group, or an entire institution. A team can invite patients and clinicians. Clinicians in a team can see data of the patients in the same team only.
+
+TODO: to consider a 2 level separation, with a first level that is explicit and agreed with the patient (such as sharing data with a certain hospital) and a second level that is internal and does not need to be transparent to the patient (such as different groups in a hospital accessing different patients).
+
+We are not doing partinioning of the database per insitituion, or row-level access control on the database, because this requires much more complexity. While multi-tenancy on one server is possible and often desirable, multiple servers are supported by the
+This could be done in the future, for example
+
+## Logging strategy
+
+There are two logs on the server:
+
+- Technical log. This is used for detecting bugs and unexpected situations including outages of network, external services and any type of resource. They can also help in the event of a cyber attack. These logs have leves from TRACE (most verbose) to ERROR (error only). TRACE and DEBUG are used for testing and can leak personal information, thus they must not be used in production. INFO and ERROR levels must not leak personally identifiable informatiuon and must be used in production. These logs must be purged regularly, for example every year.
+- Audit log. This is used for detecting abuse, cyberattacks and accountability. It logs WHO did WHAT and WHEN. To minimise inclusion of personally identifiable data, the logs should avoid including names, but only include internal IDs, which would allow reconstructing data flows in combination of the database. By logging only IDs, if a user is deleted, all the associated information on the audit log will become hardly linkable (unless secondary linkage is done, for example by guessing the ID). It is better to include public IDs as these are harder to guess. Audit logs should have a very long life, such as 10 years.
+
+## Encryption
+
+Encryption a in transit must be guaranteed with HTTPS and a valid certificate.
+
+Encryption at rest must be implemented on each installation of the server.
+
+Answers to security questions must be hashed before being saved on the database.
+
+Data on app is encrypted by the operating system on both Android and iOS on all modern phones. This protects data at rest. App sandboxing makes the data silosed within each app (unless explicit data sharing among apps in some cases). It is important that data is stored in the app-specific private storage (/data/data/).
+
+Any data stored in the app webview, such as cookies, inherit the same operating-system level encryption-at-rest as any other standard local file stored by the app. These data are stored in app-specific databases that sit inside the app’s private container directory.
