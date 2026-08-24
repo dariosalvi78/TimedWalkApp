@@ -441,9 +441,13 @@ export const acceptTeamInvitation = async (req, res) => {
     await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
 
     // retrieve the user email
-    let user = await dbaccess.getUsers(dbclient, { id: req.userSession.user_id })
+    let users = await dbaccess.getUsers(dbclient, { id: req.userSession.user_id })
+    let user = users[0]
+    // retrieve the team name
+    let teams = await dbaccess.getTeams(dbclient, { id: invitationInfo.team_id })
+    let team = teams[0]
     // send the confirmation email
-    let i18n = new I18n(userLanguage)
+    let i18n = new I18n(user.language)
     let title = i18n.t('emails.aceptedTeamInvitation.title')
     let body = i18n.t('emails.aceptedTeamInvitation.body', { team_name: team.name })
     await emailSender.sendEmail(user.email, title, body)

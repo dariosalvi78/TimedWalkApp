@@ -1166,6 +1166,18 @@ describe('When testing the invitation controller,', () => {
       mock.method(dbaccess, 'deleteTeamInvitations', async () => {
         return true // simulate all ok
       })
+      mock.method(dbaccess, 'getUsers', async () => {
+        return [{
+          id: 'user123',
+          email: 'patient@test.com'
+        }]
+      })
+      mock.method(dbaccess, 'getTeams', async () => {
+        return [{
+          id: 300,
+          name: 'Test Team'
+        }]
+      })
       mock.method(dbaccess, 'increaseTeamInvitationFailedAttempts', async () => {
         return true // simulate all ok
       })
