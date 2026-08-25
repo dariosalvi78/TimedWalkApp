@@ -346,6 +346,13 @@ export const loginWeb = async (req, res) => {
       return res.status(401).json({ error: 'Code expired' })
     }
 
+    // check if the user has exceeded the maximum number of failed login attempts
+    if (loginCode.failed_attempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+      logger.warn(`User ${email} has exceeded the maximum number of failed login attempts`)
+      // TODO: send email to admin or user to notify them of the failed attempts?
+      return res.status(403).json({ error: 'Too many failed login attempts' })
+    }
+
     // code is valid, now check if the user exists (it should, as the code was generated for an existing user)
     let users = await dbaccess.getUsers(dbclient, { email: email })
     if (!users || users.length === 0) {
