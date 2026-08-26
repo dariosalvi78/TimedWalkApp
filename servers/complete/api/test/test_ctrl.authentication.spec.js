@@ -839,9 +839,6 @@ describe('When testing the authentication controller,', () => {
           answer_hash: 'aaabbbxxx'
         }]
       })
-      mock.method(bcrypt, 'hash', async () => {
-        return null
-      })
       mock.method(bcrypt, 'compare', async () => {
         return false
       })
@@ -874,7 +871,6 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
-      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
       assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 1, 'failed attempts are increased')
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
@@ -908,9 +904,6 @@ describe('When testing the authentication controller,', () => {
           answer_hash: 'aaabbbxxx',
           declare_private_client: false
         }]
-      })
-      mock.method(bcrypt, 'hash', async () => {
-        return 'aaabbbxxx'
       })
       mock.method(bcrypt, 'compare', async () => {
         return true
@@ -949,7 +942,6 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
-      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
       assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
       assert.ok(res.cookies['__Host-session'], 'session cookie is set')
       assert.ok(res.data.CSRFToken, 'csrf token is sent')
@@ -989,9 +981,6 @@ describe('When testing the authentication controller,', () => {
           question: 'What is the make of your first car?',
           answer_hash: 'aaabbbxxx'
         }]
-      })
-      mock.method(bcrypt, 'hash', async () => {
-        return 'aaabbbxxx'
       })
       mock.method(bcrypt, 'compare', async () => {
         return true
@@ -1033,7 +1022,6 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
       assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
-      assert.strictEqual(bcrypt.hash.mock.callCount(), 1, 'answer is hashed')
       assert.strictEqual(bcrypt.compare.mock.callCount(), 1, 'hash is compared')
       assert.strictEqual(dbaccess.createDeviceId.mock.callCount(), 1, 'device id is registered on the db')
       assert.ok(res.cookies['__Host-session'], 'session cookie is set')

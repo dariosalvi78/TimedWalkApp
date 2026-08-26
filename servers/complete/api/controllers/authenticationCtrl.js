@@ -135,6 +135,10 @@ const generateRandomString = (nBytes) => {
   return randomBytes(nBytes).toString('hex')
 }
 
+export const generateSessionToken = () => {
+  return generateRandomString(SESSION_TOKEN_SIZE_BYTES)
+}
+
 /**
  * Generates a random number with the specified number of digits.
  * Padded with zeros if necessary to ensure the correct length.
@@ -289,7 +293,7 @@ export const requestLoginCode = async (req, res) => {
 
         // Store the code in the database with an expiration time (e.g., 5 minutes)
         let expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000)
-        await dblogincodes.createLoginCode(dbclient, { email: email, code: code, expires_at: expiresAt })
+        let login_code_object = await dblogincodes.createLoginCode(dbclient, { email: email, code: code, expires_at: expiresAt })
 
         // Here you send the code to the user's email
         let i18n = new I18n(users[0].language)
@@ -407,7 +411,7 @@ export const loginWeb = async (req, res) => {
           // check answer hash against the stored hash
           let securityQuestion = securityQuestions[0]
           // hash the answer with bcrypt and compare with the stored hash
-          let answerHash = await bcrypt.hash(securityA, SECURITY_QUESTION_ANSWER_SALT_ROUNDS)
+          // let answerHash = await bcrypt.hash(securityA, SECURITY_QUESTION_ANSWER_SALT_ROUNDS)
           let match = await bcrypt.compare(securityA, securityQuestion.answer_hash)
           if (!match) {
             logger.warn(`Invalid security answer for ${email}`)
@@ -465,7 +469,7 @@ export const loginWeb = async (req, res) => {
       }
 
       // create the user session in the database
-      await dbaccess.createUserSession(dbclient, {
+      let userSession = await dbaccess.createUserSession(dbclient, {
         user_id: user.id,
         session_id: sessionToken,
         csrf_code: CSRFToken,

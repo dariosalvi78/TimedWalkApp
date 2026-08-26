@@ -23,8 +23,8 @@ describe('Testing access to patients,', () => {
       let res = await dbtools.query(
         dbclient,
         `
-                INSERT INTO "users" (role, email, created_at, last_login_at)
-                VALUES ('patient', 'sofia@mau.se', NOW(), NOW())
+                INSERT INTO "users" (role, email, language, created_at, last_login_at)
+                VALUES ('patient', 'sofia@mau.se', 'en', NOW(), NOW())
                 RETURNING *`,
       )
       user1 = res.rows[0]
@@ -32,8 +32,8 @@ describe('Testing access to patients,', () => {
       res = await dbtools.query(
         dbclient,
         `
-                    INSERT INTO "users" (role, email, created_at, last_login_at)
-                    VALUES ('patient', 'anthony@mau.se', NOW(), NOW())
+                    INSERT INTO "users" (role, email, language, created_at, last_login_at)
+                    VALUES ('patient', 'anthony@mau.se', 'en', NOW(), NOW())
                     RETURNING *`,
       )
       user2 = res.rows[0]
@@ -118,6 +118,14 @@ describe('Testing access to patients,', () => {
         })
         assert.strictEqual(patients.length, 1)
         assert.strictEqual(patients[0].p_id, patient1.p_id)
+      })
+
+      test('a patient and user can be retrieved by id', async () => {
+        let patient = await dbaccess.getPatientWithUser(dbclient, { patient_id: patient1.id })
+        assert.strictEqual(patient.id, patient1.id)
+        assert.strictEqual(patient.user_id, user1.id)
+        assert.strictEqual(patient.email, user1.email)
+        assert.strictEqual(patient.language, user1.language)
       })
 
       describe('when a team is created and patients are associated with it,', () => {

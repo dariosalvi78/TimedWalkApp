@@ -134,6 +134,7 @@ export default {
 
   // patients
   getPatients: dbapatients.getPatients,
+  getPatientWithUser: dbapatients.getPatientWithUser,
   createPatient: dbapatients.createPatient,
   deletePatient: dbapatients.deletePatient,
 

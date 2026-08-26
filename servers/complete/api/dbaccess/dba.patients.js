@@ -74,6 +74,39 @@ async function getPatients (connection, queryParams = null) {
 }
 
 /**
+ * Retrieves the patient and associated user from the database.
+ * Can be queried by patient id, user id, or email.
+ * @param {Object} connection - database connection
+ * @param {Object} queryParams - query parameters
+ * @returns {Promise<Object>} - a promise that resolves to the patient and user data
+ */
+async function getPatientWithUser (connection, queryParams = null) {
+  const query = {
+    text: `
+      SELECT patients.*, users.email, users.language
+      FROM "patients"
+      JOIN "users" ON "users".id = "patients".user_id`,
+    values: [],
+  }
+
+  if (queryParams && queryParams.patient_id) {
+    query.text += ' WHERE patients.id = $1'
+    query.values.push(queryParams.patient_id)
+  } else if (queryParams && queryParams.user_id) {
+    query.text += ' WHERE patients.user_id = $1'
+    query.values.push(queryParams.user_id)
+  } else if (queryParams && queryParams.email) {
+    query.text += ' WHERE LOWER(users.email) = LOWER($1)'
+    query.values.push(queryParams.email)
+  } else {
+    throw new Error('Must provide patient_id, user_id, or email to get patient with user')
+  }
+
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Creates a new patient in the database.
  * @param {Object} connection - database connection
  * @param {Patient} patient - the patient to create
@@ -118,6 +151,7 @@ async function deletePatient (connection, patientId) {
 
 export default {
   getPatients,
+  getPatientWithUser,
   createPatient,
   deletePatient
 }

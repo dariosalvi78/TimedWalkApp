@@ -15,11 +15,15 @@ import { emailSender } from '../services/emailSender.js'
 import { randomInt } from 'node:crypto'
 import { I18n } from '../services/i18n.js'
 import auditLogger from '../services/auditLogger.js'
+import { randomUUID } from 'node:crypto'
+import { generateSessionToken } from './authenticationCtrl.js'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
 const INVITATION_MAX_FAILED_ATTEMPTS = process.env.INVITATION_MAX_FAILED_ATTEMPTS ? parseInt(process.env.INVITATION_MAX_FAILED_ATTEMPTS) : 5
 const INVITATION_CODE_PREFIX = process.env.INVITATION_CODE_PREFIX || '00'
+const MOBILE_CLIENT_SESSION_EXPIRY_MINUTES = process.env.MOBILE_CLIENT_SESSION_EXPIRY_MINUTES || 60 * 24 * 30 // 1 month
+
 /**
  * Generates a random alphanumeric code.
  * @param {number} length - Length of the string (default: 6)
@@ -487,9 +491,6 @@ export const acceptTeamInvitation = async (req, res) => {
         null) // reason for change
     }
 
-    // delete the invitation
-    await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
-
     // retrieve the user email
     let users = await dbaccess.getUsers(dbclient, { id: req.userSession.user_id })
     let user = users[0]
@@ -502,7 +503,147 @@ export const acceptTeamInvitation = async (req, res) => {
     let body = i18n.t('emails.aceptedTeamInvitation.body', { team_name: team.name })
     await emailSender.sendEmail(user.email, title, body)
 
+    // delete the invitation
+    await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
+
     res.status(200).json({ message: 'Invitation accepted and user associated with team' })
+
+  } catch (error) {
+    logger.error('Error creating new clinician:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    await dbaccess.releaseConnection(dbclient)
+  }
+}
+
+
+/**
+ * Accepts a team invitation code, associates patient with the team and logs the patient in.
+ * Does not require the patient to be logged in, but requires the invitation code and the patient email to match.
+ * @param {Object} req - the http request object
+ * @param {Object} res - the http response object
+ */
+export const loginPatientAndAcceptInvitation = async (req, res) => {
+  if (req.userSession) {
+    // this is only when not logged in, so if there is a user session, return 404
+    res.status(404).json({ error: 'Invalid request' })
+    return
+  }
+
+  // extract code from body, else 400
+  const { invitation_code } = req.body
+  if (!invitation_code) {
+    res.status(400).json({ error: 'Missing invitation code' })
+    return
+  }
+
+  let dbclient = await dbaccess.getConnection(true)
+
+  try {
+    // run cleanup of expired codes
+    await dbaccess.deleteExpiredTeamInvitations(dbclient, new Date())
+    // find code by code, else 404
+    let invitations = await dbaccess.getTeamInvitations(dbclient, { code: invitation_code })
+
+    if (!invitations || invitations.length === 0) {
+      logger.warn(`Team invitation not found for code ${invitation_code}`)
+      res.status(404).json({ error: 'Invitation code not found' })
+      return
+    }
+    let invitationInfo = invitations[0]
+
+    // if failed attempts is greater than maximum, return 403
+    if (invitationInfo.failed_attempts >= INVITATION_MAX_FAILED_ATTEMPTS) {
+      logger.warn(`Maximum failed attempts exceeded for invitation code ${invitation_code}`)
+      // TODO: send email to admin notifying them of the failed attempts
+      res.status(403).json({ error: 'Maximum failed attempts exceeded for this invitation' })
+      return
+    }
+
+    // if the invitation has expired, return 403
+    if (new Date(invitationInfo.expires_at) < new Date()) {
+      logger.warn(`Invitation code ${invitation_code} has expired`)
+      await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, invitationInfo.id)
+      res.status(403).json({ error: 'Invitation code has expired' })
+      return
+    }
+
+    // confirm that the invitation is for patient
+    if (invitationInfo.role !== 'patient') {
+      // increase failed attempts for this invitation
+      await dbaccess.increaseTeamInvitationFailedAttempts(dbclient, invitationInfo.id)
+      res.status(403).json({ error: 'Invitation code is not for a patient' })
+      return
+    }
+
+    // get the patient record for this user
+    let patient = await dbaccess.getPatientWithUser(dbclient, { user_id: invitationInfo.user_id })
+    if (!patient) {
+      logger.warn(`Patient not found for invitation code ${invitation_code}`)
+      res.status(404).json({ error: 'Patient not found for this invitation' })
+      return
+    }
+    // associate the patient with the team
+    let patient_team = await dbaccess.addPatientToTeam(dbclient, invitationInfo.team_id, patient.id)
+    auditLogger.log(
+      'user ' + patient.user_id, // who performed the action
+      'ACCEPT_INVITATION', // what action
+      `patient_team ${patient_team.id}`, // what resource has changed, it's actually the team that has changed, as a new member has been added
+      null, // field diff
+      null) // reason for change
+
+    // retrieve the team name
+    let teams = await dbaccess.getTeams(dbclient, { id: invitationInfo.team_id })
+    if (!teams || teams.length === 0) {
+      logger.warn(`Team not found for invitation code ${invitation_code} and team id ${invitationInfo.team_id}`)
+      res.status(404).json({ error: 'Team not found for this invitation' })
+      return
+    }
+    let team = teams[0]
+    // send the confirmation email
+    let i18n = new I18n(patient.language)
+    let title = i18n.t('emails.aceptedTeamInvitation.title')
+    let body = i18n.t('emails.aceptedTeamInvitation.body', { team_name: team.name })
+    await emailSender.sendEmail(patient.email, title, body)
+
+    // delete the invitation
+    await dbaccess.deleteTeamInvitations(dbclient, { id: invitationInfo.id })
+
+
+    // the client is a private client, we generate a device id (uuid v4) and send it back to the client
+    let deviceId = randomUUID()
+    // save it on the database
+    await dbaccess.createDeviceId(dbclient, deviceId)
+
+    let sessionToken = generateSessionToken()
+    let sessionExpiryTime = new Date(Date.now() + MOBILE_CLIENT_SESSION_EXPIRY_MINUTES * 60 * 1000) // use the mobile client expiry time
+
+    // create the user session in the database
+    let userSession = await dbaccess.createUserSession(dbclient, {
+      user_id: patient.user_id,
+      session_id: sessionToken,
+      csrf_code: null,
+      declare_private_client: true,
+      expires_at: sessionExpiryTime,
+      hard_expiry_at: null
+    })
+
+    auditLogger.log(
+      'user ' + patient.user_id, // who performed the action
+      'LOGIN', // what action
+      `user_session ${userSession.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
+
+    // send back the session token
+    res
+      .status(201)
+      // send the CSRF token in the body
+      .json({
+        sessionExpiryTime,
+        sessionToken,
+        deviceId
+      })
 
   } catch (error) {
     logger.error('Error creating new clinician:', error)
