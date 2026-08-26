@@ -14,6 +14,7 @@ import dbaccess from '../dbaccess/dbaccess.js'
 import { emailSender } from '../services/emailSender.js'
 import { randomInt } from 'node:crypto'
 import { I18n } from '../services/i18n.js'
+import auditLogger from '../services/auditLogger.js'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
@@ -150,6 +151,13 @@ export const sendTeamInvitation = async (req, res) => {
     // save invitation to the database
     const createdInvitation = await dbaccess.createTeamInvitation(dbclient, invitation)
 
+    auditLogger.log(
+      'user ' + req.userSession.user_id, // who performed the action
+      'SEND_INVITATION', // what action
+      `team_invitation ${createdInvitation.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
+
     // send the invitation email
     let i18n = new I18n(invitation.language)
     let title = i18n.t('emails.sendTeamInvitation.title')
@@ -247,6 +255,13 @@ export const createPatient = async (req, res) => {
       language: userLanguage
     })
 
+    auditLogger.log(
+      'user ' + req.userSession.user_id, // who performed the action
+      'CREATE_USER', // what action
+      `user ${newUser.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
+
     let newPatient = await dbaccess.createPatient(dbclient, {
       user_id: newUser.id,
       first_names,
@@ -255,6 +270,13 @@ export const createPatient = async (req, res) => {
       date_of_birth,
       phone_number
     })
+
+    auditLogger.log(
+      'user ' + req.userSession.user_id, // who performed the action
+      'CREATE_PATIENT', // what action
+      `patient ${newPatient.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
 
 
     // send the confirmation email
@@ -355,6 +377,21 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
     await emailSender.sendEmail(email, title, body)
 
     res.status(201).json({ message: 'Clinician created and associated with team' })
+
+    // a bit silly, but doesn't hurt to log both the user and the clinician creation, as they are separate resources
+    auditLogger.log(
+      'user ' + newUser.id, // who performed the action
+      'CREATE_USER', // what action
+      `user ${newUser.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
+
+    auditLogger.log(
+      'user ' + newUser.id, // who performed the action
+      'CREATE_CLINICIAN', // what action
+      `clinician ${newClinician.id}`, // what resource has changed
+      null, // field diff
+      null) // reason for change
   } catch (error) {
     logger.error('Error creating new clinician:', error)
     res.status(500).json({ error: 'Internal server error' })
@@ -430,12 +467,24 @@ export const acceptTeamInvitation = async (req, res) => {
       // get the patient record for this user
       let patients = await dbaccess.getPatients(dbclient, { user_id: req.userSession.user_id })
       // associate the patient with the team
-      await dbaccess.addPatientToTeam(dbclient, invitationInfo.team_id, patients[0].id)
+      let patient_team = await dbaccess.addPatientToTeam(dbclient, invitationInfo.team_id, patients[0].id)
+      auditLogger.log(
+        'user ' + req.userSession.user_id, // who performed the action
+        'ACCEPT_INVITATION', // what action
+        `patient_team ${patient_team.id}`, // what resource has changed, it's actually the team that has changed, as a new member has been added
+        null, // field diff
+        null) // reason for change
     } else if (req.userSession.user_role === 'clinician') {
       // get the clinician record for this user
       let clinicians = await dbaccess.getClinicians(dbclient, { user_id: req.userSession.user_id })
       // associate the clinician with the team
-      await dbaccess.addClinicianToTeam(dbclient, invitationInfo.team_id, clinicians[0].id, invitationInfo.role)
+      let clinician_team = await dbaccess.addClinicianToTeam(dbclient, invitationInfo.team_id, clinicians[0].id, invitationInfo.role)
+      auditLogger.log(
+        'user ' + req.userSession.user_id, // who performed the action
+        'ACCEPT_INVITATION', // what action
+        `clinician_team ${clinician_team.id}`, // what resource has changed, it's actually the team that has changed, as a new member has been added
+        null, // field diff
+        null) // reason for change
     }
 
     // delete the invitation

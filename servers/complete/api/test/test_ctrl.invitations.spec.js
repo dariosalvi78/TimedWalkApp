@@ -4,6 +4,7 @@ import dbaccess from '../dbaccess/dbaccess.js'
 import { sendTeamInvitation, createPatient, createClinicianWithTeamInvitation, acceptTeamInvitation } from '../controllers/invitationsCtrl.js'
 import { MockResponse } from './MockResponse.js'
 import { emailSender } from '../services/emailSender.js'
+import auditlogger from '../services/auditLogger.js'
 import bcrypt from 'bcrypt'
 
 
@@ -329,6 +330,9 @@ describe('When testing the invitation controller,', () => {
         sentEmailBody = body
         return true // simulate email sent
       })
+      mock.method(auditlogger, 'log', async (actor, action, resource, field_diff, reason_for_change) => {
+        return true // simulate audit log entry created
+      })
       mock.method(dbaccess, 'releaseConnection', async () => {
         return true // simulate all ok
       })
@@ -365,6 +369,7 @@ describe('When testing the invitation controller,', () => {
       assert.strictEqual(createdInvite.code.length, 8)
       assert.strictEqual(createdInvite.failed_attempts, 0)
       assert.ok(createdInvite.expires_at)
+      assert.strictEqual(auditlogger.log.mock.callCount(), 1)
       assert.strictEqual(emailSender.sendEmail.mock.callCount(), 1)
       assert.strictEqual(sentEmailSubject, 'You have been invited to join a TimedWalk team')
       assert.ok(sentEmailBody.includes(createdInvite.code))

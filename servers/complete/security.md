@@ -146,7 +146,9 @@ This could be done in the future, for example
 There are two logs on the server:
 
 - Technical log. This is used for detecting bugs and unexpected situations including outages of network, external services and any type of resource. They can also help in the event of a cyber attack. These logs have leves from TRACE (most verbose) to ERROR (error only). TRACE and DEBUG are used for testing and can leak personal information, thus they must not be used in production. INFO and ERROR levels must not leak personally identifiable informatiuon and must be used in production. These logs must be purged regularly, for example every year.
-- Audit log. This is used for detecting abuse, cyberattacks and accountability. It logs WHO did WHAT and WHEN. To minimise inclusion of personally identifiable data, the logs should avoid including names, but only include internal IDs, which would allow reconstructing data flows in combination of the database. By logging only IDs, if a user is deleted, all the associated information on the audit log will become hardly linkable (unless secondary linkage is done, for example by guessing the ID). It is better to include public IDs as these are harder to guess. Audit logs should have a very long life, such as 10 years.
+- Audit log. This is used for detecting abuse, cyberattacks and accountability. It logs WHO did WHAT and WHEN. To minimise inclusion of personally identifiable data, the logs should avoid including names, but only include database IDs, which would allow reconstructing data flows in combination with the database. By logging only IDs, if a user is deleted, all the associated information on the audit log will become hardly linkable (unless secondary linkage is done, for example by guessing the ID). Audit logs should have a very long life, such as 10 years.
+
+Note: the audit log logs INTERNAL ids, not the public ones, as the internal ones are less likely to be leaked and documented, thus making identification harder if access to the database is not possible.
 
 ## Encryption
 

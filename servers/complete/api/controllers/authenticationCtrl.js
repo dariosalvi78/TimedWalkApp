@@ -23,6 +23,7 @@ import { emailSender } from '../services/emailSender.js'
 import { randomBytes, randomUUID } from 'node:crypto'
 import bcrypt from 'bcrypt'
 import { I18n } from '../services/i18n.js'
+import auditLogger from '../services/auditLogger.js'
 
 const LOGIN_CODE_EXPIRY_MINUTES = process.env.LOGIN_CODE_EXPIRY_MINUTES || 5
 
@@ -228,6 +229,13 @@ export const logoutUserSession = async (req, res) => {
 
   let deleted = await dbaccess.deleteUserSession(dbclient, req.userSession.session_id)
 
+  auditLogger.log(
+    'user ' + req.userSession.user_id, // who performed the action
+    'LOGOUT', // what action
+    `user_session ${req.userSession.session_id}`, // what resource has changed
+    null, // field diff
+    null) // reason for change
+
   await dbaccess.releaseConnection(dbclient) // release the connection now that it is not needed anymore
 
   if (deleted) {
@@ -288,6 +296,13 @@ export const requestLoginCode = async (req, res) => {
         let title = i18n.t('emails.requestLoginCode.title')
         let body = i18n.t('emails.requestLoginCode.body', { code: code, expires_at: expiresAt.toDateString() })
         await emailSender.sendEmail(email, title, body)
+
+        auditLogger.log(
+          'user ' + users[0].id, // who performed the action
+          'REQUEST_LOGIN_CODE', // what action
+          `login_codes ${login_code_object.id}`, // what resource has changed
+          null, // field diff
+          null) // reason for change
 
         logger.info(`Login code sent to ${email}: ${code}`)
 
@@ -458,6 +473,13 @@ export const loginWeb = async (req, res) => {
         expires_at: sessionExpiryTime,
         hard_expiry_at: hardExpiryTime
       })
+
+      auditLogger.log(
+        'user ' + user.id, // who performed the action
+        'LOGIN', // what action
+        `user_session ${userSession.id}`, // what resource has changed
+        null, // field diff
+        null) // reason for change
 
       // set the session and CSRF cookies
       res
