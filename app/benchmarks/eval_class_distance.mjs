@@ -1,20 +1,32 @@
 /**
  *
- * Batch evaluation of the curvature algorithm across all tracks.
+ * Batch evaluation of the outdoorDistance algorithm across all tracks.
  * Compares computed distance against ground-truth values from metadata_tracks.csv.
+ * Includes the computation of quality classification.
+ *
+ * Usage:
+ * You need a folder with a file named metadata_tracks.csv containing the metadata for each track,
+ * and subfolders for each track with the sensors data, with at least one file for localization (positions.csv).
+ * The metadata file should have a column named "testName" that matches the subfolder names, and a column
+ * named "distanceReference" with the ground-truth distance for each track.
+ * You can filter tracks by duration with --filter-minutes, and group results by a metadata column with --group-by.
+ * The grouping is by any column in the metadata file, e.g. "path_curvature" or "fs_gnss", but also includes qualityClassification (by quality as classified by the algorithm) and isBadQuality (by quality as classified by the ground-truth metadata).
  *
  * Usage (from the benchmarks folder):
- *   node eval_curvature.mjs \
+ *   node eval_distance.mjs \
  *     --data public/data_realtracks \
  *     --filter-minutes 6 \
- *     --out  curvature_results.csv
+ *     --group-by path_curvature \
+ *     --out  distance_results.csv
  *
  */
 import path from 'path'
-import fs from 'node:fs';
+import fs from 'node:fs'
 import csvReplay from '../src/modules/csvReplay.js'
 import txtReplay from '../src/modules/txtReplay.js'
+import outdoorDistance from '../src/modules/outdoorDistance.js'
 import testQualityChecker from '../src/modules/testQualityChecker.js';
+
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2)
@@ -23,7 +35,19 @@ const getArg = (flag, def) => { const i = args.indexOf(flag); return i !== -1 ? 
 const DATA_DIR = getArg('--data', '../../tracks')
 const OUT_CSV = getArg('--out')
 const FILTER_MINUTES = parseFloat(getArg('--filter-minutes'))
+const GROUP_BY = getArg('--group-by', null)
 
+
+// ─── Statistics helpers ───────────────────────────────────────────────────────
+const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length
+const stdev = arr => {
+  const m = mean(arr)
+  return Math.sqrt(mean(arr.map(x => (x - m) ** 2)))
+}
+const mae = errs => mean(errs.map(e => Math.abs(e)))
+const rmse = errs => Math.sqrt(mean(errs.map(e => e ** 2)))
+const min = arr => Math.min(...arr)
+const max = arr => Math.max(...arr)
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 async function main () {
@@ -32,7 +56,7 @@ async function main () {
 
   // write to the output CSV
   if (OUT_CSV) {
-    fs.writeFileSync(OUT_CSV, 'testName,duration,curvature,curvatureReference\n')
+    fs.writeFileSync(OUT_CSV, 'testName,duration,distance,distanceReference\n')
   }
 
   // ── Load ground-truth metadata ─────────────────────────────────────────────
@@ -52,7 +76,6 @@ async function main () {
   let results = {}
   let skippedCount = 0
   let tracks = []
-
 
   for (const subdir of fs.readdirSync(DATA_DIR).sort()) {
     if (subdir.startsWith('.')) continue  // skip hidden files
@@ -139,66 +162,128 @@ async function main () {
       continue
     }
 
+
+    // replay positions through outdoorDistance and compute distance
+    outdoorDistance.reset()
     testQualityChecker.reset()
 
+    let testStarted = false
 
+    replayer.registerPositionCallback((p) => {
+      let p_copy = { ...p }  // make a copy to avoid modifying the original position object
+      const selected = outdoorDistance.addPosition(p_copy)
+      if (testStarted) {
+        testQualityChecker.addPosition(p_copy, selected)
+      }
+    })
 
     replayer.registerEventCallback((e) => {
       if (e === 'test start') {
-        replayer.registerPositionCallback((p) => {
-          testQualityChecker.addPosition(p)
-        })
+        testStarted = true
+        outdoorDistance.startTest()
+      }
+      if (e === 'test end') {
+        outdoorDistance.stopTest()
       }
     })
 
     replayer.startReplay(false)
 
+
     replayer.stopReplay()
 
-    const classification = testQualityChecker.classifyCurvature('logistic')
+    const distance = outdoorDistance.getDistance()
 
+    console.log(`  ✓ Computed distance: ${distance.toFixed(1)} m`)
+    console.log(`  ✓ Ground-truth from metadata: ${testMeta.distanceReference.toFixed(1)} m`)
+
+    const classification = testQualityChecker.classifyCurvature('logistic')
+    const hasGaps = testQualityChecker.isGapsDetected()
+    const hasLowFreq = !testQualityChecker.isSamplingFrequencySufficient()
+
+    console.log(`  ✓ Has gaps: ${hasGaps}`)
+    console.log(`  ✓ Has low frequency: ${hasLowFreq}`)
     console.log(`  ✓ Computed curvature: ${classification.label}`)
-    console.log(`  ✓ Ground-truth from metadata: ${testMeta.path_curvature}`)
+
+    let isBadQuality = hasGaps || hasLowFreq || classification.label >= 2
+    let refIsBadQuality = testMeta.path_curvature >= 2 || parseFloat(testMeta.total_gaps_time_gnss) >= 30 || parseFloat(testMeta.fs_gnss) < 0.2
+    testMeta.qualityClassification = isBadQuality
+    testMeta.isBadQuality = refIsBadQuality
+    console.log(`  ✓ Is bad quality: ${isBadQuality}`)
+    console.log(`  ✓ Reference is bad quality: ${refIsBadQuality}`)
 
     // write to the output CSV
     if (OUT_CSV) {
       const row = [
         testMeta.testName,
         testMeta.duration,
-        classification.label,
-        testMeta.path_curvature
+        distance.toFixed(2),
+        testMeta.distanceReference.toFixed(2),
+        isBadQuality,
+        refIsBadQuality
       ]
       fs.appendFileSync(OUT_CSV, row.join(',') + '\n')
     }
 
-    results.curvature = results.curvature || []
-    results.curvature.push(classification.label)
-    results.reference = results.reference || []
-    results.reference.push(testMeta.path_curvature)
+    // if group by is specified
+    if (GROUP_BY) {
+      results[testMeta[GROUP_BY]] = results[testMeta[GROUP_BY]] || {}
+      results[testMeta[GROUP_BY]].distance = results[testMeta[GROUP_BY]].distance || []
+      results[testMeta[GROUP_BY]].distance.push(distance)
+      results[testMeta[GROUP_BY]].reference = results[testMeta[GROUP_BY]].reference || []
+      results[testMeta[GROUP_BY]].reference.push(testMeta.distanceReference)
+    } else {
+      results.distance = results.distance || []
+      results.distance.push(distance)
+      results.reference = results.reference || []
+      results.reference.push(testMeta.distanceReference)
+    }
+
+    // end of track loop
   }
+
 
   // compute statistics
   console.log(`\n──── Summary ────────────────────────────────`)
+  console.log(`Total tracks found: ${tracks.length}`)
+  console.log(`Tracks to evaluate after filtering: ${tracks.length - skippedCount}`)
   console.log(`Skipped tests: ${skippedCount}`)
-  console.log(`Overall:`)
-  console.log(`  N: ${results.curvature.length}`)
-  let correctPredictions = 0
-  let confusionMatrix = {}
-  for (let i = 0; i < results.curvature.length; i++) {
-    const predicted = results.curvature[i]
-    const actual = results.reference[i]
-    if (predicted === actual) {
-      correctPredictions++
+  if (GROUP_BY) {
+    for (const group in results) {
+      const groupResults = results[group]
+      const errs = groupResults.distance.map((d, i) => d - groupResults.reference[i])
+      let merr = mean(errs)
+      let stdevErr = stdev(errs)
+      let loa1 = merr - 1.96 * stdevErr
+      let loa2 = merr + 1.96 * stdevErr
+      let mdc = (loa2 - loa1) / 2
+      console.log(`Group: ${group}`)
+      console.log(`  N: ${errs.length}`)
+      console.log(`  Mean error: ${merr.toFixed(1)} m`)
+      console.log(`  Stddev error: ${stdevErr.toFixed(1)} m`)
+      console.log(`  MDC: ${mdc.toFixed(1)} m`)
+      console.log(`  MAE: ${mae(errs).toFixed(1)} m`)
+      console.log(`  RMSE: ${rmse(errs).toFixed(1)} m`)
+      console.log(`  Min error: ${min(errs).toFixed(1)} m`)
+      console.log(`  Max error: ${max(errs).toFixed(1)} m`)
     }
-    confusionMatrix[actual] = confusionMatrix[actual] || {}
-    confusionMatrix[actual][predicted] = (confusionMatrix[actual][predicted] || 0) + 1
+  } else {
+    const errs = results.distance.map((d, i) => d - results.reference[i])
+    let merr = mean(errs)
+    let stdevErr = stdev(errs)
+    let loa1 = merr - 1.96 * stdevErr
+    let loa2 = merr + 1.96 * stdevErr
+    let mdc = (loa2 - loa1) / 2
+    console.log(`Overall:`)
+    console.log(`  N: ${errs.length}`)
+    console.log(`  Mean error: ${merr.toFixed(1)} m`)
+    console.log(`  Stddev error: ${stdevErr.toFixed(1)} m`)
+    console.log(`  MDC: ${mdc.toFixed(1)} m`)
+    console.log(`  MAE: ${mae(errs).toFixed(1)} m`)
+    console.log(`  RMSE: ${rmse(errs).toFixed(1)} m`)
+    console.log(`  Min error: ${min(errs).toFixed(1)} m`)
+    console.log(`  Max error: ${max(errs).toFixed(1)} m`)
   }
-  console.log(` Accuracy: ${(correctPredictions / results.curvature.length * 100).toFixed(1)}%`)
-  console.log(` Confusion Matrix:`)
-  for (const actual in confusionMatrix) {
-    console.log(`  ${actual}: ${JSON.stringify(confusionMatrix[actual])}`)
-  }
-
 }
 
 main()
