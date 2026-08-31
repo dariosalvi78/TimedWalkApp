@@ -72,7 +72,13 @@ export default {
 
   isSamplingFrequencySufficient () {
     if (this.samplesNumber === 0) return false
-    const totalTimeSeconds = (this.lastSelectedPositionTime - this.firstTimestamp) / 1000
+    let totalTimeSeconds = 0
+    if (this.lastSelectedPositionTime) {
+      totalTimeSeconds = (this.lastSelectedPositionTime - this.firstTimestamp) / 1000
+    } else {
+      // use lastSubsampledPositionTime as a fallback if no selected positions were added
+      totalTimeSeconds = (this.lastSubsampledPositionTime - this.firstTimestamp) / 1000
+    }
     const samplingFrequency = this.samplesNumber / totalTimeSeconds
     return samplingFrequency >= QUALITY_THRESHOLDS.minSamplingFrequency
   },
