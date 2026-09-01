@@ -19,6 +19,12 @@
       "path": "servers/complete/api",
       "package": "servers/complete/api/package.json",
       "type": "node-express"
+    },
+    {
+      "name": "server-complete-web",
+      "path": "servers/complete/web",
+      "package": "servers/complete/web/package.json",
+      "type": "node"
     }
   ],
   "folders": {

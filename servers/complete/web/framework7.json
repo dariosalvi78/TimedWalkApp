@@ -1,0 +1,18 @@
+{
+  "cwd": "/Users/aj6373/Documents/Projects/TimedWalk/repos/TimedWalkApp/servers/complete/web",
+  "type": [
+    "web"
+  ],
+  "name": "TimedWalk Dashboard",
+  "framework": "vue",
+  "template": "split-view",
+  "bundler": "vite",
+  "cssPreProcessor": false,
+  "theming": {
+    "customColor": true,
+    "color": "#007aff",
+    "darkMode": false,
+    "iconFonts": true
+  },
+  "customBuild": false
+}
