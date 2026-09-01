@@ -397,7 +397,19 @@ export const loginWeb = async (req, res) => {
         // check security question and answer for public clients
         if (!securityQ_pID || !securityA) {
           logger.warn(`Public client login attempt for ${email} without security question and answer`)
-          return res.status(400).json({ error: 'Security question and answer are required for public clients', requireHighSecurityAuthFlow: true })
+
+          // this triggers the high security auth flow on the client side
+
+          // fetch the security questions for the user and send them to the client, so the user can answer them
+          let securityQuestions = await dbaccess.getUserSecurityQuestions(dbclient, { user_id: user.id })
+          if (!securityQuestions || securityQuestions.length === 0) {
+            logger.error(`No security questions found for public client login attempt for ${email}`)
+            return res.status(500).json({ error: 'No security questions found for user' })
+          }
+
+          // send the security questions to the client
+          let questions = securityQuestions.map(q => ({ p_id: q.p_id, question: q.question }))
+          return res.status(400).json({ error: 'Security question and answer are required for public clients', requireHighSecurityAuthFlow: true, securityQuestions: questions })
         } else {
           // check if the security question and answer are correct
           let securityQuestions = await dbaccess.getUserSecurityQuestions(dbclient, { p_id: securityQ_pID })
