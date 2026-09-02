@@ -422,8 +422,7 @@ export const loginWeb = async (req, res) => {
           }
           // check answer hash against the stored hash
           let securityQuestion = securityQuestions[0]
-          // hash the answer with bcrypt and compare with the stored hash
-          // let answerHash = await bcrypt.hash(securityA, SECURITY_QUESTION_ANSWER_SALT_ROUNDS)
+          // compare the answer with the stored hash
           let match = await bcrypt.compare(securityA, securityQuestion.answer_hash)
           if (!match) {
             logger.warn(`Invalid security answer for ${email}`)

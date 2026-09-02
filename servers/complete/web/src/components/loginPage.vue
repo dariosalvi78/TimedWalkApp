@@ -12,16 +12,16 @@
       <f7-list form>
         <f7-list-input type="email" name="email" label="Email" floating-label placeholder="Email address"
           autocomplete="email" v-model:value="email" validate error-message="Please enter a valid email address"
-          :onValidate="(v) => setInputValid('email', v)"></f7-list-input>
+          required :onValidate="(v) => setInputValid('email', v)"></f7-list-input>
         <f7-list-input type="password" name="code" label="Code" floating-label placeholder="Code sent by email"
           autocomplete="off" v-model:value="logincode" v-show="codeRequested" validate
-          error-message="Please enter a valid code" pattern="[0-9]*"
+          error-message="Please enter a valid code" pattern="[0-9]*" required
           :onValidate="(v) => setInputValid('code', v)"></f7-list-input>
 
         <f7-list-input v-if="highSecurityAuthFlowRequested" v-for="question in highSecurityQuestions"
           :key="question.p_id" type="text" :name="`securityQuestion_${question.p_id}`" :label="question.question"
           floating-label autocomplete="off" placeholder="Your answer" v-model:value="securityAnswers[question.p_id]"
-          validate error-message="Please enter a valid answer" pattern="(.|\s)*\S(.|\s)*"
+          validate error-message="Please enter a valid answer" required
           :onValidate="(v) => setInputValid(question.p_id, v)"></f7-list-input>
         <f7-list-item v-if="highSecurityAuthFlowRequested" checkbox title="Trust this device in the future"
           name="trustDevice" :checked="trustedDevice"></f7-list-item>
@@ -55,6 +55,8 @@
 <script>
 import { ref } from 'vue';
 import api from '../js/api.js';
+import { f7 } from 'framework7-vue';
+
 
 export default {
   setup () {
@@ -65,7 +67,7 @@ export default {
     const highSecurityQuestions = ref([])
     const securityAnswers = ref({})
     const trustedDevice = ref(false)
-    const allFieldsValid = ref(true)
+    const allFieldsValid = ref(false)
 
     let validInputs = {}
 
@@ -90,7 +92,7 @@ export default {
         await api.requestLoginCode(email.value)
         codeRequested.value = true
       } catch (error) {
-        console.error('Error requesting login code:', error)
+        f7.dialog.alert(error.message || 'An error occurred when requesting a login code. Please try again later.', 'Login Error')
       }
     }
 
@@ -101,6 +103,7 @@ export default {
         } else {
           await api.loginWithCode(email.value, logincode.value)
         }
+        // TODO: go to the main page of the app after successful login
         alert('logged in!')
       } catch (error) {
         console.error('Error logging in', error)
@@ -110,7 +113,7 @@ export default {
           highSecurityQuestions.value = error.securityQuestions
           securityAnswers.value = {}
         } else {
-          alert('An error occurred during login. Please try again later.')
+          f7.dialog.alert(error.message || 'An error occurred during login. Please try again later.', 'Login Error')
         }
       }
     }

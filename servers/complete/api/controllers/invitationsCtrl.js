@@ -17,12 +17,14 @@ import { I18n } from '../services/i18n.js'
 import auditLogger from '../services/auditLogger.js'
 import { randomUUID } from 'node:crypto'
 import { generateSessionToken } from './authenticationCtrl.js'
+import bcrypt from 'bcrypt'
 
 const INVITATION_CODE_LENGTH = process.env.INVITATION_CODE_LENGTH ? parseInt(process.env.INVITATION_CODE_LENGTH) : 6
 const INVITATION_EXPIRATION_HOURS = process.env.INVITATION_EXPIRATION_HOURS ? parseInt(process.env.INVITATION_EXPIRATION_HOURS) : 24
 const INVITATION_MAX_FAILED_ATTEMPTS = process.env.INVITATION_MAX_FAILED_ATTEMPTS ? parseInt(process.env.INVITATION_MAX_FAILED_ATTEMPTS) : 5
 const INVITATION_CODE_PREFIX = process.env.INVITATION_CODE_PREFIX || '00'
 const MOBILE_CLIENT_SESSION_EXPIRY_MINUTES = process.env.MOBILE_CLIENT_SESSION_EXPIRY_MINUTES || 60 * 24 * 30 // 1 month
+const HASH_SALT_ROUNDS = process.env.HASH_SALT_ROUNDS ? parseInt(process.env.HASH_SALT_ROUNDS) : 10
 
 /**
  * Generates a random alphanumeric code.
@@ -306,13 +308,19 @@ export const createPatient = async (req, res) => {
 /**
  * Creates a new clinician and associates them with a team using an invitation code.
  * No need to be logged in for this.
- * @param {Object} req - the http request object
+ * @param {Object} req - the http request object, needs to contain:
+ * invitation_code: the invitation code
+ * email: the email of the new clinician
+ * first_names: the first names of the new clinician
+ * second_names: the second names of the new clinician
+ * language: the language of the new clinician
+ * security_answers: the security answers of the new clinician in the form of an array similar to [{ question: 'What is your favorite color?', answer: 'blue' }]
  * @param {Object} res - the http response object
  */
 export const createClinicianWithTeamInvitation = async (req, res) => {
   // check that all fields are present else 400
-  const { invitation_code, email, first_names, second_names, language } = req.body
-  if (!invitation_code || !email || !first_names || !second_names || !language) {
+  const { invitation_code, email, first_names, second_names, language, security_answers } = req.body
+  if (!invitation_code || !email || !first_names || !second_names || !language || !security_answers || !Array.isArray(security_answers) || security_answers.length === 0) {
     res.status(400).json({ error: 'Missing required fields' })
     return
   }
@@ -358,8 +366,19 @@ export const createClinicianWithTeamInvitation = async (req, res) => {
       role: 'clinician',
       language: userLanguage
     }
-
+    // create the new user
     newUser = await dbaccess.createUser(dbclient, newUser)
+
+    // add the security questions and answers for the new user
+    for (let answer of security_answers) {
+      // hash the answer before storing it in the database
+      answer.answer = await bcrypt.hash(answer.answer, HASH_SALT_ROUNDS)
+      await dbaccess.createUserSecurityQuestion(dbclient, {
+        user_id: newUser.id,
+        question: answer.question,
+        answer: answer.answer
+      })
+    }
 
     /** @type {Clinician} */
     let newClinician = {

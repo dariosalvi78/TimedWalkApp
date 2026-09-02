@@ -710,7 +710,7 @@ describe('When testing the authentication controller,', () => {
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
     })
 
-    test('if user is clinician, it is not a known client and security question is not provided, return 400', async () => {
+    test('if user is clinician, it is not a known client and security questions are not provided, return 400', async () => {
       mock.method(dbaccess, 'getConnection', async () => {
         return null
       })
@@ -726,6 +726,13 @@ describe('When testing the authentication controller,', () => {
           user_id: 1,
           email: 'dario@mau.se',
           role: 'clinician'
+        }]
+      })
+      mock.method(dbaccess, 'getUserSecurityQuestions', async () => {
+        return [{
+          p_id: 1,
+          question: 'What is the capital of France?',
+          answer: 'Paris'
         }]
       })
       mock.method(dbaccess, 'addFailedLoginAttempt', async () => {
@@ -747,11 +754,13 @@ describe('When testing the authentication controller,', () => {
       const res = new MockResponse()
 
       await loginWeb(req, res)
+
       assert.strictEqual(res.code, 400)
 
       assert.strictEqual(dbaccess.getConnection.mock.callCount(), 1, 'connection is acquired')
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'login codes are fetched')
       assert.strictEqual(dbaccess.getUsers.mock.callCount(), 1, 'users are fetched')
+      assert.strictEqual(dbaccess.getUserSecurityQuestions.mock.callCount(), 1, 'security questions are fetched')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
