@@ -2,7 +2,7 @@
   <f7-app v-bind="f7params">
 
     <!-- main view, should have "view-main" class -->
-    <f7-view main class="view-main" url="/">
+    <f7-view main class="view-main" url="/" :browser-history="true">
     </f7-view>
 
   </f7-app>
