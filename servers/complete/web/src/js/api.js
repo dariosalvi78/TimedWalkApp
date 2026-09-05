@@ -39,5 +39,22 @@ export default {
   async createClinicianAccount (invitation_code, email, first_names, second_names, language) {
     return Promise.resolve()
     // return Promise.reject(new Error('Not implemented'));
+  },
+
+  async getClinicianTeams () {
+    return Promise.resolve([
+      {
+        p_id: 'team1',
+        name: 'Team 1'
+      },
+      {
+        p_id: 'team2',
+        name: 'Team 2'
+      }
+    ])
+  },
+
+  async logout () {
+    return Promise.resolve()
   }
 }

@@ -2,6 +2,7 @@
 import LoginPage from '../components/loginPage.vue';
 import NotFoundPage from '../pages/404.vue';
 import newAccountPage from '../components/clinician/newAccountPage.vue';
+import clinicianHomePage from '../components/clinician/homePage.vue';
 
 import userInfo from '../js/userInfo.js';
 
@@ -34,6 +35,10 @@ var routes = [
   {
     path: '/clinicians/new-account/',
     component: newAccountPage,
+  },
+  {
+    path: '/clinicians/home/',
+    component: clinicianHomePage,
   },
   {
     path: '(.*)',
