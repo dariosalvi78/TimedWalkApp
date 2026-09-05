@@ -29,3 +29,11 @@
   content: '';
   z-index: 6000;
 }
+
+/*
+  Max width for larger screens
+*/
+.limit-width {
+  max-width: 1600px;
+  margin: 0 auto;
+}

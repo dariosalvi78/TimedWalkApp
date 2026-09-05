@@ -53,13 +53,17 @@
 
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import api from '../js/api.js';
 import { f7 } from 'framework7-vue';
 
 
 export default {
-  setup () {
+  props: {
+    f7route: Object,
+    f7router: Object
+  },
+  setup (props) {
     const email = ref('')
     const logincode = ref('')
     const codeRequested = ref(false)
@@ -70,6 +74,13 @@ export default {
     const allFieldsValid = ref(false)
 
     let validInputs = {}
+
+    const shouldLogout = props.f7route.query.logout
+
+    if (shouldLogout) {
+      f7.dialog.alert('You have been logged out.', 'Logged Out')
+    }
+
 
     const setInputValid = (inputName, isValid) => {
       validInputs[inputName] = isValid
@@ -103,8 +114,7 @@ export default {
         } else {
           await api.loginWithCode(email.value, logincode.value)
         }
-        // TODO: go to the main page of the app after successful login
-        alert('logged in!')
+        props.f7router.navigate('/clinicians/home/')
       } catch (error) {
         console.error('Error logging in', error)
 
