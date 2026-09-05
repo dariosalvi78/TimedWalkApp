@@ -103,6 +103,16 @@ describe('Testing access to users,', () => {
       assert.ok(!user)
     })
 
+    test('existing user can be updated', async function () {
+      let updateParams = {
+        role: 'admin',
+        language: 'en',
+      }
+      let updatedUser = await dbaccess.updateUser(dbclient, user1.id, updateParams)
+      assert.strictEqual(updatedUser.role, 'admin')
+      assert.strictEqual(updatedUser.language, 'en')
+    })
+
   })
 
 })

@@ -61,6 +61,35 @@ async function createUser (connection, user) {
 }
 
 /**
+ * Updates a user in the database.
+ * @param {Object} connection - the database connection
+ * @param {string} userId - the ID of the user to update
+ * @param {Object} updateParams - the parameters to update
+ * @returns {Promise<User>} - a promise that resolves to the updated user
+ */
+async function updateUser (connection, userId, updateParams) {
+  const query = {
+    text: 'UPDATE "users" SET ',
+    values: [],
+  }
+
+  const setClauses = []
+  for (const [key, value] of Object.entries(updateParams)) {
+    setClauses.push(`${key} = $${query.values.length + 1}`)
+    query.values.push(value)
+  }
+
+  query.text += setClauses.join(', ')
+  query.text += ' WHERE id = $' + (query.values.length + 1)
+  query.values.push(userId)
+
+  query.text += ' RETURNING *'
+
+  let res = await connection.query(query)
+  return res.rows[0]
+}
+
+/**
  * Deletes a user in the database.
  * @param {Client} connection - the database connection
  * @param {string} p_id - public id of the user to be deleted
@@ -89,6 +118,7 @@ async function deleteUser (connection, p_id = null, email = null) {
 export default {
   getUsers,
   createUser,
+  updateUser,
   addFailedLoginAttempt,
   deleteUser,
 }

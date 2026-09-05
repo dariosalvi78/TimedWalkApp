@@ -489,6 +489,9 @@ export const loginWeb = async (req, res) => {
         hard_expiry_at: hardExpiryTime
       })
 
+      // update the last login timestamp for the user and reset failed login attempts
+      await dbaccess.updateUser(dbclient, user.id, { last_login_at: new Date(), failed_login_attempts: 0 })
+
       auditLogger.log(
         'user ' + user.id, // who performed the action
         'LOGIN', // what action

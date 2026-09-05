@@ -917,6 +917,13 @@ describe('When testing the authentication controller,', () => {
       mock.method(bcrypt, 'compare', async () => {
         return true
       })
+      mock.method(dbaccess, 'updateUser', async () => {
+        return {
+          p_id: '1234',
+          role: 'admin',
+          language: 'en'
+        }
+      })
       let session = {}
       mock.method(dbaccess, 'createUserSession', async (client, us) => {
         session = us
@@ -957,6 +964,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(res.data.sessionExpiryTime, 'session expire is sent')
       assert.ok(!res.cookies['__Host-Http-device-id'], 'device id cookie is not set')
       assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is not set')
+      assert.strictEqual(dbaccess.updateUser.mock.callCount(), 1, 'user is updated')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
       assert.strictEqual(dblogincodes.deleteExpiredLoginCodes.mock.callCount(), 1, 'old codes are deleted')
@@ -996,6 +1004,13 @@ describe('When testing the authentication controller,', () => {
       })
       mock.method(dbaccess, 'createDeviceId', async () => {
         return null
+      })
+      mock.method(dbaccess, 'updateUser', async () => {
+        return {
+          p_id: '1234',
+          role: 'admin',
+          language: 'en'
+        }
       })
       let session = {}
       mock.method(dbaccess, 'createUserSession', async (client, us) => {
@@ -1039,6 +1054,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(res.cookies['__Host-Http-device-id'], 'device id cookie is set')
       assert.ok(!session.publicClientHardExpiryTime, 'hard expiry is NOT set')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
+      assert.strictEqual(dbaccess.updateUser.mock.callCount(), 1, 'user is updated')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')
@@ -1134,6 +1150,13 @@ describe('When testing the authentication controller,', () => {
       mock.method(dbaccess, 'updateDeviceId', async () => {
         return []
       })
+      mock.method(dbaccess, 'updateUser', async () => {
+        return {
+          p_id: '1234',
+          role: 'admin',
+          email: 'dario@mau.se'
+        }
+      })
       let session = {}
       mock.method(dbaccess, 'createUserSession', async (client, us) => {
         session = us
@@ -1170,6 +1193,7 @@ describe('When testing the authentication controller,', () => {
       assert.ok(res.cookies['__Host-session'], 'session cookie is set')
       assert.ok(res.data.CSRFToken, 'csrf token is sent')
       assert.strictEqual(dbaccess.createUserSession.mock.callCount(), 1, 'user session is created')
+      assert.strictEqual(dbaccess.updateUser.mock.callCount(), 1, 'user is updated')
       assert.strictEqual(dbaccess.addFailedLoginAttempt.mock.callCount(), 0, 'failed attempts are NOT increased')
       assert.strictEqual(dblogincodes.getLoginCodes.mock.callCount(), 1, 'old codes are deleted')
       assert.strictEqual(dbaccess.releaseConnection.mock.callCount(), 1, 'connection is released')

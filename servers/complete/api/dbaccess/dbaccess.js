@@ -125,6 +125,7 @@ export default {
   getUsers: dbausers.getUsers,
   createUser: dbausers.createUser,
   addFailedLoginAttempt: dbausers.addFailedLoginAttempt,
+  updateUser: dbausers.updateUser,
   deleteUser: dbausers.deleteUser,
 
   // clinicians
